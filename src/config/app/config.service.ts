@@ -7,9 +7,7 @@ import { ConfigService } from '@nestjs/config';
  */
 @Injectable()
 export class AppConfigService {
-  constructor(private configService: ConfigService) {
-    console.log('Config Service Loaded');
-  }
+  constructor(private configService: ConfigService) {}
 
   get name(): string | undefined {
     return this.configService.get<string>('app.name');
