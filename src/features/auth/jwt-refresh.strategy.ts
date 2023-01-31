@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { AuthConfigService } from 'src/config/auth/config.service';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
+export class JwtRefreshStrategy extends PassportStrategy(Strategy) {
   constructor(authConfig: AuthConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -14,7 +14,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: any) {
-    if (payload.purpose != 'authenticate') {
+    console.log(payload);
+    if (payload.purpose != 'refresh') {
       return false;
     }
     return { id: payload.sub };

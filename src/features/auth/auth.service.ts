@@ -35,6 +35,10 @@ export class AuthService {
     };
   }
 
+  async refresh(user: any) {
+    return await this.login(user);
+  }
+
   async register(body: CreateUserDto) {
     return this.usersService.create(body.password, body.email);
   }

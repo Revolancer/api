@@ -2,6 +2,7 @@ import {
   Body,
   ConflictException,
   Controller,
+  Get,
   Post,
   Req,
   UseGuards,
@@ -10,6 +11,7 @@ import { Request } from 'express';
 import { EmailExistsError } from 'src/errors/email-exists-error';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { JwtRefreshAuthGuard } from './jwt-refresh-auth.guard';
 import { LocalAuthGuard } from './local-auth.guard';
 
 @Controller('auth')
@@ -20,6 +22,13 @@ export class AuthController {
   @Post('login')
   async login(@Req() req: Request) {
     return this.authService.login(req.user);
+  }
+
+  @UseGuards(JwtRefreshAuthGuard)
+  @Get('refresh')
+  async refresh(@Req() req: Request) {
+    console.log(req);
+    return this.authService.refresh(req.user);
   }
 
   @Post('register')
