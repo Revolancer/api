@@ -7,8 +7,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { AuthConfigService } from 'src/config/auth/config.service';
 import { AuthConfigModule } from 'src/config/auth/config.module';
 import { JwtStrategy } from './jwt.strategy';
-import { AuthController } from './auth.controller';
 import { JwtRefreshStrategy } from './jwt-refresh.strategy';
+import { AuthController } from './auth.controller';
 
 @Module({
   imports: [
@@ -20,7 +20,6 @@ import { JwtRefreshStrategy } from './jwt-refresh.strategy';
       inject: [AuthConfigService],
       useFactory: async (authConfig: AuthConfigService) => ({
         secret: authConfig.jwtSecret,
-        signOptions: { expiresIn: '60s' },
       }),
     }),
   ],
