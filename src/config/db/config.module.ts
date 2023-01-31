@@ -18,6 +18,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         DB_POSTGRES_HOST: Joi.string().default('localhost'),
         DB_POSTGRES_PORT: Joi.number().default(5432),
         DB_POSTGRES_DB: Joi.string().default('postgres'),
+        DB_POSTGRES_SYNC: Joi.boolean().default(true),
       }),
     }),
   ],

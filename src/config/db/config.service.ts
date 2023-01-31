@@ -28,4 +28,8 @@ export class DBConfigService {
   get db(): string | undefined {
     return this.configService.get<string>('db.db');
   }
+
+  get synchronise(): boolean {
+    return Boolean(this.configService.get<boolean>('db.synchronise'));
+  }
 }

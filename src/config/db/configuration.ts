@@ -5,4 +5,5 @@ export default registerAs('db', () => ({
   user: process.env.DB_POSTGRES_USER,
   password: process.env.DB_POSTGRES_PASS,
   db: process.env.DB_POSTGRES_DB,
+  synchronise: process.env.DB_POSTGRES_SYNC,
 }));
