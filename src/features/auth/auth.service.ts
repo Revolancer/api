@@ -3,6 +3,8 @@ import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as argon2 from 'argon2';
+import { NoUserError } from 'src/errors/no-user-error';
+import { UserRole } from '../users/userrole.entity';
 
 @Injectable()
 export class AuthService {
@@ -22,7 +24,18 @@ export class AuthService {
   }
 
   async login(user: any) {
-    const payload = { sub: user.id };
+    const loaded = await this.usersService.findOne(user.id);
+    if (loaded === null) {
+      throw new NoUserError();
+    }
+
+    const roles: string[] = [];
+
+    user.roles.forEach((role: UserRole) => {
+      roles.push(role.role);
+    });
+
+    const payload = { sub: user.id, roles: roles };
     return {
       access_token: this.jwtService.sign(
         { purpose: 'authenticate', ...payload },

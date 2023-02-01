@@ -5,7 +5,9 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
+  OneToMany,
 } from 'typeorm';
+import { UserRole } from './userrole.entity';
 
 @Entity()
 export class User {
@@ -26,6 +28,13 @@ export class User {
 
   @Column({ default: true })
   isActive!: boolean;
+
+  @OneToMany(() => UserRole, (role: UserRole) => role.user, {
+    cascade: true,
+    onDelete: 'CASCADE',
+    eager: true,
+  })
+  roles!: UserRole[];
 
   @CreateDateColumn()
   created_at!: Date;
