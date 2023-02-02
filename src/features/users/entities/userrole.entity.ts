@@ -6,10 +6,12 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   ManyToOne,
+  Unique,
 } from 'typeorm';
 import { User } from './user.entity';
 
 @Entity()
+@Unique('user-role', ['user', 'role'])
 export class UserRole {
   @PrimaryGeneratedColumn('uuid')
   id!: string;

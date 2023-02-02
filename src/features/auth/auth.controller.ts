@@ -34,7 +34,7 @@ export class AuthController {
   async register(@Body() body: CreateUserDto) {
     try {
       const user = await this.authService.register(body);
-      return this.authService.login(user);
+      return this.authService.login({ id: user });
     } catch (err: any) {
       if (err instanceof EmailExistsError) {
         throw new ConflictException('The provided email has already been used');

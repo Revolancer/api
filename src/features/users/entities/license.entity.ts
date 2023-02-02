@@ -5,7 +5,8 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
-  ManyToOne,
+  OneToOne,
+  JoinColumn,
 } from 'typeorm';
 import { User } from './user.entity';
 
@@ -14,7 +15,8 @@ export class License {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @ManyToOne(() => User, (user: User) => user.roles)
+  @OneToOne(() => User)
+  @JoinColumn()
   user!: User;
 
   @Column('timestamptz')

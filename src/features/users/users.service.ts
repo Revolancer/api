@@ -47,7 +47,7 @@ export class UsersService {
     await this.usersRepository.softRemove(user);
   }
 
-  async create(password: string, email?: string): Promise<User> {
+  async create(password: string, email?: string): Promise<string> {
     const partial = this.usersRepository.create();
     if (typeof email !== 'undefined') {
       partial.email = email;
@@ -57,31 +57,31 @@ export class UsersService {
     }
     partial.password = await argon2.hash(password);
     const user = await this.usersRepository.save(partial);
-    this.addRole(user, 'user');
+    await this.addRole(user, 'user');
     const trialEnd = DateTime.now().plus({ days: 30 }).toJSDate();
-    this.grantLicense(user, trialEnd);
-    return user;
+    await this.grantLicense(user, trialEnd);
+    return user.id;
   }
 
   async addRole(user: User, role: string): Promise<void> {
-    if (typeof user.roles !== 'undefined') {
-      user.roles.forEach((currentRole) => {
-        if (currentRole.role == role) {
-          return;
-        }
-      });
-    }
-    const newRole = this.userRolesRepository.create({
-      user: user,
-      role: role,
-    });
-    await this.userRolesRepository.save(newRole);
+    await this.userRolesRepository.upsert(
+      {
+        user: user,
+        role: role,
+      },
+      ['user', 'role'],
+    );
   }
 
   async hasValidLicense(user: User): Promise<boolean> {
     try {
       const license = await this.licenseRepository.findOneOrFail({
-        where: { user: user },
+        relations: { user: true },
+        where: {
+          user: {
+            id: user.id,
+          },
+        },
       });
       return license.expires_at > new Date();
     } catch (err) {

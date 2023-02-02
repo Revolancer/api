@@ -31,13 +31,13 @@ export class AuthService {
 
     const roles: string[] = [];
 
-    user.roles.forEach((role: UserRole) => {
+    loaded.roles.forEach((role: UserRole) => {
       roles.push(role.role);
     });
 
-    const licensed = await this.usersService.hasValidLicense(user);
+    const licensed = await this.usersService.hasValidLicense(loaded);
 
-    const payload = { sub: user.id, licensed: licensed, roles: roles };
+    const payload = { sub: loaded.id, licensed: licensed, roles: roles };
     return {
       access_token: this.jwtService.sign(
         { purpose: 'authenticate', ...payload },
@@ -55,6 +55,6 @@ export class AuthService {
   }
 
   async register(body: CreateUserDto) {
-    return this.usersService.create(body.password, body.email);
+    return await this.usersService.create(body.password, body.email);
   }
 }
