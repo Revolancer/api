@@ -58,6 +58,8 @@ export class UsersService {
     partial.password = await argon2.hash(password);
     const user = await this.usersRepository.save(partial);
     this.addRole(user, 'user');
+    const trialEnd = DateTime.now().plus({ days: 30 }).toJSDate();
+    this.grantLicense(user, trialEnd);
     return user;
   }
 

@@ -11,8 +11,8 @@ import { Request } from 'express';
 import { EmailExistsError } from 'src/errors/email-exists-error';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { JwtRefreshAuthGuard } from './jwt-refresh-auth.guard';
-import { LocalAuthGuard } from './local-auth.guard';
+import { JwtRefreshAuthGuard } from './guards/jwt-refresh-auth.guard';
+import { LocalAuthGuard } from './guards/local-auth.guard';
 
 @Controller('auth')
 export class AuthController {

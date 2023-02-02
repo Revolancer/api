@@ -35,7 +35,9 @@ export class AuthService {
       roles.push(role.role);
     });
 
-    const payload = { sub: user.id, roles: roles };
+    const licensed = this.usersService.hasValidLicense(user);
+
+    const payload = { sub: user.id, licensed: licensed, roles: roles };
     return {
       access_token: this.jwtService.sign(
         { purpose: 'authenticate', ...payload },
