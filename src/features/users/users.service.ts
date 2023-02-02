@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
 import { EmailExistsError } from 'src/errors/email-exists-error';
-import { NoUserError } from 'src/errors/no-user-error';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
 import { UserRole } from './userrole.entity';

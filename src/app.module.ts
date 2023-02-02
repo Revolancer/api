@@ -7,12 +7,14 @@ import { UsersModule } from './features/users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DBConfigModule } from './config/db/config.module';
 import { DBConfigService } from './config/db/config.service';
+import { HealthModule } from './features/health/health.module';
 
 @Module({
   imports: [
     AppConfigModule,
     AuthModule,
     UsersModule,
+    HealthModule,
     TypeOrmModule.forRootAsync({
       imports: [DBConfigModule],
       inject: [DBConfigService],
