@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
+import { DateTime } from 'luxon';
 import { EmailExistsError } from 'src/errors/email-exists-error';
 import { Repository } from 'typeorm';
+import { License } from './entities/license.entity';
 import { User } from './entities/user.entity';
 import { UserRole } from './entities/userrole.entity';
 
@@ -13,6 +15,8 @@ export class UsersService {
     private usersRepository: Repository<User>,
     @InjectRepository(UserRole)
     private userRolesRepository: Repository<UserRole>,
+    @InjectRepository(License)
+    private licenseRepository: Repository<License>,
   ) {}
 
   findAll(): Promise<User[]> {
@@ -70,5 +74,29 @@ export class UsersService {
       role: role,
     });
     await this.userRolesRepository.save(newRole);
+  }
+
+  async hasValidLicense(user: User): Promise<boolean> {
+    try {
+      const license = await this.licenseRepository.findOneOrFail({
+        where: { user: user },
+      });
+      return license.expires_at > new Date();
+    } catch (err) {
+      return false;
+    }
+  }
+
+  async grantLicense(user: User, expiry: Date): Promise<void> {
+    await this.licenseRepository.upsert({ user: user, expires_at: expiry }, [
+      'user',
+    ]);
+  }
+
+  async revokeLicense(user: User): Promise<void> {
+    const yesterday = DateTime.now().minus({ days: 1 }).toJSDate();
+    await this.licenseRepository.upsert({ user: user, expires_at: yesterday }, [
+      'user',
+    ]);
   }
 }
