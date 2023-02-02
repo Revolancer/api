@@ -35,7 +35,7 @@ export class AuthService {
       roles.push(role.role);
     });
 
-    const licensed = this.usersService.hasValidLicense(user);
+    const licensed = await this.usersService.hasValidLicense(user);
 
     const payload = { sub: user.id, licensed: licensed, roles: roles };
     return {
