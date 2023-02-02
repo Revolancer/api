@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DBConfigModule } from './config/db/config.module';
 import { DBConfigService } from './config/db/config.service';
 import { HealthModule } from './features/health/health.module';
+import { StripeModule } from './features/stripe/stripe.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { HealthModule } from './features/health/health.module';
     AuthModule,
     UsersModule,
     HealthModule,
+    StripeModule,
     TypeOrmModule.forRootAsync({
       imports: [DBConfigModule],
       inject: [DBConfigService],

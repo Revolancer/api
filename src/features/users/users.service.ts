@@ -4,6 +4,7 @@ import * as argon2 from 'argon2';
 import { DateTime } from 'luxon';
 import { EmailExistsError } from 'src/errors/email-exists-error';
 import { Repository } from 'typeorm';
+import { StripeService } from '../stripe/stripe.service';
 import { License } from './entities/license.entity';
 import { User } from './entities/user.entity';
 import { UserRole } from './entities/userrole.entity';
@@ -17,6 +18,7 @@ export class UsersService {
     private userRolesRepository: Repository<UserRole>,
     @InjectRepository(License)
     private licenseRepository: Repository<License>,
+    private stripeService: StripeService,
   ) {}
 
   findAll(): Promise<User[]> {
@@ -32,11 +34,12 @@ export class UsersService {
     });
   }
 
-  findOneByEmail(email: string): Promise<User | null> {
-    return this.usersRepository.findOne({
+  async findOneByEmail(email: string): Promise<User | null> {
+    const user = await this.usersRepository.findOne({
       relations: ['roles'],
       where: { email: email },
     });
+    return user;
   }
 
   async remove(id: string): Promise<void> {
@@ -60,6 +63,7 @@ export class UsersService {
     await this.addRole(user, 'user');
     const trialEnd = DateTime.now().plus({ days: 30 }).toJSDate();
     await this.grantLicense(user, trialEnd);
+    await this.stripeService.findOrCreateStripeUser(user);
     return user.id;
   }
 
