@@ -3,7 +3,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { StripeConfigModule } from 'src/config/stripe/config.module';
 import { StripeUser } from './entities/stripeuser.entity';
-import { StripeConsumer } from './stripe.consumer';
+import { StripeConsumer } from './queue/stripe.consumer';
 import { StripeService } from './stripe.service';
 
 @Module({

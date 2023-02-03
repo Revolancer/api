@@ -7,7 +7,7 @@ import { Stripe } from 'stripe';
 import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { StripeUser } from './entities/stripeuser.entity';
-import { StripeQueueJob } from './stripe-queue-job';
+import { StripeJob } from './queue/stripe.job';
 
 @Injectable()
 export class StripeService {
@@ -17,7 +17,7 @@ export class StripeService {
     private config: StripeConfigService,
     @InjectRepository(StripeUser)
     private stripeUserRepository: Repository<StripeUser>,
-    @InjectQueue('stripe') private stripeQueue: Queue<StripeQueueJob>,
+    @InjectQueue('stripe') private stripeQueue: Queue<StripeJob>,
   ) {
     this.stripe = new Stripe(config.sk ?? '', {
       apiVersion: '2022-11-15',

@@ -1,14 +1,14 @@
 import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bull';
-import { StripeQueueJob } from './stripe-queue-job';
-import { StripeService } from './stripe.service';
+import { StripeJob } from './stripe.job';
+import { StripeService } from '../stripe.service';
 
 @Processor('stripe')
 export class StripeConsumer {
   constructor(private stripeService: StripeService) {}
 
   @Process()
-  async process(job: Job<StripeQueueJob>) {
+  async process(job: Job<StripeJob>) {
     switch (job.data.operation) {
       case 'link':
         return this.processLinkingJob(job);
@@ -19,7 +19,7 @@ export class StripeConsumer {
     }
   }
 
-  async processLinkingJob(job: Job<StripeQueueJob>) {
+  async processLinkingJob(job: Job<StripeJob>) {
     await this.stripeService.findOrCreateStripeUser(job.data.user);
     await job.progress(100);
   }
