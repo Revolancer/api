@@ -7,6 +7,9 @@ import { DBConfigModule } from './config/db/config.module';
 import { DBConfigService } from './config/db/config.service';
 import { HealthModule } from './features/health/health.module';
 import { StripeModule } from './features/stripe/stripe.module';
+import { BullModule } from '@nestjs/bull';
+import { RedisConfigModule } from './config/redis/config.module';
+import { RedisConfigService } from './config/redis/config.service';
 
 @Module({
   imports: [
@@ -27,6 +30,16 @@ import { StripeModule } from './features/stripe/stripe.module';
         database: dbConfig.db,
         autoLoadEntities: true,
         synchronize: dbConfig.synchronise,
+      }),
+    }),
+    BullModule.forRootAsync({
+      imports: [RedisConfigModule],
+      inject: [RedisConfigService],
+      useFactory: async (redisConfig: RedisConfigService) => ({
+        redis: {
+          host: redisConfig.host,
+          port: redisConfig.port,
+        },
       }),
     }),
   ],

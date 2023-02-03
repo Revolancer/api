@@ -1,10 +1,13 @@
+import { BullModule, InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Queue } from 'bull';
 import { StripeConfigService } from 'src/config/stripe/config.service';
 import { Stripe } from 'stripe';
 import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { StripeUser } from './entities/stripeuser.entity';
+import { StripeQueueJob } from './stripe-queue-job';
 
 @Injectable()
 export class StripeService {
@@ -14,6 +17,7 @@ export class StripeService {
     private config: StripeConfigService,
     @InjectRepository(StripeUser)
     private stripeUserRepository: Repository<StripeUser>,
+    @InjectQueue('stripe') private stripeQueue: Queue<StripeQueueJob>,
   ) {
     this.stripe = new Stripe(config.sk ?? '', {
       apiVersion: '2022-11-15',
@@ -61,5 +65,14 @@ export class StripeService {
       return;
     }
     this.associateStripeUser(user, await this.createStripeUser(user));
+  }
+
+  /**
+   * Use this method to queue a link to stripe
+   * Avoids doing expensive API calls before returning account details to new user
+   * @param user The user to link
+   */
+  async linkToStripe(user: User): Promise<void> {
+    await this.stripeQueue.add({ user: user, operation: 'link' });
   }
 }

@@ -63,7 +63,7 @@ export class UsersService {
     await this.addRole(user, 'user');
     const trialEnd = DateTime.now().plus({ days: 30 }).toJSDate();
     await this.grantLicense(user, trialEnd);
-    await this.stripeService.findOrCreateStripeUser(user);
+    await this.stripeService.linkToStripe(user);
     return user.id;
   }
 
