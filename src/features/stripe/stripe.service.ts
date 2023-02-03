@@ -24,7 +24,7 @@ export class StripeService {
     });
   }
 
-  async findStripeUserByEmail(user: User): Promise<string | void> {
+  private async findStripeUserByEmail(user: User): Promise<string | void> {
     const email = user.email ?? '';
     const results = await this.stripe.customers.search({
       query: `email: "${email}"`,
@@ -35,7 +35,7 @@ export class StripeService {
     return results.data[0].id;
   }
 
-  async createStripeUser(user: User): Promise<string> {
+  private async createStripeUser(user: User): Promise<string> {
     const email = user.email ?? '';
     let params = {};
     if (email !== '') {
@@ -47,17 +47,24 @@ export class StripeService {
     return result.id;
   }
 
-  async associateStripeUser(user: User, stripeUserId: string): Promise<void> {
+  private async associateStripeUser(
+    user: User,
+    stripeUserId: string,
+  ): Promise<void> {
     await this.stripeUserRepository.upsert(
       { user: user, stripe_id: stripeUserId },
       ['user'],
     );
   }
 
-  async getStripeUser(user: User): Promise<void> {
-    await this.stripeUserRepository.findOne({ where: { user: user } });
+  async getStripeUser(user: User): Promise<StripeUser | null> {
+    return await this.stripeUserRepository.findOne({ where: { user: user } });
   }
 
+  /**
+   * Do not directly call this, instead
+   * @see linkToStripe
+   */
   async findOrCreateStripeUser(user: User): Promise<void> {
     const existingStripeUser = await this.findStripeUserByEmail(user);
     if (typeof existingStripeUser == 'string') {
