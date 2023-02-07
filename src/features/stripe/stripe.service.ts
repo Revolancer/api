@@ -1,8 +1,9 @@
-import { BullModule, InjectQueue } from '@nestjs/bull';
+import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Queue } from 'bull';
 import { StripeConfigService } from 'src/config/stripe/config.service';
+import { NoUserError } from 'src/errors/no-user-error';
 import { Stripe } from 'stripe';
 import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
@@ -19,7 +20,7 @@ export class StripeService {
     private stripeUserRepository: Repository<StripeUser>,
     @InjectQueue('stripe') private stripeQueue: Queue<StripeJob>,
   ) {
-    this.stripe = new Stripe(config.sk ?? '', {
+    this.stripe = new Stripe(this.config.sk, {
       apiVersion: '2022-11-15',
     });
   }
@@ -58,7 +59,13 @@ export class StripeService {
   }
 
   async getStripeUser(user: User): Promise<StripeUser | null> {
-    return await this.stripeUserRepository.findOne({ where: { user: user } });
+    return await this.stripeUserRepository.findOne({
+      where: {
+        user: {
+          id: user.id,
+        },
+      },
+    });
   }
 
   /**
@@ -81,5 +88,20 @@ export class StripeService {
    */
   async linkToStripe(user: User): Promise<void> {
     await this.stripeQueue.add({ user: user, operation: 'link' });
+  }
+
+  async createPaymentIntent(
+    user: User,
+  ): Promise<Stripe.Response<Stripe.SetupIntent>> {
+    const stripeCustomer = await this.getStripeUser(user);
+    if (stripeCustomer == null) {
+      throw new NoUserError();
+    }
+    const customerId = stripeCustomer.stripe_id;
+    return await this.stripe.setupIntents.create({
+      customer: customerId,
+      payment_method_types: ['card'],
+      usage: 'off_session',
+    });
   }
 }
