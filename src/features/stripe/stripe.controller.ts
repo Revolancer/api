@@ -21,7 +21,6 @@ export class StripeController {
       throw new NoUserError();
     }
     const resp = await this.stripeService.createPaymentIntent(loaded);
-    console.log(resp);
     return resp;
   }
 }

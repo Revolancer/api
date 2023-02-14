@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { Request } from 'express';
 import { EmailExistsError } from 'src/errors/email-exists-error';
+import { TurnstileGuard } from '../turnstile/turnstile.guard';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { JwtRefreshAuthGuard } from './guards/jwt-refresh-auth.guard';
@@ -30,6 +31,7 @@ export class AuthController {
     return this.authService.refresh(req.user);
   }
 
+  @UseGuards(TurnstileGuard)
   @Post('register')
   async register(@Body() body: CreateUserDto) {
     try {

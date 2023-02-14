@@ -9,12 +9,14 @@ import { AuthConfigModule } from 'src/config/auth/config.module';
 import { JwtStrategy } from './strategy/jwt.strategy';
 import { JwtRefreshStrategy } from './strategy/jwt-refresh.strategy';
 import { AuthController } from './auth.controller';
+import { TurnstileModule } from '../turnstile/turnstile.module';
 
 @Module({
   imports: [
     UsersModule,
     PassportModule,
     AuthConfigModule,
+    TurnstileModule,
     JwtModule.registerAsync({
       imports: [AuthConfigModule],
       inject: [AuthConfigService],
