@@ -17,7 +17,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         APP_ENV: Joi.string()
           .valid('development', 'production', 'test', 'provision')
           .default('development'),
-        APP_URL: Joi.string().default('http://localhost'),
+        APP_CORS_URL: Joi.string().default('http://localhost:3000'),
         APP_PORT: Joi.number().default(3030),
       }),
     }),

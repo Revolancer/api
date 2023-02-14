@@ -15,8 +15,8 @@ export class AppConfigService {
   get env(): string | undefined {
     return this.configService.get<string>('app.env');
   }
-  get url(): string | undefined {
-    return this.configService.get<string>('app.url');
+  get cors_url(): string | undefined {
+    return this.configService.get<string>('app.cors_url');
   }
   get port(): number {
     return Number(this.configService.get<number>('app.port'));

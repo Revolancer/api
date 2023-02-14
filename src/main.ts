@@ -8,6 +8,9 @@ async function bootstrap() {
   const appConfig: AppConfigService = app.get(AppConfigService);
   const logger = new Logger('Bootstrap');
   logger.log(`Listening on ${appConfig.port}`);
+  app.enableCors({
+    origin: appConfig.cors_url,
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
