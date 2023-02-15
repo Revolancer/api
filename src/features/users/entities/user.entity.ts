@@ -7,6 +7,7 @@ import {
   DeleteDateColumn,
   OneToMany,
 } from 'typeorm';
+import { UserConsent } from './userconsent.entity';
 import { UserRole } from './userrole.entity';
 
 @Entity()
@@ -35,6 +36,12 @@ export class User {
     eager: true,
   })
   roles!: UserRole[];
+
+  @OneToMany(() => UserConsent, (consent: UserConsent) => consent.user, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  consents!: UserConsent[];
 
   @CreateDateColumn()
   created_at!: Date;

@@ -6,4 +6,11 @@ export class CreateUserDto {
 
   @IsNotEmpty()
   password!: string;
+
+  @IsNotEmpty()
+  terms!: boolean;
+
+  marketingfirstparty!: boolean;
+
+  marketingthirdparty!: boolean;
 }

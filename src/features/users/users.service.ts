@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { StripeService } from '../stripe/stripe.service';
 import { License } from './entities/license.entity';
 import { User } from './entities/user.entity';
+import { UserConsent } from './entities/userconsent.entity';
 import { UserRole } from './entities/userrole.entity';
 
 @Injectable()
@@ -16,6 +17,8 @@ export class UsersService {
     private usersRepository: Repository<User>,
     @InjectRepository(UserRole)
     private userRolesRepository: Repository<UserRole>,
+    @InjectRepository(UserConsent)
+    private userConsentRepository: Repository<UserConsent>,
     @InjectRepository(License)
     private licenseRepository: Repository<License>,
     private stripeService: StripeService,
@@ -50,7 +53,12 @@ export class UsersService {
     await this.usersRepository.softRemove(user);
   }
 
-  async create(password: string, email?: string): Promise<string> {
+  async create(
+    password: string,
+    email?: string,
+    marketingFirstParty = false,
+    marketingThirdParty = false,
+  ): Promise<string> {
     const partial = this.usersRepository.create();
     if (typeof email !== 'undefined') {
       partial.email = email;
@@ -61,6 +69,13 @@ export class UsersService {
     partial.password = await argon2.hash(password);
     const user = await this.usersRepository.save(partial);
     await this.addRole(user, 'user');
+    await this.addConsent(user, 'terms');
+    if (marketingFirstParty) {
+      await this.addConsent(user, 'marketing-firstparty');
+    }
+    if (marketingThirdParty) {
+      await this.addConsent(user, 'marketing-thirdparty');
+    }
     const trialEnd = DateTime.now().plus({ days: 30 }).toJSDate();
     await this.grantLicense(user, trialEnd);
     await this.stripeService.linkToStripe(user);
@@ -75,6 +90,13 @@ export class UsersService {
       },
       ['user', 'role'],
     );
+  }
+
+  async addConsent(user: User, consentFor: string): Promise<void> {
+    await this.userConsentRepository.insert({
+      user: user,
+      consent_for: consentFor,
+    });
   }
 
   async hasValidLicense(user: User): Promise<boolean> {
