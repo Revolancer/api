@@ -1,7 +1,6 @@
 import { Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { NoUserError } from 'src/errors/no-user-error';
 import { IUserRequest } from 'src/interface/iuserrequest';
-import stripe from 'stripe';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UsersService } from '../users/users.service';
 import { StripeService } from './stripe.service';
