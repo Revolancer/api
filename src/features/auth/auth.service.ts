@@ -55,7 +55,6 @@ export class AuthService {
   }
 
   async register(body: CreateUserDto) {
-    console.log(body);
     return await this.usersService.create(
       body.password,
       body.email,

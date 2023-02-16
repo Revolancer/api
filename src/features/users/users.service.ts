@@ -69,16 +69,16 @@ export class UsersService {
     partial.password = await argon2.hash(password);
     const user = await this.usersRepository.save(partial);
     await this.addRole(user, 'user');
-    await this.addConsent(user, 'terms');
+    this.addConsent(user, 'terms');
     if (marketingFirstParty) {
-      await this.addConsent(user, 'marketing-firstparty');
+      this.addConsent(user, 'marketing-firstparty');
     }
     if (marketingThirdParty) {
-      await this.addConsent(user, 'marketing-thirdparty');
+      this.addConsent(user, 'marketing-thirdparty');
     }
     const trialEnd = DateTime.now().plus({ days: 30 }).toJSDate();
     await this.grantLicense(user, trialEnd);
-    await this.stripeService.linkToStripe(user);
+    this.stripeService.linkToStripe(user);
     return user.id;
   }
 
