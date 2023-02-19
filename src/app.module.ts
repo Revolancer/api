@@ -10,6 +10,7 @@ import { BullModule } from '@nestjs/bull';
 import { RedisConfigModule } from './config/redis/config.module';
 import { RedisConfigService } from './config/redis/config.service';
 import { MailModule } from './features/mail/mail.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
@@ -41,6 +42,10 @@ import { MailModule } from './features/mail/mail.module';
           port: redisConfig.port,
         },
       }),
+    }),
+    ThrottlerModule.forRoot({
+      ttl: 30,
+      limit: 5,
     }),
   ],
 })
