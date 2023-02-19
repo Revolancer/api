@@ -12,6 +12,7 @@ import { EmailExistsError } from 'src/errors/email-exists-error';
 import { TurnstileGuard } from '../turnstile/turnstile.guard';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { SendResetPasswordDto } from './dto/send-reset-password.dto';
 import { JwtRefreshAuthGuard } from './guards/jwt-refresh-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 
@@ -42,5 +43,10 @@ export class AuthController {
         throw new ConflictException('The provided email has already been used');
       }
     }
+  }
+
+  @Post('request_reset_password')
+  async sendResetPassword(@Body() body: SendResetPasswordDto) {
+    await this.authService.sendResetPassword(body);
   }
 }

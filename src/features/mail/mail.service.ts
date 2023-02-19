@@ -1,17 +1,19 @@
 import { InjectQueue } from '@nestjs/bull';
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { Queue } from 'bull';
 import { SendgridConfigService } from 'src/config/sendgrid/config.service';
 import { User } from '../users/entities/user.entity';
 import { MailJob } from './queue/mail.job';
 import { MailService as Sendgrid } from '@sendgrid/mail';
 import { UsersService } from '../users/users.service';
+import { Mailout } from './mailout.type';
 
 @Injectable()
 export class MailService {
   private sendgrid: Sendgrid;
   constructor(
     private config: SendgridConfigService,
+    @Inject(forwardRef(() => UsersService))
     private usersService: UsersService,
     @InjectQueue('mail') private mailQueue: Queue<MailJob>,
   ) {
@@ -24,7 +26,7 @@ export class MailService {
    * Avoids doing expensive API calls before returning account details to new user
    * @param user The user to link
    */
-  async scheduleMail(user: User, mailout: string): Promise<void> {
+  async scheduleMail(user: User, mailout: Mailout): Promise<void> {
     await this.mailQueue.add({ user, mailout });
   }
 

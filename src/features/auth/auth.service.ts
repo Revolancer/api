@@ -5,6 +5,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import * as argon2 from 'argon2';
 import { NoUserError } from 'src/errors/no-user-error';
 import { UserRole } from '../users/entities/userrole.entity';
+import { SendResetPasswordDto } from './dto/send-reset-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -61,5 +62,9 @@ export class AuthService {
       body.marketingfirstparty,
       body.marketingthirdparty,
     );
+  }
+
+  async sendResetPassword(body: SendResetPasswordDto) {
+    return await this.usersService.sendResetPassword(body.email);
   }
 }

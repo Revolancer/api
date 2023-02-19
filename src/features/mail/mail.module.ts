@@ -8,9 +8,8 @@ import { MailService } from './mail.service';
 
 @Module({
   imports: [
-    UsersModule,
-    SendgridConfigModule,
     forwardRef(() => UsersModule),
+    SendgridConfigModule,
     BullModule.registerQueue({ name: 'mail' }),
   ],
   providers: [MailService, MailConsumer],

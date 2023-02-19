@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
 import { DateTime } from 'luxon';
 import { EmailExistsError } from 'src/errors/email-exists-error';
 import { Repository } from 'typeorm';
-import { StripeService } from '../stripe/stripe.service';
+import { MailService } from '../mail/mail.service';
 import { License } from './entities/license.entity';
 import { User } from './entities/user.entity';
 import { UserConsent } from './entities/userconsent.entity';
@@ -22,8 +22,9 @@ export class UsersService {
     private userConsentRepository: Repository<UserConsent>,
     @InjectRepository(License)
     private licenseRepository: Repository<License>,
-    private stripeService: StripeService,
     private jwtService: JwtService,
+    @Inject(forwardRef(() => MailService))
+    private mailService: MailService,
   ) {}
 
   findAll(): Promise<User[]> {
@@ -80,7 +81,6 @@ export class UsersService {
     }
     const trialEnd = DateTime.now().plus({ days: 30 }).toJSDate();
     await this.grantLicense(user, trialEnd);
-    this.stripeService.linkToStripe(user);
     return user.id;
   }
 
@@ -142,5 +142,12 @@ export class UsersService {
       { purpose: 'reset_password', sub: user.id },
       { expiresIn: '1 hour' },
     );
+  }
+
+  async sendResetPassword(email: string): Promise<void> {
+    const user = await this.findOneByEmail(email);
+    if (!(user instanceof User)) return;
+
+    this.mailService.scheduleMail(user, 'password_reset');
   }
 }

@@ -6,7 +6,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DBConfigModule } from './config/db/config.module';
 import { DBConfigService } from './config/db/config.service';
 import { HealthModule } from './features/health/health.module';
-import { StripeModule } from './features/stripe/stripe.module';
 import { BullModule } from '@nestjs/bull';
 import { RedisConfigModule } from './config/redis/config.module';
 import { RedisConfigService } from './config/redis/config.service';
@@ -16,10 +15,9 @@ import { MailModule } from './features/mail/mail.module';
   imports: [
     AppConfigModule,
     AuthModule,
-    UsersModule,
     HealthModule,
-    StripeModule,
     MailModule,
+    UsersModule,
     TypeOrmModule.forRootAsync({
       imports: [DBConfigModule],
       inject: [DBConfigService],
