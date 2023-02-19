@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
 import { DateTime } from 'luxon';
@@ -22,6 +23,7 @@ export class UsersService {
     @InjectRepository(License)
     private licenseRepository: Repository<License>,
     private stripeService: StripeService,
+    private jwtService: JwtService,
   ) {}
 
   findAll(): Promise<User[]> {
@@ -126,5 +128,19 @@ export class UsersService {
     await this.licenseRepository.upsert({ user: user, expires_at: yesterday }, [
       'user',
     ]);
+  }
+
+  async getEmailVerifyToken(user: User): Promise<string> {
+    return this.jwtService.sign(
+      { purpose: 'verify_email', sub: user.id },
+      { expiresIn: '7 days' },
+    );
+  }
+
+  async getPasswordResetToken(user: User): Promise<string> {
+    return this.jwtService.sign(
+      { purpose: 'reset_password', sub: user.id },
+      { expiresIn: '1 hour' },
+    );
   }
 }

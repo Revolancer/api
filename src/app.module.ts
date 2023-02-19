@@ -10,6 +10,7 @@ import { StripeModule } from './features/stripe/stripe.module';
 import { BullModule } from '@nestjs/bull';
 import { RedisConfigModule } from './config/redis/config.module';
 import { RedisConfigService } from './config/redis/config.service';
+import { MailModule } from './features/mail/mail.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { RedisConfigService } from './config/redis/config.service';
     UsersModule,
     HealthModule,
     StripeModule,
+    MailModule,
     TypeOrmModule.forRootAsync({
       imports: [DBConfigModule],
       inject: [DBConfigService],
