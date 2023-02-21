@@ -40,14 +40,16 @@ export class AuthService {
 
     const payload = { sub: loaded.id, licensed: licensed, roles: roles };
     return {
-      access_token: this.jwtService.sign(
+      accessToken: this.jwtService.sign(
         { purpose: 'authenticate', ...payload },
         { expiresIn: '15 minutes' },
       ),
-      refresh_token: this.jwtService.sign(
+      refreshToken: this.jwtService.sign(
         { purpose: 'refresh', ...payload },
         { expiresIn: '2 weeks' },
       ),
+      email: loaded.email,
+      roles: roles,
     };
   }
 

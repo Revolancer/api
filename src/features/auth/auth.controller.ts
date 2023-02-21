@@ -14,6 +14,7 @@ import { TurnstileGuard } from '../turnstile/turnstile.guard';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { SendResetPasswordDto } from './dto/send-reset-password.dto';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { JwtRefreshAuthGuard } from './guards/jwt-refresh-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 
@@ -31,6 +32,18 @@ export class AuthController {
   @Get('refresh')
   async refresh(@Req() req: Request) {
     return this.authService.refresh(req.user);
+  }
+
+  @UseGuards(JwtRefreshAuthGuard)
+  @Get('refresh_token_check')
+  async refreshTokenCheck(@Req() req: Request) {
+    return 'aight';
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('token_check')
+  async tokenCheck(@Req() req: Request) {
+    return 'aight';
   }
 
   @UseGuards(TurnstileGuard)

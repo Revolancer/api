@@ -7,7 +7,7 @@ import { AuthConfigService } from 'src/config/auth/config.service';
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(authConfig: AuthConfigService) {
     super({
-      jwtFromRequest: ExtractJwt.fromAuthHeaderWithScheme('jwt'),
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       secretOrKey: authConfig.jwtSecret,
     });
