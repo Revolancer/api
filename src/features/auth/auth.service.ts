@@ -6,15 +6,12 @@ import * as argon2 from 'argon2';
 import { NoUserError } from 'src/errors/no-user-error';
 import { UserRole } from '../users/entities/userrole.entity';
 import { SendResetPasswordDto } from './dto/send-reset-password.dto';
-import { IUserRequest } from 'src/interface/iuserrequest';
-import { ChargebeeService } from '../chargebee/chargebee.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
-    private chargebeeService: ChargebeeService,
   ) {}
 
   async validateUser(email: string, pass: string): Promise<any> {
@@ -54,11 +51,6 @@ export class AuthService {
       email: loaded.email,
       roles: roles,
     };
-  }
-
-  async doTheThing(req: IUserRequest) {
-    const user = await this.usersService.findOne(req.user?.id);
-    if (user) this.chargebeeService.queueLink(user);
   }
 
   async refresh(user: any) {

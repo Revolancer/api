@@ -10,7 +10,6 @@ import { JwtStrategy } from './strategy/jwt.strategy';
 import { JwtRefreshStrategy } from './strategy/jwt-refresh.strategy';
 import { AuthController } from './auth.controller';
 import { TurnstileModule } from '../turnstile/turnstile.module';
-import { ChargebeeModule } from '../chargebee/chargebee.module';
 
 @Module({
   imports: [
@@ -18,7 +17,6 @@ import { ChargebeeModule } from '../chargebee/chargebee.module';
     PassportModule,
     AuthConfigModule,
     TurnstileModule,
-    ChargebeeModule,
     JwtModule.registerAsync({
       imports: [AuthConfigModule],
       inject: [AuthConfigService],

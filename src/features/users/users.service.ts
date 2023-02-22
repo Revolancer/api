@@ -5,6 +5,7 @@ import * as argon2 from 'argon2';
 import { DateTime } from 'luxon';
 import { EmailExistsError } from 'src/errors/email-exists-error';
 import { Repository } from 'typeorm';
+import { ChargebeeService } from '../chargebee/chargebee.service';
 import { MailService } from '../mail/mail.service';
 import { License } from './entities/license.entity';
 import { User } from './entities/user.entity';
@@ -25,6 +26,7 @@ export class UsersService {
     private jwtService: JwtService,
     @Inject(forwardRef(() => MailService))
     private mailService: MailService,
+    private chargebeeService: ChargebeeService,
   ) {}
 
   findAll(): Promise<User[]> {
@@ -81,6 +83,8 @@ export class UsersService {
     }
     const trialEnd = DateTime.now().plus({ days: 30 }).toJSDate();
     await this.grantLicense(user, trialEnd);
+    //Link to chargebee
+    this.chargebeeService.queueLink(user);
     return user.id;
   }
 

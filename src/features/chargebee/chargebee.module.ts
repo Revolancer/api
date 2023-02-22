@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ChargebeeUser } from './entities/chargebeeuser.entity';
 import { ChargebeeService } from './chargebee.service';
-import { User } from '../users/entities/user.entity';
 import { ChargebeeConfigModule } from 'src/config/chargebee/config.module';
 import { BullModule } from '@nestjs/bull';
 
