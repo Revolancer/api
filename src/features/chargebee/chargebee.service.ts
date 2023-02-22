@@ -3,7 +3,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ChargebeeUser } from './entities/chargebeeuser.entity';
 import { User } from '../users/entities/user.entity';
-import { ChargeBee, _customer } from 'chargebee-typescript';
+import {
+  ChargeBee,
+  _customer,
+  _hosted_page,
+  _portal_session,
+} from 'chargebee-typescript';
 import { ChargebeeConfigService } from 'src/config/chargebee/config.service';
 import { ListResult } from 'chargebee-typescript/lib/list_result';
 import { Result } from 'chargebee-typescript/lib/result';
@@ -99,5 +104,39 @@ export class ChargebeeService {
       user: { ...user, password: '' },
       task: 'link_user',
     });
+  }
+
+  async createPortalSession(user: User): Promise<string> {
+    const customer = await this.findOneByUser(user);
+    if (customer == null) {
+      throw new Error('No customer linked to the current user');
+    }
+    const params: _portal_session.create_params = {
+      customer: {
+        id: customer.chargebee_id,
+      },
+    };
+    const response: Result = await this.chargebee.portal_session
+      .create(params)
+      .request();
+    return String(response.portal_session);
+  }
+
+  async createCheckoutPage(user: User): Promise<string> {
+    const customer = await this.findOneByUser(user);
+    if (customer == null) {
+      throw new Error('No customer linked to the current user');
+    }
+    const params: _hosted_page.checkout_new_for_items_params = {
+      layout: 'in_app',
+      customer: {
+        id: customer.chargebee_id,
+      },
+      subscription_items: [{ item_price_id: 'Revolancer-GBP-Monthly' }],
+    };
+    const response: Result = await this.chargebee.hosted_page
+      .checkout_new_for_items(params)
+      .request();
+    return String(response.hosted_page);
   }
 }
