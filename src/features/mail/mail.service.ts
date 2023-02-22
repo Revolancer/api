@@ -27,7 +27,10 @@ export class MailService {
    * @param user The user to link
    */
   async scheduleMail(user: User, mailout: Mailout): Promise<void> {
-    await this.mailQueue.add({ user, mailout });
+    await this.mailQueue.add({
+      user: { ...user, password: '' },
+      mailout,
+    });
   }
 
   async sendMailoutEmailVerify(user: User) {

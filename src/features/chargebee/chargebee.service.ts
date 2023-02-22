@@ -95,6 +95,9 @@ export class ChargebeeService {
   }
 
   async queueLink(user: User): Promise<void> {
-    this.chargebeeQueue.add({ user, task: 'link_user' });
+    this.chargebeeQueue.add({
+      user: { ...user, password: '' },
+      task: 'link_user',
+    });
   }
 }
