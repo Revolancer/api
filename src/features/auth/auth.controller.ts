@@ -10,6 +10,7 @@ import {
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { Request } from 'express';
 import { EmailExistsError } from 'src/errors/email-exists-error';
+import { IUserRequest } from 'src/interface/iuserrequest';
 import { TurnstileGuard } from '../turnstile/turnstile.guard';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -42,7 +43,8 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('token_check')
-  async tokenCheck(@Req() req: Request) {
+  async tokenCheck(@Req() req: IUserRequest) {
+    this.authService.doTheThing(req);
     return 'aight';
   }
 

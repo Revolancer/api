@@ -11,6 +11,10 @@ import { RedisConfigModule } from './config/redis/config.module';
 import { RedisConfigService } from './config/redis/config.service';
 import { MailModule } from './features/mail/mail.module';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { BullBoardModule } from './features/bull-board/bull-board.module';
+
+@Module({})
+class NullModule {}
 
 @Module({
   imports: [
@@ -19,6 +23,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
     HealthModule,
     MailModule,
     UsersModule,
+    process.env.NODE_ENV === 'production' ? NullModule : BullBoardModule, // Don't load bull-board in prod
     TypeOrmModule.forRootAsync({
       imports: [DBConfigModule],
       inject: [DBConfigService],

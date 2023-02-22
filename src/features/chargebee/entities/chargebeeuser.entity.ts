@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 
 @Entity()
-export class StripeUser {
+export class ChargebeeUser {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
@@ -20,7 +20,7 @@ export class StripeUser {
   user!: User;
 
   @Column()
-  stripe_id!: string;
+  chargebee_id!: string;
 
   @CreateDateColumn()
   created_at!: Date;
