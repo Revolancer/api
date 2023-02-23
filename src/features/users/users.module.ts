@@ -9,6 +9,7 @@ import { License } from './entities/license.entity';
 import { User } from './entities/user.entity';
 import { UserConsent } from './entities/userconsent.entity';
 import { UserRole } from './entities/userrole.entity';
+import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 
 @Module({
@@ -26,5 +27,6 @@ import { UsersService } from './users.service';
   ],
   providers: [UsersService],
   exports: [UsersService],
+  controllers: [UsersController],
 })
 export class UsersModule {}

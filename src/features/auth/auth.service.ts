@@ -36,9 +36,9 @@ export class AuthService {
       roles.push(role.role);
     });
 
-    const licensed = await this.usersService.hasValidLicense(loaded);
+    const license = await this.usersService.getSubscriptionStatus(loaded);
 
-    const payload = { sub: loaded.id, licensed: licensed, roles: roles };
+    const payload = { sub: loaded.id, license: license, roles: roles };
     return {
       accessToken: this.jwtService.sign(
         { purpose: 'authenticate', ...payload },
@@ -50,6 +50,7 @@ export class AuthService {
       ),
       email: loaded.email,
       roles: roles,
+      license: license,
     };
   }
 

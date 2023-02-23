@@ -8,6 +8,7 @@ import {
   _customer,
   _hosted_page,
   _portal_session,
+  _subscription,
 } from 'chargebee-typescript';
 import { ChargebeeConfigService } from 'src/config/chargebee/config.service';
 import { ListResult } from 'chargebee-typescript/lib/list_result';
@@ -15,6 +16,7 @@ import { Result } from 'chargebee-typescript/lib/result';
 import { ChargebeeJob } from './queue/chargebee.job';
 import { Queue } from 'bull';
 import { InjectQueue } from '@nestjs/bull';
+import { Subscription } from 'chargebee-typescript/lib/resources';
 
 @Injectable()
 export class ChargebeeService {
@@ -138,5 +140,19 @@ export class ChargebeeService {
       .checkout_new_for_items(params)
       .request();
     return String(response.hosted_page);
+  }
+
+  async getSubscription(customer: ChargebeeUser): Promise<Subscription | void> {
+    const params: _subscription.subscription_list_params = {
+      customer_id: { is: customer.chargebee_id },
+      item_price_id: { is: 'Revolancer-GBP-Monthly' },
+    };
+    const result: ListResult = await this.chargebee.subscription
+      .list(params)
+      .request();
+
+    if (result.list.length > 0) {
+      return result.list[0].subscription;
+    }
   }
 }

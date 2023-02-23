@@ -2,6 +2,7 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
+import { Subscription } from 'chargebee-typescript/lib/resources';
 import { DateTime } from 'luxon';
 import { EmailExistsError } from 'src/errors/email-exists-error';
 import { Repository } from 'typeorm';
@@ -105,7 +106,7 @@ export class UsersService {
     });
   }
 
-  async hasValidLicense(user: User): Promise<boolean> {
+  async getLicenseExpiry(user: User): Promise<void | Date> {
     try {
       const license = await this.licenseRepository.findOneOrFail({
         relations: { user: true },
@@ -115,10 +116,15 @@ export class UsersService {
           },
         },
       });
-      return license.expires_at > new Date();
+      return license.expires_at;
     } catch (err) {
-      return false;
+      return;
     }
+  }
+
+  async hasValidLicense(user: User): Promise<boolean> {
+    const expiry = await this.getLicenseExpiry(user);
+    return !!expiry && expiry > new Date();
   }
 
   async grantLicense(user: User, expiry: Date): Promise<void> {
@@ -153,5 +159,36 @@ export class UsersService {
     if (!(user instanceof User)) return;
 
     this.mailService.scheduleMail(user, 'password_reset');
+  }
+
+  async getSubscriptionStatus(user: User) {
+    const subscription = {
+      active: false, // is currently active?
+      type: 'none', // one of ['none', 'intro', 'paid', 'bulk']
+      source: 'none', // currently unused - for bulk licensing source
+      expires: 0, // timestamp of expiry
+    };
+
+    const currentDate = new Date();
+    const currentTime = currentDate.getTime();
+
+    const customer = await this.chargebeeService.findOneByUser(user);
+    let sub: void | Subscription;
+    if (customer != null) {
+      sub = await this.chargebeeService.getSubscription(customer);
+      if (sub) {
+        subscription.type = 'paid';
+        subscription.expires = sub.current_term_end ?? 0;
+      }
+    }
+    if (!sub) {
+      const expiry = Math.floor(
+        ((await this.getLicenseExpiry(user))?.getTime() ?? 0) / 1000,
+      );
+      subscription.type = 'intro';
+      subscription.expires = expiry;
+    }
+    subscription.active = subscription.expires * 1000 > currentTime;
+    return subscription;
   }
 }
