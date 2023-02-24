@@ -27,7 +27,8 @@
         "2gua.rainbow-brackets",
         "GitLab.gitlab-workflow",
         "eamodio.gitlens",
-        "eg2.vscode-npm-script"
+        "eg2.vscode-npm-script",
+        "ms-azuretools.vscode-docker"
       ]
     }
   }
