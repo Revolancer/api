@@ -1,4 +1,4 @@
-import * as Joi from '@hapi/joi';
+import Joi from 'joi';
 import { Module } from '@nestjs/common';
 import configuration from './configuration';
 import { ChargebeeConfigService } from './config.service';
