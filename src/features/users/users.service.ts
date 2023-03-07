@@ -249,9 +249,7 @@ export class UsersService {
     const blacklist = ['admin', 'revolancer', 'null'];
     for (const i in blacklist) {
       const word = blacklist[i];
-      console.log(username, word, username.includes(word));
       if (username.includes(word)) {
-        console.log('found you');
         return false;
       }
     }
