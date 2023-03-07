@@ -5,7 +5,7 @@ import * as argon2 from 'argon2';
 import { Subscription } from 'chargebee-typescript/lib/resources';
 import { DateTime } from 'luxon';
 import { EmailExistsError } from 'src/errors/email-exists-error';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { ChargebeeService } from '../chargebee/chargebee.service';
 import { MailService } from '../mail/mail.service';
 import { Onboarding1Dto } from './dto/onboarding1.dto';
@@ -219,17 +219,50 @@ export class UsersService {
   }
 
   async doOnboardingStage1(user: User, body: Onboarding1Dto) {
-    this.userProfileRepository.upsert(
-      {
-        user: {
-          id: user.id,
+    if (await this.checkUsernameAvailability(user, body.userName)) {
+      this.userProfileRepository.upsert(
+        {
+          user: {
+            id: user.id,
+          },
+          first_name: body.firstName,
+          last_name: body.lastName,
+          slug: body.userName,
+          date_of_birth: body.dateOfBirth,
         },
-        first_name: body.firstName,
-        last_name: body.lastName,
-        slug: body.userName,
-        date_of_birth: body.dateOfBirth,
-      },
-      ['user'],
+        ['user'],
+      );
+    }
+  }
+
+  /**
+   * Check the availability of a given username
+   * @param user The current user
+   * @param username the username to test for availability
+   * @returns true if the passed username can be used
+   */
+  async checkUsernameAvailability(
+    user: User,
+    username: string,
+  ): Promise<boolean> {
+    //Test against blacklist
+    const blacklist = ['admin', 'revolancer', 'null'];
+    for (const i in blacklist) {
+      const word = blacklist[i];
+      console.log(username, word, username.includes(word));
+      if (username.includes(word)) {
+        console.log('found you');
+        return false;
+      }
+    }
+    return (
+      null ==
+      (await this.userProfileRepository.findOne({
+        where: {
+          slug: username,
+          user: { id: Not(user.id) },
+        },
+      }))
     );
   }
 }
