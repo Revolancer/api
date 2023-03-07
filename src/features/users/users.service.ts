@@ -8,9 +8,11 @@ import { EmailExistsError } from 'src/errors/email-exists-error';
 import { Repository } from 'typeorm';
 import { ChargebeeService } from '../chargebee/chargebee.service';
 import { MailService } from '../mail/mail.service';
+import { Onboarding1Dto } from './dto/onboarding1.dto';
 import { License } from './entities/license.entity';
 import { User } from './entities/user.entity';
 import { UserConsent } from './entities/userconsent.entity';
+import { UserProfile } from './entities/userprofile.entity';
 import { UserRole } from './entities/userrole.entity';
 
 @Injectable()
@@ -24,6 +26,8 @@ export class UsersService {
     private userConsentRepository: Repository<UserConsent>,
     @InjectRepository(License)
     private licenseRepository: Repository<License>,
+    @InjectRepository(UserProfile)
+    private userProfileRepository: Repository<UserProfile>,
     private jwtService: JwtService,
     @Inject(forwardRef(() => MailService))
     private mailService: MailService,
@@ -75,6 +79,7 @@ export class UsersService {
     partial.password = await argon2.hash(password);
     const user = await this.usersRepository.save(partial);
     await this.addRole(user, 'user');
+    await this.createBlankProfile(user);
     this.addConsent(user, 'terms');
     if (marketingFirstParty) {
       this.addConsent(user, 'marketing-firstparty');
@@ -92,10 +97,19 @@ export class UsersService {
   async addRole(user: User, role: string): Promise<void> {
     await this.userRolesRepository.upsert(
       {
-        user: user,
+        user: { id: user.id },
         role: role,
       },
       ['user', 'role'],
+    );
+  }
+
+  async createBlankProfile(user: User): Promise<void> {
+    await this.userRolesRepository.upsert(
+      {
+        user: { id: user.id },
+      },
+      ['user'],
     );
   }
 
@@ -190,5 +204,32 @@ export class UsersService {
     }
     subscription.active = subscription.expires * 1000 > currentTime;
     return subscription;
+  }
+
+  async setFirstName(user: User, name: string) {
+    this.userProfileRepository.upsert(
+      {
+        user: {
+          id: user.id,
+        },
+        first_name: name,
+      },
+      ['user'],
+    );
+  }
+
+  async doOnboardingStage1(user: User, body: Onboarding1Dto) {
+    this.userProfileRepository.upsert(
+      {
+        user: {
+          id: user.id,
+        },
+        first_name: body.firstName,
+        last_name: body.lastName,
+        slug: body.userName,
+        date_of_birth: body.dateOfBirth,
+      },
+      ['user'],
+    );
   }
 }

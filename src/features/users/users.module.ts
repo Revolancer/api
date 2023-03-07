@@ -8,6 +8,7 @@ import { MailModule } from '../mail/mail.module';
 import { License } from './entities/license.entity';
 import { User } from './entities/user.entity';
 import { UserConsent } from './entities/userconsent.entity';
+import { UserProfile } from './entities/userprofile.entity';
 import { UserRole } from './entities/userrole.entity';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
@@ -16,7 +17,13 @@ import { UsersService } from './users.service';
   imports: [
     ChargebeeModule,
     forwardRef(() => MailModule),
-    TypeOrmModule.forFeature([User, UserRole, UserConsent, License]),
+    TypeOrmModule.forFeature([
+      User,
+      UserRole,
+      UserConsent,
+      UserProfile,
+      License,
+    ]),
     JwtModule.registerAsync({
       imports: [AuthConfigModule],
       inject: [AuthConfigService],
