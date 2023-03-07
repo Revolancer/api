@@ -1,4 +1,5 @@
-import { IsDate, IsNotEmpty, MinDate } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsDate, IsNotEmpty, MaxDate } from 'class-validator';
 import { DateTime } from 'luxon';
 
 export class Onboarding1Dto {
@@ -12,9 +13,18 @@ export class Onboarding1Dto {
   userName!: string;
 
   @IsNotEmpty()
+  @Transform(({ value }) => new Date(value))
   @IsDate()
-  @MinDate(() => {
-    return DateTime.now().minus({ year: 13 }).toJSDate();
-  })
-  dateOfBirth!: string;
+  @MaxDate(
+    () => {
+      return DateTime.now().minus({ year: 13 }).toJSDate();
+    },
+    {
+      message: `Date of birth must be after ${DateTime.now()
+        .minus({ year: 13 })
+        .toJSDate()
+        .toISOString()}`,
+    },
+  )
+  dateOfBirth!: Date;
 }
