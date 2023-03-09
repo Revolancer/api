@@ -19,16 +19,16 @@ export class UserProfile {
   @JoinColumn()
   user!: User;
 
-  @Column()
+  @Column({ nullable: true })
   first_name?: string;
 
-  @Column()
+  @Column({ nullable: true })
   last_name?: string;
 
-  @Column()
+  @Column({ nullable: true })
   date_of_birth?: Date;
 
-  @Column()
+  @Column({ nullable: true })
   slug?: string;
 
   @CreateDateColumn()

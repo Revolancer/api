@@ -3,13 +3,11 @@ import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
 import { Subscription } from 'chargebee-typescript/lib/resources';
-import { DateTime } from 'luxon';
 import { EmailExistsError } from 'src/errors/email-exists-error';
 import { Not, Repository } from 'typeorm';
 import { ChargebeeService } from '../chargebee/chargebee.service';
 import { MailService } from '../mail/mail.service';
 import { Onboarding1Dto } from './dto/onboarding1.dto';
-import { License } from './entities/license.entity';
 import { User } from './entities/user.entity';
 import { UserConsent } from './entities/userconsent.entity';
 import { UserProfile } from './entities/userprofile.entity';
@@ -24,8 +22,6 @@ export class UsersService {
     private userRolesRepository: Repository<UserRole>,
     @InjectRepository(UserConsent)
     private userConsentRepository: Repository<UserConsent>,
-    @InjectRepository(License)
-    private licenseRepository: Repository<License>,
     @InjectRepository(UserProfile)
     private userProfileRepository: Repository<UserProfile>,
     private jwtService: JwtService,
@@ -87,10 +83,8 @@ export class UsersService {
     if (marketingThirdParty) {
       this.addConsent(user, 'marketing-thirdparty');
     }
-    const trialEnd = DateTime.now().plus({ days: 30 }).toJSDate();
-    await this.grantLicense(user, trialEnd);
     //Link to chargebee
-    this.chargebeeService.queueLink(user);
+    await this.chargebeeService.createRemoteAndLink(user);
     return user.id;
   }
 
@@ -105,12 +99,9 @@ export class UsersService {
   }
 
   async createBlankProfile(user: User): Promise<void> {
-    await this.userRolesRepository.upsert(
-      {
-        user: { id: user.id },
-      },
-      ['user'],
-    );
+    await this.userProfileRepository.insert({
+      user: { id: user.id },
+    });
   }
 
   async addConsent(user: User, consentFor: string): Promise<void> {
@@ -118,40 +109,6 @@ export class UsersService {
       user: user,
       consent_for: consentFor,
     });
-  }
-
-  async getLicenseExpiry(user: User): Promise<void | Date> {
-    try {
-      const license = await this.licenseRepository.findOneOrFail({
-        relations: { user: true },
-        where: {
-          user: {
-            id: user.id,
-          },
-        },
-      });
-      return license.expires_at;
-    } catch (err) {
-      return;
-    }
-  }
-
-  async hasValidLicense(user: User): Promise<boolean> {
-    const expiry = await this.getLicenseExpiry(user);
-    return !!expiry && expiry > new Date();
-  }
-
-  async grantLicense(user: User, expiry: Date): Promise<void> {
-    await this.licenseRepository.upsert({ user: user, expires_at: expiry }, [
-      'user',
-    ]);
-  }
-
-  async revokeLicense(user: User): Promise<void> {
-    const yesterday = DateTime.now().minus({ days: 1 }).toJSDate();
-    await this.licenseRepository.upsert({ user: user, expires_at: yesterday }, [
-      'user',
-    ]);
   }
 
   async getEmailVerifyToken(user: User): Promise<string> {
@@ -178,8 +135,7 @@ export class UsersService {
   async getSubscriptionStatus(user: User) {
     const subscription = {
       active: false, // is currently active?
-      type: 'none', // one of ['none', 'intro', 'paid', 'bulk']
-      source: 'none', // currently unused - for bulk licensing source
+      type: 'none', // one of ['none', 'paid', 'trial']
       expires: 0, // timestamp of expiry
     };
 
@@ -191,16 +147,14 @@ export class UsersService {
     if (customer != null) {
       sub = await this.chargebeeService.getSubscription(customer);
       if (sub) {
-        subscription.type = 'paid';
-        subscription.expires = sub.current_term_end ?? 0;
+        if (sub.status == 'in_trial') {
+          subscription.expires = sub.trial_end ?? 0;
+          subscription.type = 'trial';
+        } else {
+          subscription.type = 'paid';
+          subscription.expires = sub.current_term_end ?? 0;
+        }
       }
-    }
-    if (!sub) {
-      const expiry = Math.floor(
-        ((await this.getLicenseExpiry(user))?.getTime() ?? 0) / 1000,
-      );
-      subscription.type = 'intro';
-      subscription.expires = expiry;
     }
     subscription.active = subscription.expires * 1000 > currentTime;
     return subscription;
@@ -246,7 +200,7 @@ export class UsersService {
     username: string,
   ): Promise<boolean> {
     //Test against blacklist
-    const blacklist = ['admin', 'revolancer', 'null'];
+    const blacklist = ['admin', 'revolancer', 'null', 'staff', 'moderator'];
     for (const i in blacklist) {
       const word = blacklist[i];
       if (username.includes(word)) {

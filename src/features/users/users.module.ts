@@ -5,7 +5,6 @@ import { AuthConfigModule } from 'src/config/auth/config.module';
 import { AuthConfigService } from 'src/config/auth/config.service';
 import { ChargebeeModule } from '../chargebee/chargebee.module';
 import { MailModule } from '../mail/mail.module';
-import { License } from './entities/license.entity';
 import { User } from './entities/user.entity';
 import { UserConsent } from './entities/userconsent.entity';
 import { UserProfile } from './entities/userprofile.entity';
@@ -17,13 +16,7 @@ import { UsersService } from './users.service';
   imports: [
     ChargebeeModule,
     forwardRef(() => MailModule),
-    TypeOrmModule.forFeature([
-      User,
-      UserRole,
-      UserConsent,
-      UserProfile,
-      License,
-    ]),
+    TypeOrmModule.forFeature([User, UserRole, UserConsent, UserProfile]),
     JwtModule.registerAsync({
       imports: [AuthConfigModule],
       inject: [AuthConfigService],
