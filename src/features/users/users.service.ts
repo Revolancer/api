@@ -137,6 +137,7 @@ export class UsersService {
       active: false, // is currently active?
       type: 'none', // one of ['none', 'paid', 'trial']
       expires: 0, // timestamp of expiry
+      card_status: 'no_card',
     };
 
     const currentDate = new Date();
@@ -146,6 +147,9 @@ export class UsersService {
     let sub: void | Subscription;
     if (customer != null) {
       sub = await this.chargebeeService.getSubscription(customer);
+      subscription.card_status = await this.chargebeeService.getCardStatus(
+        customer,
+      );
       if (sub) {
         if (sub.status == 'in_trial') {
           subscription.expires = sub.trial_end ?? 0;

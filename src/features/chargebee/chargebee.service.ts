@@ -135,4 +135,11 @@ export class ChargebeeService {
       return result.list[0].subscription;
     }
   }
+
+  async getCardStatus(customer: ChargebeeUser): Promise<string> {
+    const result: Result = await this.chargebee.customer
+      .retrieve(customer.chargebee_id)
+      .request();
+    return result.customer.card_status ?? 'no_card';
+  }
 }
