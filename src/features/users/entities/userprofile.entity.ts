@@ -31,6 +31,15 @@ export class UserProfile {
   @Column({ nullable: true })
   slug?: string;
 
+  @Column({ nullable: true })
+  experience?: number;
+
+  @Column({ nullable: true })
+  currency?: string;
+
+  @Column({ nullable: true })
+  hourly_rate?: number;
+
   @CreateDateColumn()
   created_at!: Date;
 

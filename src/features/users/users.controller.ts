@@ -3,6 +3,7 @@ import { NoUserError } from 'src/errors/no-user-error';
 import { IUserRequest } from 'src/interface/iuserrequest';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Onboarding1Dto } from './dto/onboarding1.dto';
+import { Onboarding2Dto } from './dto/onboarding2.dto';
 import { UsernameCheckDto } from './dto/usernamecheck.dto';
 import { UsersService } from './users.service';
 
@@ -21,6 +22,19 @@ export class UsersController {
       throw new NoUserError();
     }
     return this.usersService.doOnboardingStage1(loaded, body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('onboarding/2')
+  async saveOnboardingStage2(
+    @Req() req: IUserRequest,
+    @Body() body: Onboarding2Dto,
+  ) {
+    const loaded = await this.usersService.findOne(req.user.id);
+    if (loaded == null) {
+      throw new NoUserError();
+    }
+    return this.usersService.doOnboardingStage2(loaded, body);
   }
 
   @UseGuards(JwtAuthGuard)

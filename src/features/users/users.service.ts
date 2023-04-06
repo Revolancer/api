@@ -8,6 +8,7 @@ import { Not, Repository } from 'typeorm';
 import { ChargebeeService } from '../chargebee/chargebee.service';
 import { MailService } from '../mail/mail.service';
 import { Onboarding1Dto } from './dto/onboarding1.dto';
+import { Onboarding2Dto } from './dto/onboarding2.dto';
 import { User } from './entities/user.entity';
 import { UserConsent } from './entities/userconsent.entity';
 import { UserProfile } from './entities/userprofile.entity';
@@ -191,6 +192,20 @@ export class UsersService {
         ['user'],
       );
     }
+  }
+
+  async doOnboardingStage2(user: User, body: Onboarding2Dto) {
+    this.userProfileRepository.upsert(
+      {
+        user: {
+          id: user.id,
+        },
+        experience: body.experience,
+        currency: body.currency,
+        hourly_rate: body.hourlyRate,
+      },
+      ['user'],
+    );
   }
 
   /**
