@@ -1,8 +1,6 @@
-import {
-  BullAdapter,
-  createBullBoard,
-  ExpressAdapter,
-} from '@bull-board/express';
+import { BullAdapter } from '@bull-board/api/bullAdapter';
+import { createBullBoard } from '@bull-board/api';
+import { ExpressAdapter } from '@bull-board/express';
 import { All, Controller, Next, Request, Response } from '@nestjs/common';
 import { Queue } from 'bull';
 import express from 'express';
