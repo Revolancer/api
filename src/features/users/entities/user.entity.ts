@@ -1,3 +1,4 @@
+import { File } from 'src/features/upload/entities/file.entity';
 import {
   Entity,
   Column,
@@ -36,6 +37,12 @@ export class User {
     onDelete: 'CASCADE',
   })
   consents!: UserConsent[];
+
+  @OneToMany(() => File, (file: File) => file.user, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  files!: File[];
 
   @CreateDateColumn()
   created_at!: Date;

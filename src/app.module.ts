@@ -13,6 +13,7 @@ import { MailModule } from './features/mail/mail.module';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { BullBoardModule } from './features/bull-board/bull-board.module';
 import { TagsModule } from './features/tags/tags.module';
+import { UploadModule } from './features/upload/upload.module';
 
 @Module({})
 class NullModule {}
@@ -25,6 +26,7 @@ class NullModule {}
     MailModule,
     UsersModule,
     TagsModule,
+    UploadModule,
     process.env.NODE_ENV === 'production' ? NullModule : BullBoardModule, // Don't load bull-board in prod
     TypeOrmModule.forRootAsync({
       imports: [DBConfigModule],
