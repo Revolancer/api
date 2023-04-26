@@ -2,13 +2,17 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
-import { Subscription } from 'chargebee-typescript/lib/resources';
+//import { Subscription } from 'chargebee-typescript/lib/resources';
 import { EmailExistsError } from 'src/errors/email-exists-error';
 import { Not, Repository } from 'typeorm';
-import { ChargebeeService } from '../chargebee/chargebee.service';
+//import { ChargebeeService } from '../chargebee/chargebee.service';
 import { MailService } from '../mail/mail.service';
+import { Tag } from '../tags/entities/tag.entity';
+import { TagsService } from '../tags/tags.service';
+import { UploadService } from '../upload/upload.service';
 import { Onboarding1Dto } from './dto/onboarding1.dto';
 import { Onboarding2Dto } from './dto/onboarding2.dto';
+import { Onboarding3Dto } from './dto/onboarding3.dto';
 import { User } from './entities/user.entity';
 import { UserConsent } from './entities/userconsent.entity';
 import { UserProfile } from './entities/userprofile.entity';
@@ -27,8 +31,9 @@ export class UsersService {
     private userProfileRepository: Repository<UserProfile>,
     private jwtService: JwtService,
     @Inject(forwardRef(() => MailService))
-    private mailService: MailService,
-    private chargebeeService: ChargebeeService,
+    private mailService: MailService, //private chargebeeService: ChargebeeService,
+    private uploadService: UploadService,
+    private tagsService: TagsService,
   ) {}
 
   findAll(): Promise<User[]> {
@@ -85,7 +90,7 @@ export class UsersService {
       this.addConsent(user, 'marketing-thirdparty');
     }
     //Link to chargebee
-    await this.chargebeeService.createRemoteAndLink(user);
+    //await this.chargebeeService.createRemoteAndLink(user);
     return user.id;
   }
 
@@ -99,8 +104,15 @@ export class UsersService {
     );
   }
 
-  async createBlankProfile(user: User): Promise<void> {
-    await this.userProfileRepository.insert({
+  createBlankProfile(user: User): Promise<UserProfile> {
+    const userProfile = new UserProfile();
+    userProfile.user = user;
+    userProfile.onboardingStage = 1;
+    return this.userProfileRepository.save(userProfile);
+  }
+
+  getProfile(user: User): Promise<UserProfile> {
+    return this.userProfileRepository.findOneByOrFail({
       user: { id: user.id },
     });
   }
@@ -133,6 +145,7 @@ export class UsersService {
     this.mailService.scheduleMail(user, 'password_reset');
   }
 
+  /*
   async getSubscriptionStatus(user: User) {
     const subscription = {
       active: false, // is currently active?
@@ -164,48 +177,49 @@ export class UsersService {
     subscription.active = subscription.expires * 1000 > currentTime;
     return subscription;
   }
-
-  async setFirstName(user: User, name: string) {
-    this.userProfileRepository.upsert(
-      {
-        user: {
-          id: user.id,
-        },
-        first_name: name,
-      },
-      ['user'],
-    );
-  }
+*/
 
   async doOnboardingStage1(user: User, body: Onboarding1Dto) {
     if (await this.checkUsernameAvailability(user, body.userName)) {
-      this.userProfileRepository.upsert(
-        {
-          user: {
-            id: user.id,
-          },
-          first_name: body.firstName,
-          last_name: body.lastName,
-          slug: body.userName,
-          date_of_birth: body.dateOfBirth,
-        },
-        ['user'],
-      );
+      const loadedUserProfile = await this.getProfile(user);
+      loadedUserProfile.first_name = body.firstName;
+      loadedUserProfile.last_name = body.lastName;
+      loadedUserProfile.slug = body.userName;
+      loadedUserProfile.date_of_birth = body.dateOfBirth;
+      loadedUserProfile.onboardingStage = 2;
+      this.userProfileRepository.save(loadedUserProfile);
     }
   }
 
   async doOnboardingStage2(user: User, body: Onboarding2Dto) {
-    this.userProfileRepository.upsert(
-      {
-        user: {
-          id: user.id,
-        },
-        experience: body.experience,
-        currency: body.currency,
-        hourly_rate: body.hourlyRate,
-      },
-      ['user'],
-    );
+    const loadedUserProfile = await this.getProfile(user);
+    loadedUserProfile.experience = body.experience;
+    loadedUserProfile.currency = body.currency;
+    loadedUserProfile.hourly_rate = body.hourlyRate;
+    loadedUserProfile.onboardingStage = 3;
+    this.userProfileRepository.save(loadedUserProfile);
+  }
+
+  async doOnboardingStage3(user: User, body: Onboarding3Dto) {
+    const loadedUserProfile = await this.getProfile(user);
+    if (!this.uploadService.storeFile(user, body.profileImage)) {
+      return { success: false };
+    }
+    const loadedSkills: Tag[] = [];
+    for (const skill of body.skills) {
+      const loadedSkill = await this.tagsService.findOne(skill.id);
+      if (loadedSkill instanceof Tag) {
+        loadedSkills.push(loadedSkill);
+      }
+    }
+    if (loadedSkills.length > 20 || loadedSkills.length < 3) {
+      return { success: false };
+    }
+    loadedUserProfile.skills = loadedSkills;
+    loadedUserProfile.timezone = body.timezone;
+    loadedUserProfile.profile_image = body.profileImage;
+    loadedUserProfile.onboardingStage = 4;
+    this.userProfileRepository.save(loadedUserProfile);
   }
 
   /**

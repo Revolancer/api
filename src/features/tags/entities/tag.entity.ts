@@ -14,7 +14,7 @@ export class Tag {
   id!: string;
 
   @Column()
-  name: string;
+  text: string;
 
   @TreeChildren()
   children: Tag[];

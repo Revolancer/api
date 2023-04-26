@@ -1,3 +1,4 @@
+import { Tag } from 'src/features/tags/entities/tag.entity';
 import {
   Entity,
   Column,
@@ -7,6 +8,8 @@ import {
   DeleteDateColumn,
   OneToOne,
   JoinColumn,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { User } from './user.entity';
 
@@ -39,6 +42,19 @@ export class UserProfile {
 
   @Column({ nullable: true })
   hourly_rate?: number;
+
+  @Column({ nullable: true })
+  profile_image?: string;
+
+  @Column({ nullable: true })
+  timezone?: string;
+
+  @ManyToMany(() => Tag)
+  @JoinTable()
+  skills: Tag[];
+
+  @Column({ nullable: true })
+  onboardingStage?: number;
 
   @CreateDateColumn()
   created_at!: Date;

@@ -1,3 +1,4 @@
+import { Tag } from 'src/features/tags/entities/tag.entity';
 import { File } from 'src/features/upload/entities/file.entity';
 import {
   Entity,
@@ -7,6 +8,8 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   OneToMany,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { UserConsent } from './userconsent.entity';
 import { UserRole } from './userrole.entity';

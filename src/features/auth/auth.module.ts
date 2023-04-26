@@ -10,6 +10,7 @@ import { JwtStrategy } from './strategy/jwt.strategy';
 import { JwtRefreshStrategy } from './strategy/jwt-refresh.strategy';
 import { AuthController } from './auth.controller';
 import { TurnstileModule } from '../turnstile/turnstile.module';
+import { AdminStrategy } from './strategy/admin.strategy';
 
 @Module({
   imports: [
@@ -25,7 +26,13 @@ import { TurnstileModule } from '../turnstile/turnstile.module';
       }),
     }),
   ],
-  providers: [AuthService, LocalStrategy, JwtStrategy, JwtRefreshStrategy],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    JwtStrategy,
+    JwtRefreshStrategy,
+    AdminStrategy,
+  ],
   controllers: [AuthController],
   exports: [AuthService],
 })
