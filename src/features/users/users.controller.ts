@@ -15,6 +15,7 @@ import { Onboarding2Dto } from './dto/onboarding2.dto';
 import { Onboarding3Dto } from './dto/onboarding3.dto';
 import { ProfileImageUpdateDto } from './dto/profileimageupdate.dto';
 import { SkillsUpdateDto } from './dto/skillsupdate.dto';
+import { TimezoneUpdateDto } from './dto/timezoneupdate.dto';
 import { UsernameCheckDto } from './dto/usernamecheck.dto';
 import { UsersService } from './users.service';
 
@@ -111,5 +112,19 @@ export class UsersController {
     @Body() body: ProfileImageUpdateDto,
   ) {
     return this.usersService.setUserProfileImage(req.user, body);
+  }
+
+  @Get('timezone/:id')
+  async getUserTimezone(@Param('id') id: string) {
+    return this.usersService.getUserTimezone(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('timezone')
+  async setUserTimezone(
+    @Req() req: IUserRequest,
+    @Body() body: TimezoneUpdateDto,
+  ) {
+    return this.usersService.setUserTimezone(req.user, body);
   }
 }
