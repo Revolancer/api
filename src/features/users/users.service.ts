@@ -13,6 +13,7 @@ import { UploadService } from '../upload/upload.service';
 import { Onboarding1Dto } from './dto/onboarding1.dto';
 import { Onboarding2Dto } from './dto/onboarding2.dto';
 import { Onboarding3Dto } from './dto/onboarding3.dto';
+import { SkillsUpdateDto } from './dto/skillsupdate.dto';
 import { User } from './entities/user.entity';
 import { UserConsent } from './entities/userconsent.entity';
 import { UserProfile } from './entities/userprofile.entity';
@@ -200,18 +201,23 @@ export class UsersService {
     this.userProfileRepository.save(loadedUserProfile);
   }
 
-  async doOnboardingStage3(user: User, body: Onboarding3Dto) {
-    const loadedUserProfile = await this.getProfile(user);
-    if (!this.uploadService.storeFile(user, body.profileImage)) {
-      return { success: false };
-    }
+  async loadSkillsFromRequest(skills: Onboarding3Dto['skills']) {
     const loadedSkills: Tag[] = [];
-    for (const skill of body.skills) {
+    for (const skill of skills) {
       const loadedSkill = await this.tagsService.findOne(skill.id);
       if (loadedSkill instanceof Tag) {
         loadedSkills.push(loadedSkill);
       }
     }
+    return loadedSkills;
+  }
+
+  async doOnboardingStage3(user: User, body: Onboarding3Dto) {
+    const loadedUserProfile = await this.getProfile(user);
+    if (!this.uploadService.storeFile(user, body.profileImage)) {
+      return { success: false };
+    }
+    const loadedSkills = await this.loadSkillsFromRequest(body.skills);
     if (loadedSkills.length > 20 || loadedSkills.length < 3) {
       return { success: false };
     }
@@ -233,7 +239,14 @@ export class UsersService {
     username: string,
   ): Promise<boolean> {
     //Test against blacklist
-    const blacklist = ['admin', 'revolancer', 'null', 'staff', 'moderator'];
+    const blacklist = [
+      'profile',
+      'admin',
+      'revolancer',
+      'null',
+      'staff',
+      'moderator',
+    ];
     for (const i in blacklist) {
       const word = blacklist[i];
       if (username.includes(word)) {
@@ -249,5 +262,92 @@ export class UsersService {
         },
       }))
     );
+  }
+
+  async getUserProfileDataBySlug(
+    slug: string,
+  ): Promise<UserProfile | Record<string, never>> {
+    const profile = await this.userProfileRepository.findOne({
+      where: { slug: slug },
+      relations: ['user'],
+      select: {
+        id: true,
+        first_name: true,
+        last_name: true,
+        profile_image: true,
+        timezone: true,
+        user: {
+          id: true,
+          roles: false,
+        },
+      },
+    });
+    if (!(profile instanceof UserProfile)) {
+      return {};
+    }
+    return profile;
+  }
+
+  async getUserProfileData(
+    id: string,
+  ): Promise<UserProfile | Record<string, never>> {
+    const profile = await this.userProfileRepository.findOne({
+      where: { user: { id: id } },
+      relations: ['user'],
+      select: {
+        id: true,
+        first_name: true,
+        last_name: true,
+        profile_image: true,
+        timezone: true,
+        user: {
+          id: true,
+          roles: false,
+        },
+      },
+    });
+    if (!(profile instanceof UserProfile)) {
+      return {};
+    }
+    return profile;
+  }
+
+  async getUserSkills(
+    id: string,
+  ): Promise<UserProfile | Record<string, never>> {
+    const profile = await this.userProfileRepository.findOne({
+      where: { user: { id: id } },
+      relations: ['skills'],
+      select: {
+        id: true,
+        skills: {
+          id: true,
+          text: true,
+        },
+      },
+    });
+    if (!(profile instanceof UserProfile)) {
+      return {};
+    }
+    return profile;
+  }
+
+  async setUserSkills(
+    user: User,
+    body: SkillsUpdateDto,
+  ): Promise<{ success: boolean }> {
+    const profile = await this.userProfileRepository.findOne({
+      where: { user: { id: user.id } },
+    });
+    if (!(profile instanceof UserProfile)) {
+      return { success: false };
+    }
+    const loadedSkills = await this.loadSkillsFromRequest(body.skills);
+    if (loadedSkills.length > 20 || loadedSkills.length < 3) {
+      return { success: false };
+    }
+    profile.skills = loadedSkills;
+    this.userProfileRepository.save(profile);
+    return { success: true };
   }
 }
