@@ -1,10 +1,19 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { NoUserError } from 'src/errors/no-user-error';
 import { IUserRequest } from 'src/interface/iuserrequest';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Onboarding1Dto } from './dto/onboarding1.dto';
 import { Onboarding2Dto } from './dto/onboarding2.dto';
 import { Onboarding3Dto } from './dto/onboarding3.dto';
+import { SkillsUpdateDto } from './dto/skillsupdate.dto';
 import { UsernameCheckDto } from './dto/usernamecheck.dto';
 import { UsersService } from './users.service';
 
@@ -65,5 +74,27 @@ export class UsersController {
       loaded,
       body.userName,
     );
+  }
+
+  @Get('profile/:slug')
+  async getUserProfileData(@Param('slug') slug: string) {
+    return this.usersService.getUserProfileDataBySlug(slug);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('profile')
+  async getOwnUserProfileData(@Req() req: IUserRequest) {
+    return this.usersService.getUserProfileData(req.user.id);
+  }
+
+  @Get('skills/:id')
+  async getUserSkills(@Param('id') id: string) {
+    return this.usersService.getUserSkills(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('skills')
+  async setUserSkills(@Req() req: IUserRequest, @Body() body: SkillsUpdateDto) {
+    return this.usersService.setUserSkills(req.user, body);
   }
 }

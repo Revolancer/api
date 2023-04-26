@@ -31,7 +31,6 @@ export class User {
   @OneToMany(() => UserRole, (role: UserRole) => role.user, {
     cascade: true,
     onDelete: 'CASCADE',
-    eager: true,
   })
   roles!: UserRole[];
 
