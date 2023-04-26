@@ -2,15 +2,20 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
-import { Subscription } from 'chargebee-typescript/lib/resources';
-import { DateTime } from 'luxon';
+//import { Subscription } from 'chargebee-typescript/lib/resources';
 import { EmailExistsError } from 'src/errors/email-exists-error';
-import { Repository } from 'typeorm';
-import { ChargebeeService } from '../chargebee/chargebee.service';
+import { Not, Repository } from 'typeorm';
+//import { ChargebeeService } from '../chargebee/chargebee.service';
 import { MailService } from '../mail/mail.service';
-import { License } from './entities/license.entity';
+import { Tag } from '../tags/entities/tag.entity';
+import { TagsService } from '../tags/tags.service';
+import { UploadService } from '../upload/upload.service';
+import { Onboarding1Dto } from './dto/onboarding1.dto';
+import { Onboarding2Dto } from './dto/onboarding2.dto';
+import { Onboarding3Dto } from './dto/onboarding3.dto';
 import { User } from './entities/user.entity';
 import { UserConsent } from './entities/userconsent.entity';
+import { UserProfile } from './entities/userprofile.entity';
 import { UserRole } from './entities/userrole.entity';
 
 @Injectable()
@@ -22,12 +27,13 @@ export class UsersService {
     private userRolesRepository: Repository<UserRole>,
     @InjectRepository(UserConsent)
     private userConsentRepository: Repository<UserConsent>,
-    @InjectRepository(License)
-    private licenseRepository: Repository<License>,
+    @InjectRepository(UserProfile)
+    private userProfileRepository: Repository<UserProfile>,
     private jwtService: JwtService,
     @Inject(forwardRef(() => MailService))
-    private mailService: MailService,
-    private chargebeeService: ChargebeeService,
+    private mailService: MailService, //private chargebeeService: ChargebeeService,
+    private uploadService: UploadService,
+    private tagsService: TagsService,
   ) {}
 
   findAll(): Promise<User[]> {
@@ -75,6 +81,7 @@ export class UsersService {
     partial.password = await argon2.hash(password);
     const user = await this.usersRepository.save(partial);
     await this.addRole(user, 'user');
+    await this.createBlankProfile(user);
     this.addConsent(user, 'terms');
     if (marketingFirstParty) {
       this.addConsent(user, 'marketing-firstparty');
@@ -82,21 +89,32 @@ export class UsersService {
     if (marketingThirdParty) {
       this.addConsent(user, 'marketing-thirdparty');
     }
-    const trialEnd = DateTime.now().plus({ days: 30 }).toJSDate();
-    await this.grantLicense(user, trialEnd);
     //Link to chargebee
-    this.chargebeeService.queueLink(user);
+    //await this.chargebeeService.createRemoteAndLink(user);
     return user.id;
   }
 
   async addRole(user: User, role: string): Promise<void> {
     await this.userRolesRepository.upsert(
       {
-        user: user,
+        user: { id: user.id },
         role: role,
       },
       ['user', 'role'],
     );
+  }
+
+  createBlankProfile(user: User): Promise<UserProfile> {
+    const userProfile = new UserProfile();
+    userProfile.user = user;
+    userProfile.onboardingStage = 1;
+    return this.userProfileRepository.save(userProfile);
+  }
+
+  getProfile(user: User): Promise<UserProfile> {
+    return this.userProfileRepository.findOneByOrFail({
+      user: { id: user.id },
+    });
   }
 
   async addConsent(user: User, consentFor: string): Promise<void> {
@@ -104,40 +122,6 @@ export class UsersService {
       user: user,
       consent_for: consentFor,
     });
-  }
-
-  async getLicenseExpiry(user: User): Promise<void | Date> {
-    try {
-      const license = await this.licenseRepository.findOneOrFail({
-        relations: { user: true },
-        where: {
-          user: {
-            id: user.id,
-          },
-        },
-      });
-      return license.expires_at;
-    } catch (err) {
-      return;
-    }
-  }
-
-  async hasValidLicense(user: User): Promise<boolean> {
-    const expiry = await this.getLicenseExpiry(user);
-    return !!expiry && expiry > new Date();
-  }
-
-  async grantLicense(user: User, expiry: Date): Promise<void> {
-    await this.licenseRepository.upsert({ user: user, expires_at: expiry }, [
-      'user',
-    ]);
-  }
-
-  async revokeLicense(user: User): Promise<void> {
-    const yesterday = DateTime.now().minus({ days: 1 }).toJSDate();
-    await this.licenseRepository.upsert({ user: user, expires_at: yesterday }, [
-      'user',
-    ]);
   }
 
   async getEmailVerifyToken(user: User): Promise<string> {
@@ -161,12 +145,13 @@ export class UsersService {
     this.mailService.scheduleMail(user, 'password_reset');
   }
 
+  /*
   async getSubscriptionStatus(user: User) {
     const subscription = {
       active: false, // is currently active?
-      type: 'none', // one of ['none', 'intro', 'paid', 'bulk']
-      source: 'none', // currently unused - for bulk licensing source
+      type: 'none', // one of ['none', 'paid', 'trial']
       expires: 0, // timestamp of expiry
+      card_status: 'no_card',
     };
 
     const currentDate = new Date();
@@ -176,19 +161,93 @@ export class UsersService {
     let sub: void | Subscription;
     if (customer != null) {
       sub = await this.chargebeeService.getSubscription(customer);
-      if (sub) {
-        subscription.type = 'paid';
-        subscription.expires = sub.current_term_end ?? 0;
-      }
-    }
-    if (!sub) {
-      const expiry = Math.floor(
-        ((await this.getLicenseExpiry(user))?.getTime() ?? 0) / 1000,
+      subscription.card_status = await this.chargebeeService.getCardStatus(
+        customer,
       );
-      subscription.type = 'intro';
-      subscription.expires = expiry;
+      if (sub) {
+        if (sub.status == 'in_trial') {
+          subscription.expires = sub.trial_end ?? 0;
+          subscription.type = 'trial';
+        } else {
+          subscription.type = 'paid';
+          subscription.expires = sub.current_term_end ?? 0;
+        }
+      }
     }
     subscription.active = subscription.expires * 1000 > currentTime;
     return subscription;
+  }
+*/
+
+  async doOnboardingStage1(user: User, body: Onboarding1Dto) {
+    if (await this.checkUsernameAvailability(user, body.userName)) {
+      const loadedUserProfile = await this.getProfile(user);
+      loadedUserProfile.first_name = body.firstName;
+      loadedUserProfile.last_name = body.lastName;
+      loadedUserProfile.slug = body.userName;
+      loadedUserProfile.date_of_birth = body.dateOfBirth;
+      loadedUserProfile.onboardingStage = 2;
+      this.userProfileRepository.save(loadedUserProfile);
+    }
+  }
+
+  async doOnboardingStage2(user: User, body: Onboarding2Dto) {
+    const loadedUserProfile = await this.getProfile(user);
+    loadedUserProfile.experience = body.experience;
+    loadedUserProfile.currency = body.currency;
+    loadedUserProfile.hourly_rate = body.hourlyRate;
+    loadedUserProfile.onboardingStage = 3;
+    this.userProfileRepository.save(loadedUserProfile);
+  }
+
+  async doOnboardingStage3(user: User, body: Onboarding3Dto) {
+    const loadedUserProfile = await this.getProfile(user);
+    if (!this.uploadService.storeFile(user, body.profileImage)) {
+      return { success: false };
+    }
+    const loadedSkills: Tag[] = [];
+    for (const skill of body.skills) {
+      const loadedSkill = await this.tagsService.findOne(skill.id);
+      if (loadedSkill instanceof Tag) {
+        loadedSkills.push(loadedSkill);
+      }
+    }
+    if (loadedSkills.length > 20 || loadedSkills.length < 3) {
+      return { success: false };
+    }
+    loadedUserProfile.skills = loadedSkills;
+    loadedUserProfile.timezone = body.timezone;
+    loadedUserProfile.profile_image = body.profileImage;
+    loadedUserProfile.onboardingStage = 4;
+    this.userProfileRepository.save(loadedUserProfile);
+  }
+
+  /**
+   * Check the availability of a given username
+   * @param user The current user
+   * @param username the username to test for availability
+   * @returns true if the passed username can be used
+   */
+  async checkUsernameAvailability(
+    user: User,
+    username: string,
+  ): Promise<boolean> {
+    //Test against blacklist
+    const blacklist = ['admin', 'revolancer', 'null', 'staff', 'moderator'];
+    for (const i in blacklist) {
+      const word = blacklist[i];
+      if (username.includes(word)) {
+        return false;
+      }
+    }
+    return (
+      null ==
+      (await this.userProfileRepository.findOne({
+        where: {
+          slug: username,
+          user: { id: Not(user.id) },
+        },
+      }))
+    );
   }
 }

@@ -1,3 +1,5 @@
+import { Tag } from 'src/features/tags/entities/tag.entity';
+import { File } from 'src/features/upload/entities/file.entity';
 import {
   Entity,
   Column,
@@ -6,6 +8,8 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   OneToMany,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { UserConsent } from './userconsent.entity';
 import { UserRole } from './userrole.entity';
@@ -17,12 +21,6 @@ export class User {
 
   @Column({ nullable: true })
   email?: string;
-
-  @Column({ nullable: true })
-  firstName?: string;
-
-  @Column({ nullable: true })
-  lastName?: string;
 
   @Column()
   password!: string;
@@ -42,6 +40,12 @@ export class User {
     onDelete: 'CASCADE',
   })
   consents!: UserConsent[];
+
+  @OneToMany(() => File, (file: File) => file.user, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  files!: File[];
 
   @CreateDateColumn()
   created_at!: Date;

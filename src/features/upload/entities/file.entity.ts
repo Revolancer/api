@@ -1,3 +1,4 @@
+import { User } from 'src/features/users/entities/user.entity';
 import {
   Entity,
   Column,
@@ -5,22 +6,24 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   DeleteDateColumn,
-  OneToOne,
   JoinColumn,
+  ManyToOne,
 } from 'typeorm';
-import { User } from './user.entity';
 
 @Entity()
-export class License {
+export class File {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @OneToOne(() => User)
+  @ManyToOne(() => User)
   @JoinColumn()
   user!: User;
 
-  @Column('timestamptz')
-  expires_at!: Date;
+  @Column()
+  url!: string;
+
+  @Column()
+  filename!: string;
 
   @CreateDateColumn()
   created_at!: Date;

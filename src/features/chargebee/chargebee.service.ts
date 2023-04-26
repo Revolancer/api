@@ -13,10 +13,8 @@ import {
 import { ChargebeeConfigService } from 'src/config/chargebee/config.service';
 import { ListResult } from 'chargebee-typescript/lib/list_result';
 import { Result } from 'chargebee-typescript/lib/result';
-import { ChargebeeJob } from './queue/chargebee.job';
-import { Queue } from 'bull';
-import { InjectQueue } from '@nestjs/bull';
 import { Subscription } from 'chargebee-typescript/lib/resources';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class ChargebeeService {
@@ -26,7 +24,6 @@ export class ChargebeeService {
     @InjectRepository(ChargebeeUser)
     private chargebeeRepository: Repository<ChargebeeUser>,
     private config: ChargebeeConfigService,
-    @InjectQueue('chargebee') private chargebeeQueue: Queue<ChargebeeJob>,
   ) {
     this.chargebee = new ChargeBee();
     this.chargebee.configure({
@@ -63,24 +60,22 @@ export class ChargebeeService {
       chargebee_id: chargebeeId,
     });
     const chargebeeUser = await this.chargebeeRepository.save(newChargebeeUser);
+    this.createSubscription(chargebeeUser);
     return chargebeeUser.id;
   }
 
-  async findRemoteAndLink(user: User): Promise<void> {
-    //Did we already link this user to chargebee?
-    const prelinked = await this.findOneByUser(user);
-    if (prelinked) return;
-    //Find chargebee customer with same email
-    const params: _customer.customer_list_params = {
-      email: { is: user.email },
-    };
-    const result: ListResult = await this.chargebee.customer
-      .list(params)
+  async createSubscription(customer: ChargebeeUser) {
+    const trial_end = Math.floor(DateTime.now().plus({ day: 30 }).toSeconds());
+    this.chargebee.subscription
+      .create_with_items(customer.chargebee_id, {
+        subscription_items: [
+          {
+            item_price_id: 'Revolancer-GBP-Monthly',
+            trial_end: trial_end,
+          },
+        ],
+      })
       .request();
-    if (result.list.length > 0) {
-      const customer_id = result.list[0].customer.id;
-      await this.create(user, customer_id);
-    }
   }
 
   async createRemoteAndLink(user: User): Promise<void> {
@@ -91,21 +86,6 @@ export class ChargebeeService {
       .create(params)
       .request();
     await this.create(user, result.customer.id);
-  }
-
-  async linkToRemote(user: User): Promise<void> {
-    await this.findRemoteAndLink(user);
-    const linked = await this.findOneByUser(user);
-    if (linked == null) {
-      await this.createRemoteAndLink(user);
-    }
-  }
-
-  async queueLink(user: User): Promise<void> {
-    this.chargebeeQueue.add({
-      user: { ...user, password: '' },
-      task: 'link_user',
-    });
   }
 
   async createPortalSession(user: User): Promise<string> {
@@ -154,5 +134,12 @@ export class ChargebeeService {
     if (result.list.length > 0) {
       return result.list[0].subscription;
     }
+  }
+
+  async getCardStatus(customer: ChargebeeUser): Promise<string> {
+    const result: Result = await this.chargebee.customer
+      .retrieve(customer.chargebee_id)
+      .request();
+    return result.customer.card_status ?? 'no_card';
   }
 }

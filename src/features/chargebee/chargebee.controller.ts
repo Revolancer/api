@@ -12,10 +12,4 @@ export class ChargebeeController {
   async createPortalSession(@Req() req: IUserRequest) {
     return this.chargebeeService.createPortalSession(req.user);
   }
-
-  @UseGuards(JwtAuthGuard)
-  @Get('checkout_session')
-  async createCheckoutSession(@Req() req: IUserRequest) {
-    return this.chargebeeService.createCheckoutPage(req.user);
-  }
 }
