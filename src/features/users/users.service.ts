@@ -10,11 +10,13 @@ import { MailService } from '../mail/mail.service';
 import { Tag } from '../tags/entities/tag.entity';
 import { TagsService } from '../tags/tags.service';
 import { UploadService } from '../upload/upload.service';
+import { AboutUpdateDto } from './dto/aboutupdate.dto.ts';
 import { Onboarding1Dto } from './dto/onboarding1.dto';
 import { Onboarding2Dto } from './dto/onboarding2.dto';
 import { Onboarding3Dto } from './dto/onboarding3.dto';
 import { ProfileImageUpdateDto } from './dto/profileimageupdate.dto';
 import { SkillsUpdateDto } from './dto/skillsupdate.dto';
+import { TaglineUpdateDto } from './dto/taglineupdate.dto';
 import { TimezoneUpdateDto } from './dto/timezoneupdate.dto';
 import { User } from './entities/user.entity';
 import { UserConsent } from './entities/userconsent.entity';
@@ -403,6 +405,56 @@ export class UsersService {
   ): Promise<{ success: boolean }> {
     const loadedUserProfile = await this.getProfile(user);
     loadedUserProfile.timezone = body.timezone;
+    this.userProfileRepository.save(loadedUserProfile);
+    return { success: true };
+  }
+
+  async getUserTagline(
+    id: string,
+  ): Promise<UserProfile | Record<string, never>> {
+    const profile = await this.userProfileRepository.findOne({
+      where: { user: { id: id } },
+      select: {
+        id: true,
+        tagline: true,
+      },
+    });
+    if (!(profile instanceof UserProfile)) {
+      return {};
+    }
+    return profile;
+  }
+
+  async setUserTagline(
+    user: User,
+    body: TaglineUpdateDto,
+  ): Promise<{ success: boolean }> {
+    const loadedUserProfile = await this.getProfile(user);
+    loadedUserProfile.tagline = body.tagline;
+    this.userProfileRepository.save(loadedUserProfile);
+    return { success: true };
+  }
+
+  async getUserAbout(id: string): Promise<UserProfile | Record<string, never>> {
+    const profile = await this.userProfileRepository.findOne({
+      where: { user: { id: id } },
+      select: {
+        id: true,
+        about: true,
+      },
+    });
+    if (!(profile instanceof UserProfile)) {
+      return {};
+    }
+    return profile;
+  }
+
+  async setUserAbout(
+    user: User,
+    body: AboutUpdateDto,
+  ): Promise<{ success: boolean }> {
+    const loadedUserProfile = await this.getProfile(user);
+    loadedUserProfile.about = body.about;
     this.userProfileRepository.save(loadedUserProfile);
     return { success: true };
   }
