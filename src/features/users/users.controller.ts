@@ -10,11 +10,13 @@ import {
 import { NoUserError } from 'src/errors/no-user-error';
 import { IUserRequest } from 'src/interface/iuserrequest';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AboutUpdateDto } from './dto/aboutupdate.dto.ts';
 import { Onboarding1Dto } from './dto/onboarding1.dto';
 import { Onboarding2Dto } from './dto/onboarding2.dto';
 import { Onboarding3Dto } from './dto/onboarding3.dto';
 import { ProfileImageUpdateDto } from './dto/profileimageupdate.dto';
 import { SkillsUpdateDto } from './dto/skillsupdate.dto';
+import { TaglineUpdateDto } from './dto/taglineupdate.dto';
 import { TimezoneUpdateDto } from './dto/timezoneupdate.dto';
 import { UsernameCheckDto } from './dto/usernamecheck.dto';
 import { UsersService } from './users.service';
@@ -126,5 +128,30 @@ export class UsersController {
     @Body() body: TimezoneUpdateDto,
   ) {
     return this.usersService.setUserTimezone(req.user, body);
+  }
+
+  @Get('tagline/:id')
+  async getUserTagline(@Param('id') id: string) {
+    return this.usersService.getUserTagline(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('tagline')
+  async setUserTagline(
+    @Req() req: IUserRequest,
+    @Body() body: TaglineUpdateDto,
+  ) {
+    return this.usersService.setUserTagline(req.user, body);
+  }
+
+  @Get('about/:id')
+  async getUserAbout(@Param('id') id: string) {
+    return this.usersService.getUserAbout(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('about')
+  async setUserAbout(@Req() req: IUserRequest, @Body() body: AboutUpdateDto) {
+    return this.usersService.setUserAbout(req.user, body);
   }
 }

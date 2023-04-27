@@ -56,6 +56,12 @@ export class UserProfile {
   @Column({ nullable: true })
   onboardingStage?: number;
 
+  @Column({ nullable: true })
+  tagline?: string;
+
+  @Column({ nullable: true })
+  about?: string;
+
   @CreateDateColumn()
   created_at!: Date;
 
