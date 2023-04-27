@@ -14,9 +14,8 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { BullBoardModule } from './features/bull-board/bull-board.module';
 import { TagsModule } from './features/tags/tags.module';
 import { UploadModule } from './features/upload/upload.module';
-import { BugsnagModule } from 'nestjs-bugsnag';
-import { BugsnagConfigService } from './config/bugsnag/config.service';
-import { BugsnagConfigModule } from './config/bugsnag/config.module';
+import { APP_FILTER } from '@nestjs/core';
+import { ExceptionFilter } from './exception.filter';
 
 @Module({})
 class NullModule {}
@@ -59,15 +58,12 @@ class NullModule {}
       ttl: 30,
       limit: 5,
     }),
-    BugsnagModule.forRootAsync({
-      inject: [BugsnagConfigService],
-      imports: [BugsnagConfigModule],
-      useFactory: (config: BugsnagConfigService) => ({
-        apiKey: config.key ?? '',
-        releaseStage: process.env.NODE_ENV,
-        appVersion: '0.32.0',
-      }),
-    }),
+  ],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: ExceptionFilter,
+    },
   ],
 })
 export class AppModule {}
