@@ -13,7 +13,9 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Onboarding1Dto } from './dto/onboarding1.dto';
 import { Onboarding2Dto } from './dto/onboarding2.dto';
 import { Onboarding3Dto } from './dto/onboarding3.dto';
+import { ProfileImageUpdateDto } from './dto/profileimageupdate.dto';
 import { SkillsUpdateDto } from './dto/skillsupdate.dto';
+import { TimezoneUpdateDto } from './dto/timezoneupdate.dto';
 import { UsernameCheckDto } from './dto/usernamecheck.dto';
 import { UsersService } from './users.service';
 
@@ -96,5 +98,33 @@ export class UsersController {
   @Post('skills')
   async setUserSkills(@Req() req: IUserRequest, @Body() body: SkillsUpdateDto) {
     return this.usersService.setUserSkills(req.user, body);
+  }
+
+  @Get('profile_picture/:id')
+  async getUserProfileImage(@Param('id') id: string) {
+    return this.usersService.getUserProfileImage(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('profile_picture')
+  async setUserProfileImage(
+    @Req() req: IUserRequest,
+    @Body() body: ProfileImageUpdateDto,
+  ) {
+    return this.usersService.setUserProfileImage(req.user, body);
+  }
+
+  @Get('timezone/:id')
+  async getUserTimezone(@Param('id') id: string) {
+    return this.usersService.getUserTimezone(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('timezone')
+  async setUserTimezone(
+    @Req() req: IUserRequest,
+    @Body() body: TimezoneUpdateDto,
+  ) {
+    return this.usersService.setUserTimezone(req.user, body);
   }
 }

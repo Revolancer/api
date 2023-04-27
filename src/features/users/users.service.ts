@@ -13,7 +13,9 @@ import { UploadService } from '../upload/upload.service';
 import { Onboarding1Dto } from './dto/onboarding1.dto';
 import { Onboarding2Dto } from './dto/onboarding2.dto';
 import { Onboarding3Dto } from './dto/onboarding3.dto';
+import { ProfileImageUpdateDto } from './dto/profileimageupdate.dto';
 import { SkillsUpdateDto } from './dto/skillsupdate.dto';
+import { TimezoneUpdateDto } from './dto/timezoneupdate.dto';
 import { User } from './entities/user.entity';
 import { UserConsent } from './entities/userconsent.entity';
 import { UserProfile } from './entities/userprofile.entity';
@@ -347,6 +349,61 @@ export class UsersService {
     }
     profile.skills = loadedSkills;
     this.userProfileRepository.save(profile);
+    return { success: true };
+  }
+
+  async getUserProfileImage(
+    id: string,
+  ): Promise<UserProfile | Record<string, never>> {
+    const profile = await this.userProfileRepository.findOne({
+      where: { user: { id: id } },
+      select: {
+        id: true,
+        profile_image: true,
+      },
+    });
+    if (!(profile instanceof UserProfile)) {
+      return {};
+    }
+    return profile;
+  }
+
+  async setUserProfileImage(
+    user: User,
+    body: ProfileImageUpdateDto,
+  ): Promise<{ success: boolean }> {
+    const loadedUserProfile = await this.getProfile(user);
+    if (!this.uploadService.storeFile(user, body.profileImage)) {
+      return { success: false };
+    }
+    loadedUserProfile.profile_image = body.profileImage;
+    this.userProfileRepository.save(loadedUserProfile);
+    return { success: true };
+  }
+
+  async getUserTimezone(
+    id: string,
+  ): Promise<UserProfile | Record<string, never>> {
+    const profile = await this.userProfileRepository.findOne({
+      where: { user: { id: id } },
+      select: {
+        id: true,
+        timezone: true,
+      },
+    });
+    if (!(profile instanceof UserProfile)) {
+      return {};
+    }
+    return profile;
+  }
+
+  async setUserTimezone(
+    user: User,
+    body: TimezoneUpdateDto,
+  ): Promise<{ success: boolean }> {
+    const loadedUserProfile = await this.getProfile(user);
+    loadedUserProfile.timezone = body.timezone;
+    this.userProfileRepository.save(loadedUserProfile);
     return { success: true };
   }
 }
