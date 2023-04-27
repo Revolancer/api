@@ -105,11 +105,10 @@ export class UsersService {
     );
   }
 
-  createBlankProfile(user: User): Promise<UserProfile> {
-    const userProfile = new UserProfile();
-    userProfile.user = user;
-    userProfile.onboardingStage = 1;
-    return this.userProfileRepository.save(userProfile);
+  async createBlankProfile(user: User): Promise<void> {
+    await this.userProfileRepository.insert({
+      user: { id: user.id },
+    });
   }
 
   getProfile(user: User): Promise<UserProfile> {
