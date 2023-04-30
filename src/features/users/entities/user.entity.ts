@@ -1,3 +1,4 @@
+import { PortfolioPost } from 'src/features/portfolio/entities/portfolio-post.entity';
 import { File } from 'src/features/upload/entities/file.entity';
 import {
   Entity,
@@ -36,6 +37,12 @@ export class User {
     onDelete: 'CASCADE',
   })
   consents!: UserConsent[];
+
+  @OneToMany(() => PortfolioPost, (post: PortfolioPost) => post.user, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  postfolio_posts!: PortfolioPost[];
 
   @OneToMany(() => File, (file: File) => file.user, {
     cascade: true,

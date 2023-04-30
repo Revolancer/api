@@ -91,6 +91,11 @@ export class UsersController {
     return this.usersService.getUserProfileData(req.user.id);
   }
 
+  @Get('profile/by_id/:id')
+  async getUserProfileDataById(@Param('id') id: string) {
+    return this.usersService.getUserProfileData(id);
+  }
+
   @Get('skills/:id')
   async getUserSkills(@Param('id') id: string) {
     return this.usersService.getUserSkills(id);

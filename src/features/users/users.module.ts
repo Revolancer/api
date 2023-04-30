@@ -5,6 +5,7 @@ import { AuthConfigModule } from 'src/config/auth/config.module';
 import { AuthConfigService } from 'src/config/auth/config.service';
 //import { ChargebeeModule } from '../chargebee/chargebee.module';
 import { MailModule } from '../mail/mail.module';
+import { PortfolioModule } from '../portfolio/portfolio.module';
 import { TagsModule } from '../tags/tags.module';
 import { UploadModule } from '../upload/upload.module';
 import { User } from './entities/user.entity';
@@ -19,6 +20,7 @@ import { UsersService } from './users.service';
     //ChargebeeModule, Removed monetisation for now
     UploadModule,
     TagsModule,
+    PortfolioModule,
     forwardRef(() => MailModule),
     TypeOrmModule.forFeature([User, UserRole, UserConsent, UserProfile]),
     JwtModule.registerAsync({
