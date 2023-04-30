@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DateTime } from 'luxon';
-import { Repository } from 'typeorm';
+import { LessThan, Repository } from 'typeorm';
 import { Tag } from '../tags/entities/tag.entity';
 import { TagsService } from '../tags/tags.service';
 import { User } from '../users/entities/user.entity';
@@ -80,5 +80,21 @@ export class PortfolioService {
     } catch (err) {
       throw new NotFoundException('Post not found');
     }
+  }
+
+  async getPostsForFeed(user: User) {
+    const now = DateTime.now().toJSDate();
+    return await this.postRepository.find({
+      where: { is_draft: false, published_at: LessThan(now) },
+      relations: ['tags', 'user'],
+      select: {
+        user: {
+          id: true,
+        },
+      },
+      order: {
+        published_at: 'DESC',
+      },
+    });
   }
 }

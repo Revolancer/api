@@ -16,6 +16,7 @@ import { TagsModule } from './features/tags/tags.module';
 import { UploadModule } from './features/upload/upload.module';
 import { APP_FILTER } from '@nestjs/core';
 import { ExceptionFilter } from './exception.filter';
+import { FeedModule } from './features/feed/feed.module';
 
 @Module({})
 class NullModule {}
@@ -29,6 +30,7 @@ class NullModule {}
     UsersModule,
     TagsModule,
     UploadModule,
+    FeedModule,
     process.env.NODE_ENV === 'production' ? NullModule : BullBoardModule, // Don't load bull-board in prod
     TypeOrmModule.forRootAsync({
       imports: [DBConfigModule],
