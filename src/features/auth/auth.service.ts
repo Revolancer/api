@@ -56,6 +56,7 @@ export class AuthService {
       email: loaded.email,
       roles: roles,
       onboardingStage: profile.onboardingStage ?? 1,
+      id: loaded.id,
       //license: license,
     };
   }

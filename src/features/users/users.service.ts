@@ -303,6 +303,7 @@ export class UsersService {
         last_name: true,
         profile_image: true,
         timezone: true,
+        slug: true,
         user: {
           id: true,
           roles: false,
