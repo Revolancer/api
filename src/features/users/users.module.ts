@@ -5,6 +5,7 @@ import { AuthConfigModule } from 'src/config/auth/config.module';
 import { AuthConfigService } from 'src/config/auth/config.service';
 //import { ChargebeeModule } from '../chargebee/chargebee.module';
 import { MailModule } from '../mail/mail.module';
+import { NeedModule } from '../need/need.module';
 import { PortfolioModule } from '../portfolio/portfolio.module';
 import { TagsModule } from '../tags/tags.module';
 import { UploadModule } from '../upload/upload.module';
@@ -21,6 +22,7 @@ import { UsersService } from './users.service';
     UploadModule,
     TagsModule,
     PortfolioModule,
+    NeedModule,
     forwardRef(() => MailModule),
     TypeOrmModule.forFeature([User, UserRole, UserConsent, UserProfile]),
     JwtModule.registerAsync({
