@@ -3,8 +3,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthConfigModule } from 'src/config/auth/config.module';
 import { AuthConfigService } from 'src/config/auth/config.service';
-//import { ChargebeeModule } from '../chargebee/chargebee.module';
 import { MailModule } from '../mail/mail.module';
+import { MessageModule } from '../messages/message.module';
 import { NeedModule } from '../need/need.module';
 import { PortfolioModule } from '../portfolio/portfolio.module';
 import { TagsModule } from '../tags/tags.module';
@@ -18,11 +18,11 @@ import { UsersService } from './users.service';
 
 @Module({
   imports: [
-    //ChargebeeModule, Removed monetisation for now
     UploadModule,
     TagsModule,
     PortfolioModule,
     NeedModule,
+    MessageModule,
     forwardRef(() => MailModule),
     TypeOrmModule.forFeature([User, UserRole, UserConsent, UserProfile]),
     JwtModule.registerAsync({
