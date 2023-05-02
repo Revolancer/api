@@ -16,8 +16,48 @@ export class MessageService {
     private tagsService: TagsService,
   ) {}
 
+  /**
+   * Get unique message threads for the given user
+   * @param user The user whose threads we need
+   * @returns an array of unique message threads
+   */
   async getMessageThreads(user: User) {
-    return [];
+    const builder = this.messageRepository.createQueryBuilder('message');
+    const result: { [key: string]: Message } = {};
+    const threads = await builder
+      .distinctOn(['message.sender', 'message.reciever'])
+      .where('message.sender = :sender', { sender: user.id })
+      .orWhere('message.reciever = :reciever', { reciever: user.id })
+      .orderBy('message.sender', 'DESC')
+      .addOrderBy('message.reciever', 'DESC')
+      .addOrderBy('message.created_at', 'DESC')
+      .loadRelationIdAndMap('sender', 'message.sender')
+      .loadRelationIdAndMap('reciever', 'message.reciever')
+      .getMany();
+    threads.sort((a, b) => {
+      return a.created_at > b.created_at ? -1 : 1;
+    });
+    for (const message of threads) {
+      let otherId;
+      if ((message.reciever as any as string) == user.id) {
+        otherId = message.sender as any as string;
+      } else {
+        otherId = message.reciever as any as string;
+      }
+
+      if (!result[otherId]) {
+        result[otherId] = message;
+      }
+    }
+    const resultArray: Message[] = [];
+    for (const [_, value] of Object.entries(result)) {
+      resultArray.push(value);
+    }
+    resultArray.sort((a, b) => {
+      return a.created_at > b.created_at ? 1 : -1;
+    });
+
+    return resultArray;
   }
 
   async getMessagesBetween(uid1: string, uid2: string) {
@@ -49,7 +89,8 @@ export class MessageService {
       )
       .loadRelationIdAndMap('sender', 'message.sender')
       .loadRelationIdAndMap('reciever', 'message.reciever')
-      .getManyAndCount();
+      .orderBy('message.created_at', 'ASC')
+      .getMany();
   }
 
   async sendMessage(user: User, recipientId: string, body: SendMessageDto) {
