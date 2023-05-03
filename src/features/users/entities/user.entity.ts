@@ -1,3 +1,4 @@
+import { Message } from 'src/features/messages/entities/message.entity';
 import { NeedPost } from 'src/features/need/entities/need-post.entity';
 import { PortfolioPost } from 'src/features/portfolio/entities/portfolio-post.entity';
 import { File } from 'src/features/upload/entities/file.entity';
@@ -50,6 +51,18 @@ export class User {
     onDelete: 'CASCADE',
   })
   need_posts!: NeedPost[];
+
+  @OneToMany(() => Message, (message: Message) => message.sender, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  incoming_messages!: Message[];
+
+  @OneToMany(() => Message, (message: Message) => message.reciever, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  outgoing_messages!: Message[];
 
   @OneToMany(() => File, (file: File) => file.user, {
     cascade: true,
