@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  Post,
   Put,
   Req,
   UseGuards,
@@ -23,6 +24,18 @@ export class MessageController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('unread')
+  async getUnreadMessageCount(@Req() req: IUserRequest) {
+    return await this.messageService.getUnreadCount(req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('count_all')
+  async getAllMessageCount(@Req() req: IUserRequest) {
+    return await this.messageService.getAllMessageCount(req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   async getMessages(@Req() req: IUserRequest, @Param('id') id: string) {
     return this.messageService.getMessagesBetween(req.user.id, id);
@@ -36,5 +49,11 @@ export class MessageController {
     @Body() body: SendMessageDto,
   ) {
     return this.messageService.sendMessage(req.user, id, body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('acknowledge/:id')
+  async acknowledgeMessage(@Req() req: IUserRequest, @Param('id') id: string) {
+    return this.messageService.markMessageAsRead(req.user, id);
   }
 }

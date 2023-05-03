@@ -5,6 +5,7 @@ import { TagsService } from '../tags/tags.service';
 import { User } from '../users/entities/user.entity';
 import { SendMessageDto } from './dto/sendmessage.dto';
 import { Message } from './entities/message.entity';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class MessageService {
@@ -101,6 +102,28 @@ export class MessageService {
     message.sender = user;
     message.reciever = recipient;
     message.body = body.body;
+    this.messageRepository.save(message);
+  }
+
+  async getUnreadCount(user: User) {
+    return this.messageRepository.count({
+      where: { reciever: user, read: false },
+    });
+  }
+
+  async getAllMessageCount(user: User) {
+    return this.messageRepository.count({
+      where: [{ reciever: user }, { sender: user }],
+    });
+  }
+
+  async markMessageAsRead(user: User, id: string) {
+    const message = await this.messageRepository.findOne({
+      where: { id: id, reciever: user },
+    });
+    if (!message) return;
+    message.read = true;
+    message.read_at = DateTime.now().toJSDate();
     this.messageRepository.save(message);
   }
 }
