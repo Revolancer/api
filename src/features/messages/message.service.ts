@@ -54,7 +54,7 @@ export class MessageService {
       resultArray.push(value);
     }
     resultArray.sort((a, b) => {
-      return a.created_at > b.created_at ? 1 : -1;
+      return a.created_at > b.created_at ? -1 : 1;
     });
 
     return resultArray;
