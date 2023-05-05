@@ -459,4 +459,18 @@ export class UsersService {
     this.userProfileRepository.save(loadedUserProfile);
     return { success: true };
   }
+
+  async getUserRate(user: User): Promise<UserProfile | Record<string, never>> {
+    const profile = await this.userProfileRepository.findOne({
+      where: { user: { id: user.id } },
+      select: {
+        id: true,
+        hourly_rate: true,
+      },
+    });
+    if (!(profile instanceof UserProfile)) {
+      return {};
+    }
+    return profile;
+  }
 }

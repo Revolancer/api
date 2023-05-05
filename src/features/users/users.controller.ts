@@ -159,4 +159,10 @@ export class UsersController {
   async setUserAbout(@Req() req: IUserRequest, @Body() body: AboutUpdateDto) {
     return this.usersService.setUserAbout(req.user, body);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('rate')
+  async getUserRate(@Req() req: IUserRequest) {
+    return this.usersService.getUserRate(req.user);
+  }
 }

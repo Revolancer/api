@@ -7,12 +7,16 @@ import { TagsService } from '../tags/tags.service';
 import { User } from '../users/entities/user.entity';
 import { CreatePostDto } from './dto/createneed.dto';
 import { NeedPost } from './entities/need-post.entity';
+import { Proposal } from './entities/proposal.entity';
+import { CreateProposalDto } from './dto/createproposal.dto';
 
 @Injectable()
 export class NeedService {
   constructor(
     @InjectRepository(NeedPost)
     private postRepository: Repository<NeedPost>,
+    @InjectRepository(Proposal)
+    private proposalRepository: Repository<Proposal>,
     private tagsService: TagsService,
   ) {}
 
@@ -114,5 +118,36 @@ export class NeedService {
         published_at: 'DESC',
       },
     });
+  }
+
+  async createProposal(user: User, needId: string, body: CreateProposalDto) {
+    const need = await this.postRepository.findOne({ where: { id: needId } });
+    if (!need) throw new NotFoundException();
+    const post = new Proposal();
+    post.message = body.message;
+    post.estimate_hours = body.estHours;
+    post.price = body.price;
+    post.need = need;
+    post.user = user;
+    const newPost = await this.proposalRepository.save(post);
+    return newPost.id;
+  }
+
+  /**
+   * Check proposals for a given need
+   * @param user The user querying the proposals
+   * @param needId The need to check for proposals
+   * @returns Any proposls you have permission to see. Only your own if this is not your need.
+   */
+  async getProposals(user: User, needId: string) {
+    const need = await this.postRepository.findOne({ where: { id: needId } });
+    if (!need) throw new NotFoundException();
+    if (need.user.id == user.id) {
+      return this.proposalRepository.find({ where: { need: need } });
+    } else {
+      return this.proposalRepository.find({
+        where: { need: need, user: { id: user.id } },
+      });
+    }
   }
 }

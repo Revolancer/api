@@ -11,7 +11,9 @@ import {
   ManyToMany,
   JoinTable,
   ManyToOne,
+  OneToMany,
 } from 'typeorm';
+import { Proposal } from './proposal.entity';
 
 @Entity()
 export class NeedPost {
@@ -34,6 +36,12 @@ export class NeedPost {
 
   @Column({ nullable: false, default: false })
   is_draft: boolean;
+
+  @OneToMany(() => Proposal, (post: Proposal) => post.user, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  proposals!: Proposal[];
 
   @Column({ type: 'timestamptz' })
   published_at!: Date;
