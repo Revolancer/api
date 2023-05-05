@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DateTime } from 'luxon';
-import { IsNull, LessThan, Repository } from 'typeorm';
+import { IsNull, LessThan, MoreThan, Repository } from 'typeorm';
 import { Tag } from '../tags/entities/tag.entity';
 import { TagsService } from '../tags/tags.service';
 import { User } from '../users/entities/user.entity';
@@ -78,7 +78,7 @@ export class NeedService {
       const posts = this.postRepository.find({
         where: [
           { user: { id: uid }, unpublish_at: IsNull() },
-          { user: { id: uid }, unpublish_at: LessThan(now) },
+          { user: { id: uid }, unpublish_at: MoreThan(now) },
         ],
         relations: ['tags'],
         order: { published_at: 'DESC' },
