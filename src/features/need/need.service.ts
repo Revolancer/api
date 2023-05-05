@@ -96,7 +96,7 @@ export class NeedService {
         {
           is_draft: false,
           published_at: LessThan(now),
-          unpublish_at: LessThan(now),
+          unpublish_at: MoreThan(now),
         },
         {
           is_draft: false,
