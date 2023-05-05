@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DateTime } from 'luxon';
-import { LessThan, Repository } from 'typeorm';
+import { IsNull, LessThan, Repository } from 'typeorm';
 import { Tag } from '../tags/entities/tag.entity';
 import { TagsService } from '../tags/tags.service';
 import { User } from '../users/entities/user.entity';
@@ -35,6 +35,9 @@ export class NeedService {
     post.data = body.data;
     post.title = body.title;
     post.tags = await this.loadTagsFromRequest(body.tags);
+    if (body?.unpublish_at) {
+      post.unpublish_at = body.unpublish_at;
+    }
     const newPost = await this.postRepository.save(post);
     return newPost.id;
   }
@@ -71,8 +74,12 @@ export class NeedService {
 
   async getPostsForUser(uid: string) {
     try {
+      const now = DateTime.now().toJSDate();
       const posts = this.postRepository.find({
-        where: { user: { id: uid } },
+        where: [
+          { user: { id: uid }, unpublish_at: IsNull() },
+          { user: { id: uid }, unpublish_at: LessThan(now) },
+        ],
         relations: ['tags'],
         order: { published_at: 'DESC' },
       });
@@ -85,7 +92,18 @@ export class NeedService {
   async getPostsForFeed(user: User) {
     const now = DateTime.now().toJSDate();
     return await this.postRepository.find({
-      where: { is_draft: false, published_at: LessThan(now) },
+      where: [
+        {
+          is_draft: false,
+          published_at: LessThan(now),
+          unpublish_at: LessThan(now),
+        },
+        {
+          is_draft: false,
+          published_at: LessThan(now),
+          unpublish_at: IsNull(),
+        },
+      ],
       relations: ['tags', 'user'],
       select: {
         user: {

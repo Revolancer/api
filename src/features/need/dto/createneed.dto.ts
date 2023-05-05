@@ -3,7 +3,11 @@ import {
   ArrayMinSize,
   ArrayMaxSize,
   IsArray,
+  IsDate,
+  IsOptional,
+  MinDate,
 } from 'class-validator';
+import { DateTime } from 'luxon';
 
 class Tag {
   @IsNotEmpty()
@@ -25,4 +29,9 @@ export class CreatePostDto {
 
   @IsNotEmpty()
   data!: string;
+
+  @IsOptional()
+  @IsDate()
+  @MinDate(() => DateTime.now().toJSDate())
+  unpublish_at?: Date;
 }

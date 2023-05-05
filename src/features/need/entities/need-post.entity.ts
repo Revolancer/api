@@ -38,6 +38,9 @@ export class NeedPost {
   @Column({ type: 'timestamptz' })
   published_at!: Date;
 
+  @Column({ type: 'timestamptz', nullable: true })
+  unpublish_at?: Date;
+
   @CreateDateColumn()
   created_at!: Date;
 
