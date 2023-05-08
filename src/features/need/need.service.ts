@@ -85,6 +85,7 @@ export class NeedService {
           { user: { id: uid }, unpublish_at: MoreThan(now) },
         ],
         relations: ['tags'],
+        select: { user: { id: true } },
         order: { published_at: 'DESC' },
       });
       return posts;
@@ -140,13 +141,23 @@ export class NeedService {
    * @returns Any proposls you have permission to see. Only your own if this is not your need.
    */
   async getProposals(user: User, needId: string) {
-    const need = await this.postRepository.findOne({ where: { id: needId } });
+    const need = await this.postRepository.findOne({
+      where: { id: needId },
+      relations: ['user'],
+      select: { user: { id: true } },
+    });
     if (!need) throw new NotFoundException();
     if (need.user.id == user.id) {
-      return this.proposalRepository.find({ where: { need: need } });
+      return this.proposalRepository.find({
+        where: { need: need },
+        relations: ['user'],
+        select: { user: { id: true } },
+      });
     } else {
       return this.proposalRepository.find({
-        where: { need: need, user: { id: user.id } },
+        where: { need: { id: need.id }, user: { id: user.id } },
+        relations: ['user'],
+        select: { user: { id: true } },
       });
     }
   }
