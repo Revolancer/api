@@ -460,6 +460,20 @@ export class UsersService {
     return { success: true };
   }
 
+  async getUserCredits(user: User): Promise<number> {
+    const profile = await this.userProfileRepository.findOne({
+      where: { user: { id: user.id } },
+      select: {
+        id: true,
+        credits: true,
+      },
+    });
+    if (profile instanceof UserProfile) {
+      return profile.credits;
+    }
+    return 0;
+  }
+
   async getUserRate(user: User): Promise<UserProfile | Record<string, never>> {
     const profile = await this.userProfileRepository.findOne({
       where: { user: { id: user.id } },

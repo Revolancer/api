@@ -155,6 +155,12 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('credits')
+  async getUserCredits(@Req() req: IUserRequest) {
+    return this.usersService.getUserCredits(req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Post('about')
   async setUserAbout(@Req() req: IUserRequest, @Body() body: AboutUpdateDto) {
     return this.usersService.setUserAbout(req.user, body);
