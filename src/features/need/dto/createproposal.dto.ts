@@ -1,4 +1,4 @@
-import { IsNotEmpty, Max, Min } from 'class-validator';
+import { IsInt, IsNotEmpty, Max, Min } from 'class-validator';
 
 export class CreateProposalDto {
   @IsNotEmpty()
@@ -7,6 +7,7 @@ export class CreateProposalDto {
   @IsNotEmpty()
   @Min(1)
   @Max(100)
+  @IsInt()
   estHours!: number;
 
   @IsNotEmpty()

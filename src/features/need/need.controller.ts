@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -58,5 +59,11 @@ export class NeedController {
   @Get('proposals/:id')
   async getProposals(@Req() req: IUserRequest, @Param('id') id: string) {
     return this.needService.getProposals(req.user, id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('proposal/:id')
+  async deleteProposal(@Req() req: IUserRequest, @Param('id') id: string) {
+    return this.needService.deleteProposal(req.user, id);
   }
 }

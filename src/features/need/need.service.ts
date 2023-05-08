@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DateTime } from 'luxon';
 import { IsNull, LessThan, MoreThan, Repository } from 'typeorm';
@@ -122,6 +126,12 @@ export class NeedService {
   }
 
   async createProposal(user: User, needId: string, body: CreateProposalDto) {
+    if (
+      !Number.isSafeInteger(body.estHours) ||
+      !Number.isSafeInteger(body.price)
+    ) {
+      throw new BadRequestException();
+    }
     const need = await this.postRepository.findOne({ where: { id: needId } });
     if (!need) throw new NotFoundException();
     const post = new Proposal();
@@ -160,5 +170,13 @@ export class NeedService {
         select: { user: { id: true } },
       });
     }
+  }
+
+  async deleteProposal(user: User, id: string) {
+    const proposal = await this.proposalRepository.findOne({
+      where: { id: id, user: { id: user.id } },
+    });
+    if (!proposal) throw new NotFoundException();
+    this.proposalRepository.softRemove(proposal);
   }
 }
