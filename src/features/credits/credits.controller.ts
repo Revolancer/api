@@ -12,4 +12,16 @@ export class CreditsController {
   async getUserBalance(@Req() req: IUserRequest) {
     return this.creditsService.getUserCredits(req.user);
   }
+
+  @Get('log')
+  @UseGuards(JwtAuthGuard)
+  async getUserCreditLog(@Req() req: IUserRequest) {
+    return this.creditsService.getUserCreditLog(req.user);
+  }
+
+  @Get('log/reverse')
+  @UseGuards(JwtAuthGuard)
+  async getUserCreditLogReverse(@Req() req: IUserRequest) {
+    return this.creditsService.getUserCreditLogReverse(req.user);
+  }
 }

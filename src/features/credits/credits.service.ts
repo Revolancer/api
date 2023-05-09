@@ -28,6 +28,20 @@ export class CreditsService {
     return 0;
   }
 
+  async getUserCreditLog(user: User) {
+    return await this.creditLogRepository.find({
+      where: { user: { id: user.id } },
+      order: { updated_at: 'DESC' },
+    });
+  }
+
+  async getUserCreditLogReverse(user: User) {
+    return await this.creditLogRepository.find({
+      where: { user: { id: user.id } },
+      order: { updated_at: 'ASC' },
+    });
+  }
+
   async addOrRemoveUserCredits(user: User, amount: number, reason = '') {
     amount = Math.floor(amount);
     const currentCredits = await this.getUserCredits(user);
