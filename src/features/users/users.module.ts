@@ -16,6 +16,7 @@ import { UserRole } from './entities/userrole.entity';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { CreditsModule } from '../credits/credits.module';
+import { ProjectsModule } from '../projects/projects.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { CreditsModule } from '../credits/credits.module';
     NeedModule,
     MessageModule,
     CreditsModule,
+    ProjectsModule,
     forwardRef(() => MailModule),
     TypeOrmModule.forFeature([User, UserRole, UserConsent, UserProfile]),
     JwtModule.registerAsync({

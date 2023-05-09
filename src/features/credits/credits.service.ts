@@ -8,8 +8,6 @@ import { UserBalance } from './entities/user-balance.entity';
 
 @Injectable()
 export class CreditsService {
-  private storage: Storage;
-
   constructor(
     @InjectRepository(CreditLogEntry)
     private creditLogRepository: Repository<CreditLogEntry>,

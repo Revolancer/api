@@ -10,7 +10,7 @@ import { MailService } from '../mail/mail.service';
 import { Tag } from '../tags/entities/tag.entity';
 import { TagsService } from '../tags/tags.service';
 import { UploadService } from '../upload/upload.service';
-import { AboutUpdateDto } from './dto/aboutupdate.dto.ts';
+import { AboutUpdateDto } from './dto/aboutupdate.dto';
 import { Onboarding1Dto } from './dto/onboarding1.dto';
 import { Onboarding2Dto } from './dto/onboarding2.dto';
 import { Onboarding3Dto } from './dto/onboarding3.dto';

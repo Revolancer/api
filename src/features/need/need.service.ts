@@ -159,14 +159,14 @@ export class NeedService {
     if (!need) throw new NotFoundException();
     if (need.user.id == user.id) {
       return this.proposalRepository.find({
-        where: { need: need },
-        relations: ['user'],
+        where: { need: { id: need.id } },
+        relations: ['user', 'need'],
         select: { user: { id: true } },
       });
     } else {
       return this.proposalRepository.find({
         where: { need: { id: need.id }, user: { id: user.id } },
-        relations: ['user'],
+        relations: ['user', 'need'],
         select: { user: { id: true } },
       });
     }
@@ -178,5 +178,29 @@ export class NeedService {
     });
     if (!proposal) throw new NotFoundException();
     this.proposalRepository.softRemove(proposal);
+  }
+
+  async getNeed(id: string) {
+    try {
+      return this.postRepository.findOneOrFail({
+        where: { id: id },
+        relations: ['user'],
+        select: { user: { id: true } },
+      });
+    } catch (err) {
+      return false;
+    }
+  }
+
+  async getProposal(id: string) {
+    try {
+      return this.proposalRepository.findOneOrFail({
+        where: { id: id },
+        relations: ['user', 'need'],
+        select: { user: { id: true }, need: { id: true } },
+      });
+    } catch (err) {
+      return false;
+    }
   }
 }
