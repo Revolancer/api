@@ -22,6 +22,7 @@ import { User } from './entities/user.entity';
 import { UserConsent } from './entities/userconsent.entity';
 import { UserProfile } from './entities/userprofile.entity';
 import { UserRole } from './entities/userrole.entity';
+import { CreditsService } from '../credits/credits.service';
 
 @Injectable()
 export class UsersService {
@@ -39,6 +40,7 @@ export class UsersService {
     private mailService: MailService, //private chargebeeService: ChargebeeService,
     private uploadService: UploadService,
     private tagsService: TagsService,
+    private creditsService: CreditsService,
   ) {}
 
   findAll(): Promise<User[]> {
@@ -229,6 +231,7 @@ export class UsersService {
     loadedUserProfile.profile_image = body.profileImage;
     loadedUserProfile.onboardingStage = 4;
     this.userProfileRepository.save(loadedUserProfile);
+    this.creditsService.addOrRemoveUserCredits(user, 100, 'Welcome bonus');
   }
 
   /**
@@ -458,20 +461,6 @@ export class UsersService {
     loadedUserProfile.about = body.about;
     this.userProfileRepository.save(loadedUserProfile);
     return { success: true };
-  }
-
-  async getUserCredits(user: User): Promise<number> {
-    const profile = await this.userProfileRepository.findOne({
-      where: { user: { id: user.id } },
-      select: {
-        id: true,
-        credits: true,
-      },
-    });
-    if (profile instanceof UserProfile) {
-      return profile.credits;
-    }
-    return 0;
   }
 
   async getUserRate(user: User): Promise<UserProfile | Record<string, never>> {

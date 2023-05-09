@@ -62,9 +62,6 @@ export class UserProfile {
   @Column({ nullable: true })
   about?: string;
 
-  @Column({ nullable: false, default: 100 })
-  credits!: number;
-
   @CreateDateColumn()
   created_at!: Date;
 
