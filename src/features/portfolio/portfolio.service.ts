@@ -56,6 +56,18 @@ export class PortfolioService {
     }
   }
 
+  async deletePost(user: User, id: string) {
+    try {
+      return await this.postRepository
+        .createQueryBuilder()
+        .softDelete()
+        .where({ id: id, user: { id: user.id } })
+        .execute();
+    } catch (err) {
+      throw new NotFoundException('Post not found');
+    }
+  }
+
   async getPost(id: string) {
     try {
       const post = this.postRepository.findOne({
