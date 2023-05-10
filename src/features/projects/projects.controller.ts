@@ -22,16 +22,16 @@ export class ProjectsController {
     return this.projectsService.createProject(req.user, body);
   }
 
-  @Get(':id')
-  @UseGuards(JwtAuthGuard)
-  async getProject(@Req() req: IUserRequest, @Param('id') id: string) {
-    return this.projectsService.getProject(req.user, id);
-  }
-
   @Get('active')
   @UseGuards(JwtAuthGuard)
   async getActiveProjects(@Req() req: IUserRequest) {
     return this.projectsService.getActiveProjects(req.user);
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  async getProject(@Req() req: IUserRequest, @Param('id') id: string) {
+    return this.projectsService.getProject(req.user, id);
   }
 
   @Get('active/count')

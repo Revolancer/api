@@ -64,7 +64,7 @@ export class ProjectsService {
         { client: { id: user.id }, status: 'active' },
         { contractor: { id: user.id }, status: 'active' },
       ],
-      relations: ['client', 'contractor'],
+      relations: ['client', 'contractor', 'need'],
       select: { client: { id: true }, contractor: { id: true } },
     });
   }
