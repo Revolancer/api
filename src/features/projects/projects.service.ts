@@ -39,8 +39,19 @@ export class ProjectsService {
     this.creditsService.addOrRemoveUserCredits(
       user,
       0 - proposal.price,
-      need.title ?? 'Untitled Project',
+      `Project: ${need.title}` ?? 'Untitled Project',
     );
     return savedProject.id;
+  }
+
+  async getProject(user: User, id: string) {
+    return this.projectRepository.findOne({
+      where: [
+        { id: id, client: { id: user.id } },
+        { id: id, contractor: { id: user.id } },
+      ],
+      relations: ['client', 'contractor'],
+      select: { client: { id: true }, contractor: { id: true } },
+    });
   }
 }

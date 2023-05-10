@@ -172,6 +172,34 @@ export class NeedService {
     }
   }
 
+  /**
+   * Check proposals for a given need
+   * @param user The user querying the proposals
+   * @param needId The need to check for proposals
+   * @returns Any proposls you have permission to see. Only your own if this is not your need.
+   */
+  async countProposals(user: User, needId: string) {
+    const need = await this.postRepository.findOne({
+      where: { id: needId },
+      relations: ['user'],
+      select: { user: { id: true } },
+    });
+    if (!need) throw new NotFoundException();
+    if (need.user.id == user.id) {
+      return this.proposalRepository.count({
+        where: { need: { id: need.id } },
+        relations: ['user', 'need'],
+        select: { user: { id: true } },
+      });
+    } else {
+      return this.proposalRepository.count({
+        where: { need: { id: need.id }, user: { id: user.id } },
+        relations: ['user', 'need'],
+        select: { user: { id: true } },
+      });
+    }
+  }
+
   async deleteProposal(user: User, id: string) {
     const proposal = await this.proposalRepository.findOne({
       where: { id: id, user: { id: user.id } },

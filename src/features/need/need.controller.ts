@@ -62,6 +62,12 @@ export class NeedController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('proposals/count/:id')
+  async countProposals(@Req() req: IUserRequest, @Param('id') id: string) {
+    return this.needService.countProposals(req.user, id);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Delete('proposal/:id')
   async deleteProposal(@Req() req: IUserRequest, @Param('id') id: string) {
     return this.needService.deleteProposal(req.user, id);
