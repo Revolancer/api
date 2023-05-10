@@ -231,4 +231,30 @@ export class NeedService {
       return false;
     }
   }
+
+  async unPublishNeed(id: string) {
+    const now = DateTime.now().toJSDate();
+    const need = await this.postRepository.findOneOrFail({
+      where: [
+        { id: id, unpublish_at: IsNull() },
+        { id: id, unpublish_at: MoreThan(now) },
+      ],
+    });
+    const unpublish = DateTime.now().minus({ hour: 1 }).toJSDate();
+    need.unpublish_at = unpublish;
+    this.postRepository.save(need);
+  }
+
+  async delistNeed(user: User, id: string) {
+    const need = await this.postRepository.findOne({
+      where: { id: id, user: { id: user.id } },
+    });
+    if (!need) {
+      throw new NotFoundException();
+    }
+
+    try {
+      this.unPublishNeed(id);
+    } catch (err) {}
+  }
 }

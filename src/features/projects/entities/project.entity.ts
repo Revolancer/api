@@ -48,6 +48,12 @@ export class Project {
   @JoinColumn()
   proposal!: Proposal;
 
+  @Column({ default: false })
+  client_approval!: boolean;
+
+  @Column({ default: false })
+  contractor_approval!: boolean;
+
   @OneToMany(
     () => ProjectMessage,
     (message: ProjectMessage) => message.project,

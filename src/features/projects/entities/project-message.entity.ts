@@ -8,8 +8,10 @@ import {
   DeleteDateColumn,
   JoinColumn,
   ManyToOne,
+  OneToOne,
 } from 'typeorm';
 import { Project } from './project.entity';
+import { File } from 'src/features/upload/entities/file.entity';
 
 @Entity()
 export class ProjectMessage {
@@ -27,11 +29,18 @@ export class ProjectMessage {
   @Column()
   message!: string;
 
+  @OneToOne(() => File, { nullable: true })
+  @JoinColumn()
+  attachment?: File;
+
   @Column({ nullable: false, default: false })
   read: boolean;
 
   @Column({ nullable: true, type: 'timestamptz' })
   read_at?: Date;
+
+  @Column({ nullable: false, default: false })
+  admin_hidden: boolean;
 
   @CreateDateColumn()
   created_at!: Date;
