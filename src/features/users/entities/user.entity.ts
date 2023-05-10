@@ -14,6 +14,7 @@ import {
 import { UserConsent } from './userconsent.entity';
 import { UserRole } from './userrole.entity';
 import { Proposal } from 'src/features/need/entities/proposal.entity';
+import { Project } from 'src/features/projects/entities/project.entity';
 
 @Entity()
 export class User {
@@ -70,6 +71,18 @@ export class User {
     onDelete: 'CASCADE',
   })
   outgoing_messages!: Message[];
+
+  @OneToMany(() => Project, (project: Project) => project.client, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  outgoing_projects!: Project[];
+
+  @OneToMany(() => Project, (project: Project) => project.contractor, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  incoming_projects!: Project[];
 
   @OneToMany(() => File, (file: File) => file.user, {
     cascade: true,

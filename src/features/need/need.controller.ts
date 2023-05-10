@@ -40,6 +40,12 @@ export class NeedController {
     return this.needService.getPost(id);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  async deletePost(@Req() req: IUserRequest, @Param('id') id: string) {
+    return this.needService.delistNeed(req.user, id);
+  }
+
   @Get('for_user/:uid')
   async getPostsForUser(@Param('uid') uid: string) {
     return this.needService.getPostsForUser(uid);
@@ -59,6 +65,12 @@ export class NeedController {
   @Get('proposals/:id')
   async getProposals(@Req() req: IUserRequest, @Param('id') id: string) {
     return this.needService.getProposals(req.user, id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('proposals/count/:id')
+  async countProposals(@Req() req: IUserRequest, @Param('id') id: string) {
+    return this.needService.countProposals(req.user, id);
   }
 
   @UseGuards(JwtAuthGuard)

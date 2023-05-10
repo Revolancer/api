@@ -11,7 +11,9 @@ import {
   JoinColumn,
   ManyToOne,
   OneToOne,
+  OneToMany,
 } from 'typeorm';
+import { ProjectMessage } from './project-message.entity';
 
 @Entity()
 export class Project {
@@ -45,6 +47,22 @@ export class Project {
   @OneToOne(() => Proposal)
   @JoinColumn()
   proposal!: Proposal;
+
+  @Column({ default: false })
+  client_approval!: boolean;
+
+  @Column({ default: false })
+  contractor_approval!: boolean;
+
+  @OneToMany(
+    () => ProjectMessage,
+    (message: ProjectMessage) => message.project,
+    {
+      cascade: true,
+      onDelete: 'CASCADE',
+    },
+  )
+  messages!: ProjectMessage[];
 
   @CreateDateColumn()
   created_at!: Date;
