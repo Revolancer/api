@@ -10,7 +10,7 @@ import {
 import { NoUserError } from 'src/errors/no-user-error';
 import { IUserRequest } from 'src/interface/iuserrequest';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { AboutUpdateDto } from './dto/aboutupdate.dto.ts';
+import { AboutUpdateDto } from './dto/aboutupdate.dto';
 import { Onboarding1Dto } from './dto/onboarding1.dto';
 import { Onboarding2Dto } from './dto/onboarding2.dto';
 import { Onboarding3Dto } from './dto/onboarding3.dto';
@@ -158,5 +158,11 @@ export class UsersController {
   @Post('about')
   async setUserAbout(@Req() req: IUserRequest, @Body() body: AboutUpdateDto) {
     return this.usersService.setUserAbout(req.user, body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('rate')
+  async getUserRate(@Req() req: IUserRequest) {
+    return this.usersService.getUserRate(req.user);
   }
 }

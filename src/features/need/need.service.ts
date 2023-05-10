@@ -1,18 +1,26 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DateTime } from 'luxon';
-import { LessThan, Repository } from 'typeorm';
+import { IsNull, LessThan, MoreThan, Repository } from 'typeorm';
 import { Tag } from '../tags/entities/tag.entity';
 import { TagsService } from '../tags/tags.service';
 import { User } from '../users/entities/user.entity';
 import { CreatePostDto } from './dto/createneed.dto';
 import { NeedPost } from './entities/need-post.entity';
+import { Proposal } from './entities/proposal.entity';
+import { CreateProposalDto } from './dto/createproposal.dto';
 
 @Injectable()
 export class NeedService {
   constructor(
     @InjectRepository(NeedPost)
     private postRepository: Repository<NeedPost>,
+    @InjectRepository(Proposal)
+    private proposalRepository: Repository<Proposal>,
     private tagsService: TagsService,
   ) {}
 
@@ -35,6 +43,9 @@ export class NeedService {
     post.data = body.data;
     post.title = body.title;
     post.tags = await this.loadTagsFromRequest(body.tags);
+    if (body?.unpublish_at) {
+      post.unpublish_at = body.unpublish_at;
+    }
     const newPost = await this.postRepository.save(post);
     return newPost.id;
   }
@@ -71,9 +82,14 @@ export class NeedService {
 
   async getPostsForUser(uid: string) {
     try {
+      const now = DateTime.now().toJSDate();
       const posts = this.postRepository.find({
-        where: { user: { id: uid } },
+        where: [
+          { user: { id: uid }, unpublish_at: IsNull() },
+          { user: { id: uid }, unpublish_at: MoreThan(now) },
+        ],
         relations: ['tags'],
+        select: { user: { id: true } },
         order: { published_at: 'DESC' },
       });
       return posts;
@@ -85,7 +101,18 @@ export class NeedService {
   async getPostsForFeed(user: User) {
     const now = DateTime.now().toJSDate();
     return await this.postRepository.find({
-      where: { is_draft: false, published_at: LessThan(now) },
+      where: [
+        {
+          is_draft: false,
+          published_at: LessThan(now),
+          unpublish_at: MoreThan(now),
+        },
+        {
+          is_draft: false,
+          published_at: LessThan(now),
+          unpublish_at: IsNull(),
+        },
+      ],
       relations: ['tags', 'user'],
       select: {
         user: {
@@ -96,5 +123,84 @@ export class NeedService {
         published_at: 'DESC',
       },
     });
+  }
+
+  async createProposal(user: User, needId: string, body: CreateProposalDto) {
+    if (
+      !Number.isSafeInteger(body.estHours) ||
+      !Number.isSafeInteger(body.price)
+    ) {
+      throw new BadRequestException();
+    }
+    const need = await this.postRepository.findOne({ where: { id: needId } });
+    if (!need) throw new NotFoundException();
+    const post = new Proposal();
+    post.message = body.message;
+    post.estimate_hours = body.estHours;
+    post.price = body.price;
+    post.need = need;
+    post.user = user;
+    const newPost = await this.proposalRepository.save(post);
+    return newPost.id;
+  }
+
+  /**
+   * Check proposals for a given need
+   * @param user The user querying the proposals
+   * @param needId The need to check for proposals
+   * @returns Any proposls you have permission to see. Only your own if this is not your need.
+   */
+  async getProposals(user: User, needId: string) {
+    const need = await this.postRepository.findOne({
+      where: { id: needId },
+      relations: ['user'],
+      select: { user: { id: true } },
+    });
+    if (!need) throw new NotFoundException();
+    if (need.user.id == user.id) {
+      return this.proposalRepository.find({
+        where: { need: { id: need.id } },
+        relations: ['user', 'need'],
+        select: { user: { id: true } },
+      });
+    } else {
+      return this.proposalRepository.find({
+        where: { need: { id: need.id }, user: { id: user.id } },
+        relations: ['user', 'need'],
+        select: { user: { id: true } },
+      });
+    }
+  }
+
+  async deleteProposal(user: User, id: string) {
+    const proposal = await this.proposalRepository.findOne({
+      where: { id: id, user: { id: user.id } },
+    });
+    if (!proposal) throw new NotFoundException();
+    this.proposalRepository.softRemove(proposal);
+  }
+
+  async getNeed(id: string) {
+    try {
+      return this.postRepository.findOneOrFail({
+        where: { id: id },
+        relations: ['user'],
+        select: { user: { id: true } },
+      });
+    } catch (err) {
+      return false;
+    }
+  }
+
+  async getProposal(id: string) {
+    try {
+      return this.proposalRepository.findOneOrFail({
+        where: { id: id },
+        relations: ['user', 'need'],
+        select: { user: { id: true }, need: { id: true } },
+      });
+    } catch (err) {
+      return false;
+    }
   }
 }

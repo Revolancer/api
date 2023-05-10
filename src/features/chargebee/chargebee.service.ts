@@ -36,6 +36,7 @@ export class ChargebeeService {
     return this.chargebeeRepository.findOne({
       relations: ['user'],
       where: { id: id },
+      select: { user: { id: true } },
     });
   }
 
@@ -43,6 +44,7 @@ export class ChargebeeService {
     return this.chargebeeRepository.findOne({
       relations: ['user'],
       where: { user: { id: user.id } },
+      select: { user: { id: true } },
     });
   }
 

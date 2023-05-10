@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -12,6 +13,7 @@ import { IUserRequest } from 'src/interface/iuserrequest';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreatePostDto } from './dto/createneed.dto';
 import { NeedService } from './need.service';
+import { CreateProposalDto } from './dto/createproposal.dto';
 
 @Controller('need')
 export class NeedController {
@@ -41,5 +43,27 @@ export class NeedController {
   @Get('for_user/:uid')
   async getPostsForUser(@Param('uid') uid: string) {
     return this.needService.getPostsForUser(uid);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put('proposal/:id')
+  async createProposal(
+    @Req() req: IUserRequest,
+    @Param('id') id: string,
+    @Body() body: CreateProposalDto,
+  ) {
+    return this.needService.createProposal(req.user, id, body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('proposals/:id')
+  async getProposals(@Req() req: IUserRequest, @Param('id') id: string) {
+    return this.needService.getProposals(req.user, id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete('proposal/:id')
+  async deleteProposal(@Req() req: IUserRequest, @Param('id') id: string) {
+    return this.needService.deleteProposal(req.user, id);
   }
 }

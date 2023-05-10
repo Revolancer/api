@@ -3,6 +3,8 @@ import {
   ArrayMinSize,
   ArrayMaxSize,
   IsArray,
+  IsOptional,
+  IsDateString,
 } from 'class-validator';
 
 class Tag {
@@ -25,4 +27,8 @@ export class CreatePostDto {
 
   @IsNotEmpty()
   data!: string;
+
+  @IsOptional()
+  @IsDateString()
+  unpublish_at?: Date;
 }

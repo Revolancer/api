@@ -13,6 +13,7 @@ import {
 } from 'typeorm';
 import { UserConsent } from './userconsent.entity';
 import { UserRole } from './userrole.entity';
+import { Proposal } from 'src/features/need/entities/proposal.entity';
 
 @Entity()
 export class User {
@@ -51,6 +52,12 @@ export class User {
     onDelete: 'CASCADE',
   })
   need_posts!: NeedPost[];
+
+  @OneToMany(() => Proposal, (post: Proposal) => post.user, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  proposals!: Proposal[];
 
   @OneToMany(() => Message, (message: Message) => message.sender, {
     cascade: true,

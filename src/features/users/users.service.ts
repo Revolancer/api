@@ -10,7 +10,7 @@ import { MailService } from '../mail/mail.service';
 import { Tag } from '../tags/entities/tag.entity';
 import { TagsService } from '../tags/tags.service';
 import { UploadService } from '../upload/upload.service';
-import { AboutUpdateDto } from './dto/aboutupdate.dto.ts';
+import { AboutUpdateDto } from './dto/aboutupdate.dto';
 import { Onboarding1Dto } from './dto/onboarding1.dto';
 import { Onboarding2Dto } from './dto/onboarding2.dto';
 import { Onboarding3Dto } from './dto/onboarding3.dto';
@@ -22,6 +22,7 @@ import { User } from './entities/user.entity';
 import { UserConsent } from './entities/userconsent.entity';
 import { UserProfile } from './entities/userprofile.entity';
 import { UserRole } from './entities/userrole.entity';
+import { CreditsService } from '../credits/credits.service';
 
 @Injectable()
 export class UsersService {
@@ -39,6 +40,7 @@ export class UsersService {
     private mailService: MailService, //private chargebeeService: ChargebeeService,
     private uploadService: UploadService,
     private tagsService: TagsService,
+    private creditsService: CreditsService,
   ) {}
 
   findAll(): Promise<User[]> {
@@ -229,6 +231,7 @@ export class UsersService {
     loadedUserProfile.profile_image = body.profileImage;
     loadedUserProfile.onboardingStage = 4;
     this.userProfileRepository.save(loadedUserProfile);
+    this.creditsService.addOrRemoveUserCredits(user, 100, 'Welcome bonus');
   }
 
   /**
@@ -458,5 +461,19 @@ export class UsersService {
     loadedUserProfile.about = body.about;
     this.userProfileRepository.save(loadedUserProfile);
     return { success: true };
+  }
+
+  async getUserRate(user: User): Promise<UserProfile | Record<string, never>> {
+    const profile = await this.userProfileRepository.findOne({
+      where: { user: { id: user.id } },
+      select: {
+        id: true,
+        hourly_rate: true,
+      },
+    });
+    if (!(profile instanceof UserProfile)) {
+      return {};
+    }
+    return profile;
   }
 }
