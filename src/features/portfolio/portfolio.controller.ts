@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -31,6 +32,12 @@ export class PortfolioController {
     @Body() body: CreatePostDto,
   ) {
     return this.portfolioService.updatePost(req.user, id, body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id')
+  async deletePost(@Req() req: IUserRequest, @Param('id') id: string) {
+    return this.portfolioService.deletePost(req.user, id);
   }
 
   @Get(':id')

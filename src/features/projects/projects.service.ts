@@ -7,6 +7,10 @@ import { CreditsService } from '../credits/credits.service';
 import { User } from '../users/entities/user.entity';
 import { NewProjectDto } from './dto/newproject.dto';
 import { NeedService } from '../need/need.service';
+import { SendProjectMessageDto } from './dto/sendprojectmessage.dto';
+import { UploadService } from '../upload/upload.service';
+import { validate as isValidUUID } from 'uuid';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class ProjectsService {
@@ -17,6 +21,7 @@ export class ProjectsService {
     private projectMessageRepository: Repository<ProjectMessage>,
     private creditsService: CreditsService,
     private needService: NeedService,
+    private uploadService: UploadService,
   ) {}
 
   async createProject(user: User, body: NewProjectDto) {
@@ -69,6 +74,17 @@ export class ProjectsService {
     });
   }
 
+  async getCompleteProjects(user: User) {
+    return this.projectRepository.find({
+      where: [
+        { client: { id: user.id }, status: 'complete' },
+        { contractor: { id: user.id }, status: 'complete' },
+      ],
+      relations: ['client', 'contractor', 'need'],
+      select: { client: { id: true }, contractor: { id: true } },
+    });
+  }
+
   async countActiveProjects(user: User) {
     return this.projectRepository.count({
       where: [
@@ -94,7 +110,44 @@ export class ProjectsService {
     }
     return this.projectMessageRepository.find({
       where: { project: { id: project.id } },
+      relations: ['user'],
+      select: { user: { id: true } },
     });
+  }
+
+  async sendProjectMessage(
+    user: User,
+    id: string,
+    body: SendProjectMessageDto,
+  ) {
+    const project = await this.projectRepository.findOne({
+      where: [
+        { id: id, client: { id: user.id } },
+        { id: id, contractor: { id: user.id } },
+      ],
+      relations: ['client', 'contractor'],
+      select: { client: { id: true }, contractor: { id: true } },
+    });
+    if (!project) {
+      throw new NotFoundException();
+    }
+    const message = new ProjectMessage();
+    message.user = <any>{ id: user.id };
+    message.message = body.message;
+    message.project = project;
+
+    if (body.attachment && isValidUUID(body.attachment)) {
+      const attachment = await this.uploadService.getFileByIdAndUser(
+        user,
+        body.attachment,
+      );
+
+      if (attachment) {
+        message.attachment = attachment;
+      }
+    }
+
+    return await this.projectMessageRepository.save(message);
   }
 
   async countProjectUnreadMessages(user: User, id: string) {
@@ -174,5 +227,31 @@ export class ProjectsService {
       project.contractor_approval = false;
     }
     this.projectRepository.save(project);
+  }
+
+  async markMessageAsRead(user: User, id: string) {
+    const message = await this.projectMessageRepository.findOne({
+      where: { id: id },
+      relations: ['project'],
+    });
+    if (!message) throw new NotFoundException();
+
+    const project = await this.projectRepository.findOne({
+      where: [
+        {
+          id: message.project.id,
+          client: { id: user.id },
+        },
+        {
+          id: message.project.id,
+          contractor: { id: user.id },
+        },
+      ],
+    });
+    if (!project) throw new NotFoundException();
+
+    message.read = true;
+    message.read_at = DateTime.now().toJSDate();
+    this.projectMessageRepository.save(message);
   }
 }
