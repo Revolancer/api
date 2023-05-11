@@ -40,11 +40,11 @@ export class Project {
   @Column({ default: false })
   credits_released!: boolean;
 
-  @OneToOne(() => NeedPost)
+  @OneToOne(() => NeedPost, { eager: true })
   @JoinColumn()
   need!: NeedPost;
 
-  @OneToOne(() => Proposal)
+  @OneToOne(() => Proposal, { eager: true })
   @JoinColumn()
   proposal!: Proposal;
 

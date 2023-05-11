@@ -60,4 +60,10 @@ export class UploadService {
     const filename = url.substring(fNameStart + 1);
     this.fileRepository.insert({ filename, url, user: { id: user.id } });
   }
+
+  async getFileByIdAndUser(user: User, id: string) {
+    return await this.fileRepository.findOne({
+      where: { id: id, user: { id: user.id } },
+    });
+  }
 }

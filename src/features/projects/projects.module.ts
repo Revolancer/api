@@ -6,12 +6,14 @@ import { ProjectsService } from './projects.service';
 import { ProjectMessage } from './entities/project-message.entity';
 import { CreditsModule } from '../credits/credits.module';
 import { NeedModule } from '../need/need.module';
+import { UploadModule } from '../upload/upload.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Project, ProjectMessage]),
     CreditsModule,
     NeedModule,
+    UploadModule,
   ],
   providers: [ProjectsService],
   exports: [ProjectsService],

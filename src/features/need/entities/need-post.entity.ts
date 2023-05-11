@@ -24,7 +24,7 @@ export class NeedPost {
   @JoinColumn()
   user!: User;
 
-  @ManyToMany(() => Tag)
+  @ManyToMany(() => Tag, { eager: true })
   @JoinTable()
   tags: Tag[];
 

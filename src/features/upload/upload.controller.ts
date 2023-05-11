@@ -1,7 +1,16 @@
-import { Controller, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Put,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UploadService } from './upload.service';
 import { IUserRequest } from 'src/interface/iuserrequest';
+import { StoreFileDto } from './dto/storefile.dto';
 
 @Controller('upload')
 export class UploadController {
@@ -18,9 +27,9 @@ export class UploadController {
     return this.uploadService.generateSignedUrl(path, size);
   }
 
-  @Post('store')
+  @Put('store')
   @UseGuards(JwtAuthGuard)
-  async storeUpload() {
-    return '';
+  async storeUpload(@Req() req: IUserRequest, @Body() body: StoreFileDto) {
+    return this.uploadService.storeFile(req.user, body.fileName);
   }
 }
