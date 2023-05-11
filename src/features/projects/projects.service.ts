@@ -74,6 +74,17 @@ export class ProjectsService {
     });
   }
 
+  async getCompleteProjects(user: User) {
+    return this.projectRepository.find({
+      where: [
+        { client: { id: user.id }, status: 'complete' },
+        { contractor: { id: user.id }, status: 'complete' },
+      ],
+      relations: ['client', 'contractor', 'need'],
+      select: { client: { id: true }, contractor: { id: true } },
+    });
+  }
+
   async countActiveProjects(user: User) {
     return this.projectRepository.count({
       where: [

@@ -31,6 +31,12 @@ export class ProjectsController {
     return this.projectsService.getActiveProjects(req.user);
   }
 
+  @Get('complete')
+  @UseGuards(JwtAuthGuard)
+  async getCompleteProjects(@Req() req: IUserRequest) {
+    return this.projectsService.getCompleteProjects(req.user);
+  }
+
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   async getProject(@Req() req: IUserRequest, @Param('id') id: string) {
