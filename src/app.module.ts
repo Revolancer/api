@@ -17,6 +17,7 @@ import { UploadModule } from './features/upload/upload.module';
 import { APP_FILTER } from '@nestjs/core';
 import { ExceptionFilter } from './exception.filter';
 import { FeedModule } from './features/feed/feed.module';
+import { AdminModule } from './features/admin/admin.module';
 
 @Module({})
 class NullModule {}
@@ -26,6 +27,7 @@ class NullModule {}
     AppConfigModule,
     AuthModule,
     HealthModule,
+    AdminModule,
     MailModule,
     UsersModule,
     TagsModule,
