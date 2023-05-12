@@ -110,7 +110,7 @@ export class ProjectsService {
     }
     return this.projectMessageRepository.find({
       where: { project: { id: project.id } },
-      relations: ['user'],
+      relations: ['user', 'attachment'],
       select: { user: { id: true } },
     });
   }

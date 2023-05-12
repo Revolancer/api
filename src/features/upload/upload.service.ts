@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { User } from '../users/entities/user.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { Storage } from '@google-cloud/storage';
@@ -54,11 +54,17 @@ export class UploadService {
   //Probably not needed since we can query GCP API and list by path, but nice to have nonetheless
   async storeFile(user: User, url: string) {
     if (!this.fileBelongsToUser(user, url)) {
-      return false;
+      throw new UnauthorizedException();
     }
     const fNameStart = url.lastIndexOf('/');
     const filename = url.substring(fNameStart + 1);
-    this.fileRepository.insert({ filename, url, user: { id: user.id } });
+    return (
+      await this.fileRepository.insert({
+        filename,
+        url,
+        user: { id: user.id },
+      })
+    ).identifiers[0].id;
   }
 
   async getFileByIdAndUser(user: User, id: string) {
