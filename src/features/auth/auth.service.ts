@@ -6,7 +6,6 @@ import * as argon2 from 'argon2';
 import { NoUserError } from 'src/errors/no-user-error';
 import { UserRole } from '../users/entities/userrole.entity';
 import { SendResetPasswordDto } from './dto/send-reset-password.dto';
-import { DateTime } from 'luxon';
 
 @Injectable()
 export class AuthService {
