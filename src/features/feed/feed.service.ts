@@ -38,12 +38,12 @@ export class FeedService {
       }
       const nextPortfolio = portfolios.splice(0, 1);
       const nextNeed = needs.splice(0, 1);
-      if (nextPortfolio[0].published_at < nextNeed[0].published_at) {
+      if (nextPortfolio[0].updated_at < nextNeed[0].updated_at) {
         result.push(labelIt(nextNeed[0], 'need'));
-        result.push(labelIt(nextPortfolio[0], 'portfolio'));
+        portfolios = [nextPortfolio[0], ...portfolios];
       } else {
         result.push(labelIt(nextPortfolio[0], 'portfolio'));
-        result.push(labelIt(nextNeed[0], 'need'));
+        needs = [nextNeed[0], ...needs];
       }
     }
     return result;
