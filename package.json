@@ -23,7 +23,7 @@
     "@bugsnag/js": "^7.20.2",
     "@bull-board/api": "^5.0.0",
     "@bull-board/express": "^5.0.0",
-    "@google-cloud/storage": "^6.9.5",
+    "@google-cloud/storage": "^6.10.1",
     "@nestjs/bull": "^0.6.3",
     "@nestjs/common": "^9.4.0",
     "@nestjs/config": "^2.3.1",
