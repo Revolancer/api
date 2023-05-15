@@ -10,11 +10,13 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   OneToMany,
+  OneToOne,
 } from 'typeorm';
 import { UserConsent } from './userconsent.entity';
 import { UserRole } from './userrole.entity';
 import { Proposal } from 'src/features/need/entities/proposal.entity';
 import { Project } from 'src/features/projects/entities/project.entity';
+import { UserReferrer } from './userreferrer.entity';
 
 @Entity()
 export class User {
@@ -89,6 +91,9 @@ export class User {
     onDelete: 'CASCADE',
   })
   files!: File[];
+
+  @OneToOne(() => UserReferrer, (referrer: UserReferrer) => referrer.user)
+  referrer?: UserReferrer;
 
   @CreateDateColumn()
   created_at!: Date;

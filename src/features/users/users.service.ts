@@ -24,6 +24,7 @@ import { UserProfile } from './entities/userprofile.entity';
 import { UserRole } from './entities/userrole.entity';
 import { CreditsService } from '../credits/credits.service';
 import { DateTime } from 'luxon';
+import { UserReferrer } from './entities/userreferrer.entity';
 
 @Injectable()
 export class UsersService {
@@ -36,6 +37,8 @@ export class UsersService {
     private userConsentRepository: Repository<UserConsent>,
     @InjectRepository(UserProfile)
     private userProfileRepository: Repository<UserProfile>,
+    @InjectRepository(UserReferrer)
+    private userReferrerRepository: Repository<UserReferrer>,
     private jwtService: JwtService,
     @Inject(forwardRef(() => MailService))
     private mailService: MailService, //private chargebeeService: ChargebeeService,
@@ -78,6 +81,7 @@ export class UsersService {
     email?: string,
     marketingFirstParty = false,
     marketingThirdParty = false,
+    referrer = '',
   ): Promise<string> {
     const partial = this.usersRepository.create();
     if (typeof email !== 'undefined') {
@@ -96,6 +100,12 @@ export class UsersService {
     }
     if (marketingThirdParty) {
       this.addConsent(user, 'marketing-thirdparty');
+    }
+    if (referrer && referrer != '') {
+      const userReferrer = new UserReferrer();
+      userReferrer.user = user;
+      userReferrer.referrer = referrer;
+      this.userReferrerRepository.save(userReferrer);
     }
     //Link to chargebee
     //await this.chargebeeService.createRemoteAndLink(user);

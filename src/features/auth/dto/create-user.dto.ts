@@ -13,4 +13,6 @@ export class CreateUserDto {
   marketingfirstparty!: boolean;
 
   marketingthirdparty!: boolean;
+
+  referrer?: string;
 }
