@@ -23,6 +23,7 @@ import { UserConsent } from './entities/userconsent.entity';
 import { UserProfile } from './entities/userprofile.entity';
 import { UserRole } from './entities/userrole.entity';
 import { CreditsService } from '../credits/credits.service';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class UsersService {
@@ -121,6 +122,16 @@ export class UsersService {
     return this.userProfileRepository.findOneByOrFail({
       user: { id: user.id },
     });
+  }
+
+  async markActive(user: User) {
+    const profile = await this.userProfileRepository.findOneBy({
+      user: { id: user.id },
+    });
+    if (profile) {
+      profile.last_active = DateTime.now().toJSDate();
+      this.userProfileRepository.save(profile);
+    }
   }
 
   async addConsent(user: User, consentFor: string): Promise<void> {

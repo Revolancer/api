@@ -62,6 +62,9 @@ export class UserProfile {
   @Column({ nullable: true })
   about?: string;
 
+  @Column({ type: 'timestamptz', nullable: true })
+  last_active?: Date;
+
   @CreateDateColumn()
   created_at!: Date;
 
