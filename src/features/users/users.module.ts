@@ -17,6 +17,7 @@ import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { CreditsModule } from '../credits/credits.module';
 import { ProjectsModule } from '../projects/projects.module';
+import { UserReferrer } from './entities/userreferrer.entity';
 
 @Module({
   imports: [
@@ -28,7 +29,13 @@ import { ProjectsModule } from '../projects/projects.module';
     CreditsModule,
     ProjectsModule,
     forwardRef(() => MailModule),
-    TypeOrmModule.forFeature([User, UserRole, UserConsent, UserProfile]),
+    TypeOrmModule.forFeature([
+      User,
+      UserRole,
+      UserConsent,
+      UserProfile,
+      UserReferrer,
+    ]),
     JwtModule.registerAsync({
       imports: [AuthConfigModule],
       inject: [AuthConfigService],

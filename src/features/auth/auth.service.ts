@@ -72,6 +72,7 @@ export class AuthService {
       body.email,
       body.marketingfirstparty,
       body.marketingthirdparty,
+      body.referrer,
     );
   }
 
