@@ -16,11 +16,15 @@ export class AdminController {
   @UseGuards(AdminAuthGuard)
   async getActiveUserCount() {
     const dau = await this.adminService.countDau();
+    const wau = await this.adminService.countWau();
     const mau = await this.adminService.countMau();
     return {
       dau,
+      wau,
       mau,
       dauOverMau: (dau / mau).toFixed(3),
+      dauOverWau: (dau / wau).toFixed(3),
+      wauOverMau: (wau / mau).toFixed(3),
     };
   }
 }
