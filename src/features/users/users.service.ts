@@ -1,4 +1,10 @@
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  forwardRef,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
@@ -25,6 +31,7 @@ import { UserRole } from './entities/userrole.entity';
 import { CreditsService } from '../credits/credits.service';
 import { DateTime } from 'luxon';
 import { UserReferrer } from './entities/userreferrer.entity';
+import { EmailUpdateDto } from './dto/emailupdate.dto ';
 
 @Injectable()
 export class UsersService {
@@ -481,6 +488,31 @@ export class UsersService {
     const loadedUserProfile = await this.getProfile(user);
     loadedUserProfile.about = body.about;
     this.userProfileRepository.save(loadedUserProfile);
+    return { success: true };
+  }
+
+  async setUserEmail(
+    user: User,
+    body: EmailUpdateDto,
+  ): Promise<{ success: boolean }> {
+    const loadedUser = await this.usersRepository.findOneBy({
+      id: user.id,
+    });
+    console.log(user);
+    if (!loadedUser) {
+      throw new NotFoundException();
+    }
+    const userWithNewEmail = await this.usersRepository.findOneBy({
+      email: body.email,
+    });
+    if (userWithNewEmail) {
+      if (userWithNewEmail.id == user.id) {
+        return { success: true };
+      }
+      throw new ConflictException();
+    }
+    loadedUser.email = body.email;
+    this.usersRepository.save(loadedUser);
     return { success: true };
   }
 

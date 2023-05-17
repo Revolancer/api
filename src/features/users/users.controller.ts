@@ -20,6 +20,7 @@ import { TaglineUpdateDto } from './dto/taglineupdate.dto';
 import { TimezoneUpdateDto } from './dto/timezoneupdate.dto';
 import { UsernameCheckDto } from './dto/usernamecheck.dto';
 import { UsersService } from './users.service';
+import { EmailUpdateDto } from './dto/emailupdate.dto ';
 
 @Controller('user')
 export class UsersController {
@@ -158,6 +159,12 @@ export class UsersController {
   @Post('about')
   async setUserAbout(@Req() req: IUserRequest, @Body() body: AboutUpdateDto) {
     return this.usersService.setUserAbout(req.user, body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('email')
+  async setUserEmail(@Req() req: IUserRequest, @Body() body: EmailUpdateDto) {
+    return this.usersService.setUserEmail(req.user, body);
   }
 
   @UseGuards(JwtAuthGuard)
