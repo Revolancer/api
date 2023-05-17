@@ -3,7 +3,9 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  NotAcceptableException,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -32,6 +34,7 @@ import { CreditsService } from '../credits/credits.service';
 import { DateTime } from 'luxon';
 import { UserReferrer } from './entities/userreferrer.entity';
 import { EmailUpdateDto } from './dto/emailupdate.dto ';
+import { PasswordUpdateDto } from './dto/passwordupdate.dto';
 
 @Injectable()
 export class UsersService {
@@ -498,7 +501,6 @@ export class UsersService {
     const loadedUser = await this.usersRepository.findOneBy({
       id: user.id,
     });
-    console.log(user);
     if (!loadedUser) {
       throw new NotFoundException();
     }
@@ -512,6 +514,27 @@ export class UsersService {
       throw new ConflictException();
     }
     loadedUser.email = body.email;
+    this.usersRepository.save(loadedUser);
+    return { success: true };
+  }
+
+  async setUserPassword(
+    user: User,
+    body: PasswordUpdateDto,
+  ): Promise<{ success: boolean }> {
+    const loadedUser = await this.usersRepository.findOneBy({
+      id: user.id,
+    });
+    if (!loadedUser) {
+      throw new NotFoundException();
+    }
+    if (!(await argon2.verify(loadedUser.password, body.password))) {
+      throw new UnauthorizedException();
+    }
+    if (body.newPassword1 !== body.newPassword2) {
+      throw new NotAcceptableException();
+    }
+    loadedUser.password = await argon2.hash(body.newPassword1);
     this.usersRepository.save(loadedUser);
     return { success: true };
   }
