@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
+import { MoreThanOrEqual, Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { UserProfile } from '../users/entities/userprofile.entity';
 import { DateTime } from 'luxon';
@@ -22,6 +22,13 @@ export class AdminService {
     const yesterday = DateTime.now().minus({ day: 1 }).toJSDate();
     return this.userProfileRepository.count({
       where: { last_active: MoreThanOrEqual(yesterday) },
+    });
+  }
+
+  countWau() {
+    const lastWeek = DateTime.now().minus({ day: 7 }).toJSDate();
+    return this.userProfileRepository.count({
+      where: { last_active: MoreThanOrEqual(lastWeek) },
     });
   }
 
