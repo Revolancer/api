@@ -177,9 +177,23 @@ export class UsersService {
 
   async sendResetPassword(email: string): Promise<void> {
     const user = await this.findOneByEmail(email);
-    if (!(user instanceof User)) return;
+    if (!(user instanceof User)) throw new NotFoundException();
+    const verifyKey = await this.getPasswordResetToken(user);
+    console.log(verifyKey);
 
     this.mailService.scheduleMail(user, 'password_reset');
+  }
+
+  async resetPassword(uid: string, password: string) {
+    const loadedUser = await this.usersRepository.findOneBy({
+      id: uid,
+    });
+    if (!loadedUser) {
+      throw new NotFoundException();
+    }
+    loadedUser.password = await argon2.hash(password);
+    this.usersRepository.save(loadedUser);
+    return { success: true };
   }
 
   /*

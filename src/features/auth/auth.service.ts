@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -6,6 +6,7 @@ import * as argon2 from 'argon2';
 import { NoUserError } from 'src/errors/no-user-error';
 import { UserRole } from '../users/entities/userrole.entity';
 import { SendResetPasswordDto } from './dto/send-reset-password.dto';
+import { PasswordResetDto } from './dto/passwordreset.dto';
 
 @Injectable()
 export class AuthService {
@@ -78,5 +79,27 @@ export class AuthService {
 
   async sendResetPassword(body: SendResetPasswordDto) {
     return await this.usersService.sendResetPassword(body.email);
+  }
+
+  async validatePasswordResetKey(key: string) {
+    try {
+      const token = this.jwtService.verify(key);
+      if (token.purpose !== 'reset_password') {
+        throw new UnauthorizedException();
+      }
+      return true;
+    } catch (err) {
+      throw new UnauthorizedException();
+    }
+  }
+
+  async resetPassword(body: PasswordResetDto) {
+    await this.validatePasswordResetKey(body.resetKey);
+    const token = this.jwtService.decode(body.resetKey);
+    if (!token) {
+      throw new UnauthorizedException();
+    }
+    const uid = token.sub as string;
+    this.usersService.resetPassword(uid, body.password);
   }
 }

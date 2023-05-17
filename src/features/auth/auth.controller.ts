@@ -3,6 +3,7 @@ import {
   ConflictException,
   Controller,
   Get,
+  Param,
   Post,
   Req,
   UseGuards,
@@ -16,6 +17,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { SendResetPasswordDto } from './dto/send-reset-password.dto';
 import { JwtRefreshAuthGuard } from './guards/jwt-refresh-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
+import { PasswordResetDto } from './dto/passwordreset.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -46,10 +48,21 @@ export class AuthController {
     }
   }
 
-  @UseGuards(ThrottlerGuard)
+  @UseGuards(ThrottlerGuard, TurnstileGuard)
   @Throttle(1, 60)
-  @Post('request_reset_password')
+  @Post('reset_password/request')
   async sendResetPassword(@Body() body: SendResetPasswordDto) {
     await this.authService.sendResetPassword(body);
+  }
+
+  @Get('reset_password/validate/:key')
+  async validatePasswordResetKey(@Param('key') key: string) {
+    await this.authService.validatePasswordResetKey(key);
+  }
+
+  @UseGuards(TurnstileGuard)
+  @Post('reset_password')
+  async resetPassword(@Body() body: PasswordResetDto) {
+    await this.authService.resetPassword(body);
   }
 }
