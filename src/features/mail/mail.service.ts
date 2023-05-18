@@ -36,6 +36,14 @@ export class MailService {
     this.sendgrid.setApiKey(config.key);
   }
 
+  async getRecipientProfileVariables(user: User) {
+    const profile = await this.usersService.getProfile(user);
+    return {
+      first_name: profile.first_name,
+      last_name: profile.last_name,
+    };
+  }
+
   /**
    * Use this method to queue an email
    * Avoids doing expensive API calls before returning account details to new user
@@ -75,6 +83,21 @@ export class MailService {
       dynamicTemplateData: {
         reset_password: `https://app.revolancer.com/reset-password/${verifyKey}`,
         ...this.dynamicTemplateData,
+      },
+    };
+    this.sendgrid.send(mail);
+  }
+
+  async sendMailoutAccountDeleted(user: User) {
+    if (!user.email) return;
+    const mail: MailDataRequired = {
+      to: user.email,
+      from: this.sender,
+      replyTo: this.replyTo,
+      templateId: 'd-ed2af3b3201d4c8192d1415fb891bd05',
+      dynamicTemplateData: {
+        ...this.dynamicTemplateData,
+        ...(await this.getRecipientProfileVariables(user)),
       },
     };
     this.sendgrid.send(mail);
