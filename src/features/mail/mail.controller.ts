@@ -19,7 +19,7 @@ export class MailController {
     if (loaded == null) {
       throw new NoUserError();
     }
-    const resp = await this.mailService.scheduleMail(loaded, 'verify_email');
+    const resp = await this.mailService.scheduleMail(loaded, 'email_confirm');
     return resp;
   }
 }

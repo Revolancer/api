@@ -108,7 +108,7 @@ export class MailService {
     this.sendgrid.send(mail);
   }
 
-  async sendMailoutEmailChanged(user: User) {
+  async sendMailoutEmailChanged(user: User, extraData: { [key: string]: any }) {
     if (!user.email) return;
     const mail: MailDataRequired = {
       to: user.email,
@@ -122,6 +122,18 @@ export class MailService {
       },
     };
     this.sendgrid.send(mail);
+    const mail2: MailDataRequired = {
+      to: extraData.old_email,
+      from: this.sender,
+      replyTo: this.replyTo,
+      templateId: 'd-68cb39ffbb78401482151110f054433c',
+      dynamicTemplateData: {
+        ...this.dynamicTemplateData,
+        ...(await this.getRecipientProfileVariables(user)),
+        new_email_address: user.email,
+      },
+    };
+    this.sendgrid.send(mail2);
   }
 
   async sendMailoutProjectRequested(

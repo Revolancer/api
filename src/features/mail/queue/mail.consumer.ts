@@ -17,7 +17,10 @@ export class MailConsumer {
         this.mailService.sendMailoutAccountDeleted(job.data.user);
         break;
       case 'email_change':
-        this.mailService.sendMailoutEmailChanged(job.data.user);
+        this.mailService.sendMailoutEmailChanged(
+          job.data.user,
+          job.data.extraData,
+        );
         break;
       case 'project_requested':
         this.mailService.sendMailoutProjectRequested(
