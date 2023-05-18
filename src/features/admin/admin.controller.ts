@@ -27,4 +27,29 @@ export class AdminController {
       wauOverMau: (wau / mau).toFixed(3),
     };
   }
+
+  @Get('stats/count_new_posts')
+  @UseGuards(AdminAuthGuard)
+  async getNewPostCount() {
+    const dailyPortfolios = this.adminService.countDailyPortfolios();
+    const dailyNeeds = this.adminService.countDailyNeeds();
+    const dailyProposals = this.adminService.countDailyProposals();
+    const weeklyPortfolios = this.adminService.countWeeklyPortfolios();
+    const weeklyNeeds = this.adminService.countWeeklyNeeds();
+    const weeklyProposals = this.adminService.countWeeklyProposals();
+    const monthlyPortfolios = this.adminService.countMonthlyPortfolios();
+    const monthlyNeeds = this.adminService.countMonthlyNeeds();
+    const monthlyProposals = this.adminService.countMonthlyProposals();
+    return {
+      dailyPortfolios,
+      dailyNeeds,
+      dailyProposals,
+      weeklyPortfolios,
+      weeklyNeeds,
+      weeklyProposals,
+      monthlyPortfolios,
+      monthlyNeeds,
+      monthlyProposals,
+    };
+  }
 }
