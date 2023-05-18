@@ -36,26 +36,39 @@ export class MailService {
     this.sendgrid.setApiKey(config.key);
   }
 
+  async getRecipientProfileVariables(user: User) {
+    const profile = await this.usersService.getProfile(user);
+    return {
+      first_name: profile.first_name,
+      last_name: profile.last_name,
+    };
+  }
+
   /**
    * Use this method to queue an email
    * Avoids doing expensive API calls before returning account details to new user
    * @param user The user to link
    */
-  async scheduleMail(user: User, mailout: Mailout): Promise<void> {
+  async scheduleMail(
+    user: User,
+    mailout: Mailout,
+    extraData: { [key: string]: any } = {},
+  ): Promise<void> {
     await this.mailQueue.add({
       user: { ...user, password: '' },
       mailout,
+      extraData,
     });
   }
 
-  async sendMailoutEmailVerify(user: User) {
+  async sendMailoutEmailConfirm(user: User) {
     if (!user.email) return;
     const verifyKey = await this.usersService.getEmailVerifyToken(user);
     const mail = {
       to: user.email,
       from: this.sender,
       replyTo: this.replyTo,
-      templateId: 'd-237dbabb52784f78b9b4955172ae8c20',
+      templateId: 'd-c37efcdb0609409bbc3cbe54058c87dc',
       dynamicTemplateData: {
         verify_url: `https://app.revolancer.com/verify-email?key=${verifyKey}`,
         ...this.dynamicTemplateData,
@@ -75,6 +88,230 @@ export class MailService {
       dynamicTemplateData: {
         reset_password: `https://app.revolancer.com/reset-password/${verifyKey}`,
         ...this.dynamicTemplateData,
+      },
+    };
+    this.sendgrid.send(mail);
+  }
+
+  async sendMailoutAccountDeleted(user: User) {
+    if (!user.email) return;
+    const mail: MailDataRequired = {
+      to: user.email,
+      from: this.sender,
+      replyTo: this.replyTo,
+      templateId: 'd-ed2af3b3201d4c8192d1415fb891bd05',
+      dynamicTemplateData: {
+        ...this.dynamicTemplateData,
+        ...(await this.getRecipientProfileVariables(user)),
+      },
+    };
+    this.sendgrid.send(mail);
+  }
+
+  async sendMailoutEmailChanged(user: User, extraData: { [key: string]: any }) {
+    if (!user.email) return;
+    const mail: MailDataRequired = {
+      to: user.email,
+      from: this.sender,
+      replyTo: this.replyTo,
+      templateId: 'd-68cb39ffbb78401482151110f054433c',
+      dynamicTemplateData: {
+        ...this.dynamicTemplateData,
+        ...(await this.getRecipientProfileVariables(user)),
+        new_email_address: user.email,
+      },
+    };
+    this.sendgrid.send(mail);
+    const mail2: MailDataRequired = {
+      to: extraData.old_email,
+      from: this.sender,
+      replyTo: this.replyTo,
+      templateId: 'd-68cb39ffbb78401482151110f054433c',
+      dynamicTemplateData: {
+        ...this.dynamicTemplateData,
+        ...(await this.getRecipientProfileVariables(user)),
+        new_email_address: user.email,
+      },
+    };
+    this.sendgrid.send(mail2);
+  }
+
+  async sendMailoutProjectRequested(
+    user: User,
+    extraData: { [key: string]: any },
+  ) {
+    if (!user.email) return;
+    const mail: MailDataRequired = {
+      to: user.email,
+      from: this.sender,
+      replyTo: this.replyTo,
+      templateId: 'd-46ed9b1b9c1d43a78f12e8d4fc1ff084',
+      dynamicTemplateData: {
+        ...this.dynamicTemplateData,
+        ...(await this.getRecipientProfileVariables(user)),
+        ...extraData,
+      },
+    };
+    this.sendgrid.send(mail);
+  }
+
+  async sendMailoutProposalNew(user: User, extraData: { [key: string]: any }) {
+    if (!user.email) return;
+    const mail: MailDataRequired = {
+      to: user.email,
+      from: this.sender,
+      replyTo: this.replyTo,
+      templateId: 'd-7c88be4ed0b24ba0aba2aea9071f5156',
+      dynamicTemplateData: {
+        ...this.dynamicTemplateData,
+        ...(await this.getRecipientProfileVariables(user)),
+        ...extraData,
+      },
+    };
+    this.sendgrid.send(mail);
+  }
+
+  async sendMailoutProposalAccepted(
+    user: User,
+    extraData: { [key: string]: any },
+  ) {
+    if (!user.email) return;
+    const mail: MailDataRequired = {
+      to: user.email,
+      from: this.sender,
+      replyTo: this.replyTo,
+      templateId: 'd-b0b44fbf0ef44779a4dd827fad081b09',
+      dynamicTemplateData: {
+        ...this.dynamicTemplateData,
+        ...(await this.getRecipientProfileVariables(user)),
+        ...extraData,
+      },
+    };
+    this.sendgrid.send(mail);
+  }
+
+  async sendMailoutUnreadMessages(
+    user: User,
+    extraData: { [key: string]: any },
+  ) {
+    if (!user.email) return;
+    const mail: MailDataRequired = {
+      to: user.email,
+      from: this.sender,
+      replyTo: this.replyTo,
+      templateId: 'd-2fdf7c3020504f8db5a005e5f9e48c44',
+      dynamicTemplateData: {
+        ...this.dynamicTemplateData,
+        ...(await this.getRecipientProfileVariables(user)),
+        ...extraData,
+      },
+    };
+    this.sendgrid.send(mail);
+  }
+
+  async sendMailoutRecentNeeds(user: User, extraData: { [key: string]: any }) {
+    if (!user.email) return;
+    const mail: MailDataRequired = {
+      to: user.email,
+      from: this.sender,
+      replyTo: this.replyTo,
+      templateId: 'd-2312f4f2304544e7b3911efdb5d09fd3',
+      dynamicTemplateData: {
+        ...this.dynamicTemplateData,
+        ...(await this.getRecipientProfileVariables(user)),
+        ...extraData,
+      },
+    };
+    this.sendgrid.send(mail);
+  }
+
+  async sendMailoutRecentPortfolios(
+    user: User,
+    extraData: { [key: string]: any },
+  ) {
+    if (!user.email) return;
+    const mail: MailDataRequired = {
+      to: user.email,
+      from: this.sender,
+      replyTo: this.replyTo,
+      templateId: 'd-82eb099d81de4b629a62494adf2a605b',
+      dynamicTemplateData: {
+        ...this.dynamicTemplateData,
+        ...(await this.getRecipientProfileVariables(user)),
+        ...extraData,
+      },
+    };
+    this.sendgrid.send(mail);
+  }
+
+  async sendMailoutWelcome(user: User, extraData: { [key: string]: any }) {
+    if (!user.email) return;
+    const mail: MailDataRequired = {
+      to: user.email,
+      from: this.sender,
+      replyTo: this.replyTo,
+      templateId: 'd-3d294155c01448fabcb9c56036c7becf',
+      dynamicTemplateData: {
+        ...this.dynamicTemplateData,
+        ...(await this.getRecipientProfileVariables(user)),
+        ...extraData,
+      },
+    };
+    this.sendgrid.send(mail);
+  }
+
+  async sendMailoutAccountBanned(
+    user: User,
+    extraData: { [key: string]: any },
+  ) {
+    if (!user.email) return;
+    const mail: MailDataRequired = {
+      to: user.email,
+      from: this.sender,
+      replyTo: this.replyTo,
+      templateId: 'd-c3fad8ce95bc4680be0428c60ec01e91',
+      dynamicTemplateData: {
+        ...this.dynamicTemplateData,
+        ...(await this.getRecipientProfileVariables(user)),
+        ...extraData,
+      },
+    };
+    this.sendgrid.send(mail);
+  }
+
+  async sendMailoutProjectCompleteClient(
+    user: User,
+    extraData: { [key: string]: any },
+  ) {
+    if (!user.email) return;
+    const mail: MailDataRequired = {
+      to: user.email,
+      from: this.sender,
+      replyTo: this.replyTo,
+      templateId: 'd-936d0c6901054b5ebc571ea6ce5068df',
+      dynamicTemplateData: {
+        ...this.dynamicTemplateData,
+        ...(await this.getRecipientProfileVariables(user)),
+        ...extraData,
+      },
+    };
+    this.sendgrid.send(mail);
+  }
+
+  async sendMailoutProjectCompleteContractor(
+    user: User,
+    extraData: { [key: string]: any },
+  ) {
+    if (!user.email) return;
+    const mail: MailDataRequired = {
+      to: user.email,
+      from: this.sender,
+      replyTo: this.replyTo,
+      templateId: 'd-f9af7a97b1504b8eb317e7892f0372a5',
+      dynamicTemplateData: {
+        ...this.dynamicTemplateData,
+        ...(await this.getRecipientProfileVariables(user)),
+        ...extraData,
       },
     };
     this.sendgrid.send(mail);

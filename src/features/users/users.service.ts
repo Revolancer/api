@@ -527,8 +527,12 @@ export class UsersService {
       }
       throw new ConflictException();
     }
+    const oldEmail = loadedUser.email ?? body.email;
     loadedUser.email = body.email;
     this.usersRepository.save(loadedUser);
+    this.mailService.scheduleMail(loadedUser, 'email_change', {
+      old_email: oldEmail,
+    });
     return { success: true };
   }
 
