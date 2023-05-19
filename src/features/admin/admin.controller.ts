@@ -52,4 +52,17 @@ export class AdminController {
       monthlyProposals,
     };
   }
+
+  @Get('stats/count_new_users')
+  @UseGuards(AdminAuthGuard)
+  async getNewUserCount() {
+    const daily = await this.adminService.countDailyNewUsers();
+    const weekly = await this.adminService.countWeeklyNewUsers();
+    const monthly = await this.adminService.countMonthlyNewUsers();
+    return {
+      daily,
+      weekly,
+      monthly,
+    };
+  }
 }
