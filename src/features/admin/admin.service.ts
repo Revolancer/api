@@ -7,6 +7,7 @@ import { DateTime } from 'luxon';
 import { PortfolioPost } from '../portfolio/entities/portfolio-post.entity';
 import { NeedPost } from '../need/entities/need-post.entity';
 import { Proposal } from '../need/entities/proposal.entity';
+import { UserReferrer } from '../users/entities/userreferrer.entity';
 
 @Injectable()
 export class AdminService {
@@ -21,6 +22,8 @@ export class AdminService {
     private needRespository: Repository<NeedPost>,
     @InjectRepository(Proposal)
     private proposalRespository: Repository<Proposal>,
+    @InjectRepository(UserReferrer)
+    private referrerRepository: Repository<UserReferrer>,
   ) {}
 
   countUsers() {
@@ -130,5 +133,14 @@ export class AdminService {
     return this.userProfileRepository.count({
       where: { created_at: MoreThanOrEqual(lastMonth) },
     });
+  }
+
+  async countReferrals() {
+    const qb = this.referrerRepository.createQueryBuilder('user_referrer');
+    return await qb
+      .select('user_referrer.referrer as referrer')
+      .addSelect('COUNT(*) as count')
+      .groupBy('user_referrer.referrer')
+      .getRawMany();
   }
 }
