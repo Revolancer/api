@@ -110,4 +110,25 @@ export class AdminService {
       where: { created_at: MoreThanOrEqual(lastMonth) },
     });
   }
+
+  countDailyNewUsers() {
+    const yesterday = DateTime.now().minus({ day: 1 }).toJSDate();
+    return this.userProfileRepository.count({
+      where: { created_at: MoreThanOrEqual(yesterday) },
+    });
+  }
+
+  countWeeklyNewUsers() {
+    const lastWeek = DateTime.now().minus({ day: 7 }).toJSDate();
+    return this.userProfileRepository.count({
+      where: { created_at: MoreThanOrEqual(lastWeek) },
+    });
+  }
+
+  countMonthlyNewUsers() {
+    const lastMonth = DateTime.now().minus({ day: 28 }).toJSDate();
+    return this.userProfileRepository.count({
+      where: { created_at: MoreThanOrEqual(lastMonth) },
+    });
+  }
 }
