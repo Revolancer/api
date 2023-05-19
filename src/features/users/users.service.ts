@@ -35,6 +35,8 @@ import { DateTime } from 'luxon';
 import { UserReferrer } from './entities/userreferrer.entity';
 import { EmailUpdateDto } from './dto/emailupdate.dto ';
 import { PasswordUpdateDto } from './dto/passwordupdate.dto';
+import { ChangeRateDto } from './dto/changerate.dto';
+import { ChangeExperienceDto } from './dto/changeexperience.dto';
 
 @Injectable()
 export class UsersService {
@@ -518,6 +520,19 @@ export class UsersService {
     return { success: true };
   }
 
+  async getUserEmail(user: User) {
+    const loadedUser = await this.usersRepository.findOne({
+      where: {
+        id: user.id,
+      },
+      select: { id: true, email: true },
+    });
+    if (!loadedUser) {
+      throw new NotFoundException();
+    }
+    return loadedUser;
+  }
+
   async setUserEmail(
     user: User,
     body: EmailUpdateDto,
@@ -573,11 +588,41 @@ export class UsersService {
       select: {
         id: true,
         hourly_rate: true,
+        currency: true,
       },
     });
     if (!(profile instanceof UserProfile)) {
       return {};
     }
     return profile;
+  }
+
+  async setUserRate(user: User, body: ChangeRateDto) {
+    const loadedUserProfile = await this.getProfile(user);
+    loadedUserProfile.currency = body.currency;
+    loadedUserProfile.hourly_rate = body.hourlyRate;
+    this.userProfileRepository.save(loadedUserProfile);
+  }
+
+  async getUserExperience(
+    user: User,
+  ): Promise<UserProfile | Record<string, never>> {
+    const profile = await this.userProfileRepository.findOne({
+      where: { user: { id: user.id } },
+      select: {
+        id: true,
+        experience: true,
+      },
+    });
+    if (!(profile instanceof UserProfile)) {
+      return {};
+    }
+    return profile;
+  }
+
+  async setUserExperience(user: User, body: ChangeExperienceDto) {
+    const loadedUserProfile = await this.getProfile(user);
+    loadedUserProfile.experience = body.experience;
+    this.userProfileRepository.save(loadedUserProfile);
   }
 }
