@@ -22,6 +22,8 @@ import { UsernameCheckDto } from './dto/usernamecheck.dto';
 import { UsersService } from './users.service';
 import { EmailUpdateDto } from './dto/emailupdate.dto ';
 import { PasswordUpdateDto } from './dto/passwordupdate.dto';
+import { ChangeRateDto } from './dto/changerate.dto';
+import { ChangeExperienceDto } from './dto/changeexperience.dto';
 
 @Controller('user')
 export class UsersController {
@@ -169,6 +171,12 @@ export class UsersController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('email')
+  async getUserEmail(@Req() req: IUserRequest) {
+    return this.usersService.getUserEmail(req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Post('password')
   async setUserPassword(
     @Req() req: IUserRequest,
@@ -181,5 +189,26 @@ export class UsersController {
   @Get('rate')
   async getUserRate(@Req() req: IUserRequest) {
     return this.usersService.getUserRate(req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('rate')
+  async setUserRate(@Req() req: IUserRequest, @Body() body: ChangeRateDto) {
+    return this.usersService.setUserRate(req.user, body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('experience')
+  async getUserExperience(@Req() req: IUserRequest) {
+    return this.usersService.getUserExperience(req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('experience')
+  async setUserExperience(
+    @Req() req: IUserRequest,
+    @Body() body: ChangeExperienceDto,
+  ) {
+    return this.usersService.setUserExperience(req.user, body);
   }
 }
