@@ -1,11 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Brackets, Repository } from 'typeorm';
+import { Between, Brackets, LessThan, Repository } from 'typeorm';
 import { TagsService } from '../tags/tags.service';
 import { User } from '../users/entities/user.entity';
 import { SendMessageDto } from './dto/sendmessage.dto';
 import { Message } from './entities/message.entity';
 import { DateTime } from 'luxon';
+import { MailService } from '../mail/mail.service';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class MessageService {
@@ -15,6 +17,8 @@ export class MessageService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private tagsService: TagsService,
+    @Inject(forwardRef(() => MailService))
+    private mailService: MailService,
   ) {}
 
   /**
@@ -107,23 +111,55 @@ export class MessageService {
 
   async getUnreadCount(user: User) {
     return this.messageRepository.count({
-      where: { reciever: user, read: false },
+      where: { reciever: { id: user.id }, read: false },
     });
   }
 
   async getAllMessageCount(user: User) {
     return this.messageRepository.count({
-      where: [{ reciever: user }, { sender: user }],
+      where: [{ reciever: { id: user.id } }, { sender: user }],
     });
   }
 
   async markMessageAsRead(user: User, id: string) {
     const message = await this.messageRepository.findOne({
-      where: { id: id, reciever: user },
+      where: { id: id, reciever: { id: user.id } },
     });
     if (!message) return;
     message.read = true;
     message.read_at = DateTime.now().toJSDate();
     this.messageRepository.save(message);
+  }
+
+  async scheduleUnreadMessagesEmail(user: User) {
+    const unread = await this.getUnreadCount(user);
+    this.mailService.scheduleMail(user, 'unread_messages', {
+      unread_messages: unread,
+    });
+  }
+
+  /**
+   * Send an email to all users with unread messages greater than 12 hours old
+   * If they have recieved this email since they were last active, do not resend it
+   */
+  @Cron('0 */15 * * * *')
+  async alertUsersWithUnreadMessages() {
+    const tooOld = DateTime.now().minus({ day: 30 }).toJSDate();
+    const alertTime = DateTime.now().minus({ hour: 12 }).toJSDate();
+    const oldUnreads = await this.messageRepository.find({
+      where: { read: false, created_at: Between(tooOld, alertTime) },
+      relations: ['reciever'],
+    });
+    const usersToAlertIDs: string[] = [];
+    const usersToAlert: User[] = [];
+    for (const message of oldUnreads) {
+      if (!usersToAlertIDs.includes(message.reciever.id)) {
+        usersToAlert.push(message.reciever);
+        usersToAlertIDs.push(message.reciever.id);
+      }
+    }
+    for (const user of usersToAlert) {
+      this.scheduleUnreadMessagesEmail(user);
+    }
   }
 }

@@ -17,6 +17,7 @@ import { UserRole } from './userrole.entity';
 import { Proposal } from 'src/features/need/entities/proposal.entity';
 import { Project } from 'src/features/projects/entities/project.entity';
 import { UserReferrer } from './userreferrer.entity';
+import { LastMail } from 'src/features/mail/entities/last-mail.entity';
 
 @Entity()
 export class User {
@@ -85,6 +86,12 @@ export class User {
     onDelete: 'CASCADE',
   })
   incoming_projects!: Project[];
+
+  @OneToMany(() => LastMail, (mail: LastMail) => mail.user, {
+    cascade: true,
+    onDelete: 'CASCADE',
+  })
+  last_mails!: LastMail[];
 
   @OneToMany(() => File, (file: File) => file.user, {
     cascade: true,

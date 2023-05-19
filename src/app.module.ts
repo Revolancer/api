@@ -18,6 +18,7 @@ import { APP_FILTER } from '@nestjs/core';
 import { ExceptionFilter } from './exception.filter';
 import { FeedModule } from './features/feed/feed.module';
 import { AdminModule } from './features/admin/admin.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({})
 class NullModule {}
@@ -62,6 +63,7 @@ class NullModule {}
       ttl: 30,
       limit: 5,
     }),
+    ScheduleModule.forRoot(),
   ],
   providers: [
     {
