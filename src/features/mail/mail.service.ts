@@ -7,6 +7,10 @@ import { MailJob } from './queue/mail.job';
 import { MailDataRequired, MailService as Sendgrid } from '@sendgrid/mail';
 import { UsersService } from '../users/users.service';
 import { Mailout } from './mailout.type';
+import { InjectRepository } from '@nestjs/typeorm';
+import { LastMail } from './entities/last-mail.entity';
+import { Repository } from 'typeorm';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class MailService {
@@ -31,6 +35,8 @@ export class MailService {
     @Inject(forwardRef(() => UsersService))
     private usersService: UsersService,
     @InjectQueue('mail') private mailQueue: Queue<MailJob>,
+    @InjectRepository(LastMail)
+    private lastMailRepository: Repository<LastMail>,
   ) {
     this.sendgrid = new Sendgrid();
     this.sendgrid.setApiKey(config.key);
@@ -195,6 +201,33 @@ export class MailService {
     extraData: { [key: string]: any },
   ) {
     if (!user.email) return;
+    const lastUnreadMessagesEmail = await this.lastMailRepository.findOne({
+      where: {
+        user: { id: user.id },
+        mailout: 'unread_messages',
+      },
+    });
+    let shouldMail = true;
+    const userLastActive = await this.usersService.getLastActive(user);
+    if (lastUnreadMessagesEmail) {
+      if (
+        DateTime.fromJSDate(lastUnreadMessagesEmail.last_mail).plus({
+          day: 7,
+        }) > DateTime.now()
+      ) {
+        shouldMail = false;
+        if (
+          userLastActive >
+          DateTime.fromJSDate(lastUnreadMessagesEmail.last_mail)
+        ) {
+          shouldMail = true;
+        }
+      }
+    }
+    if (userLastActive.plus({ minute: 30 }) > DateTime.now()) {
+      shouldMail = false;
+    }
+    if (!shouldMail) return;
     const mail: MailDataRequired = {
       to: user.email,
       from: this.sender,
@@ -207,6 +240,11 @@ export class MailService {
       },
     };
     this.sendgrid.send(mail);
+    const messageSent = new LastMail();
+    messageSent.last_mail = DateTime.now().toJSDate();
+    messageSent.mailout = 'unread_messages';
+    messageSent.user = user;
+    this.lastMailRepository.save(messageSent);
   }
 
   async sendMailoutRecentNeeds(user: User, extraData: { [key: string]: any }) {

@@ -154,6 +154,16 @@ export class UsersService {
     }
   }
 
+  async getLastActive(user: User) {
+    const profile = await this.userProfileRepository.findOneByOrFail({
+      user: { id: user.id },
+    });
+    if (profile.last_active) {
+      return DateTime.fromJSDate(profile.last_active);
+    }
+    return DateTime.fromJSDate(profile.created_at);
+  }
+
   async addConsent(user: User, consentFor: string): Promise<void> {
     await this.userConsentRepository.insert({
       user: user,
