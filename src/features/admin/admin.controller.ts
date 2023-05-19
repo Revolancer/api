@@ -65,4 +65,10 @@ export class AdminController {
       monthly,
     };
   }
+
+  @Get('stats/referrers')
+  @UseGuards(AdminAuthGuard)
+  async getReferrers() {
+    return this.adminService.countReferrals();
+  }
 }
