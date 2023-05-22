@@ -289,6 +289,13 @@ export class UsersService {
     loadedUserProfile.onboardingStage = 4;
     this.userProfileRepository.save(loadedUserProfile);
     this.creditsService.addOrRemoveUserCredits(user, 100, 'Welcome bonus');
+
+    const loadedUser = await this.usersRepository.findOneBy({ id: user.id });
+    if (loadedUser && loadedUser.email) {
+      this.mailService.scheduleMail(user, 'welcome', {
+        portfolio_link: 'https://app.revoalncer.com/u/profile',
+      });
+    }
   }
 
   /**
