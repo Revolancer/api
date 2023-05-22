@@ -59,11 +59,17 @@ export class MailService {
     mailout: Mailout,
     extraData: { [key: string]: any } = {},
   ): Promise<void> {
-    await this.mailQueue.add({
-      user: { ...user, password: '' },
-      mailout,
-      extraData,
-    });
+    await this.mailQueue.add(
+      {
+        user: { ...user, password: '' },
+        mailout,
+        extraData,
+      },
+      {
+        removeOnComplete: 100,
+        removeOnFail: 1000,
+      },
+    );
   }
 
   async sendMailoutEmailConfirm(user: User) {
