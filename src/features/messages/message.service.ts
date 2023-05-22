@@ -192,7 +192,7 @@ export class MessageService {
    * Send an email to all users with unread messages greater than 12 hours old
    * If they have recieved this email since they were last active, do not resend it
    */
-  @Cron('* */15 * * * *')
+  @Cron('0 */15 * * * *')
   async alertUsersWithUnreadMessages() {
     await this.redlock.using(
       ['unread-messages-email'],

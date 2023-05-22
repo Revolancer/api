@@ -10,6 +10,7 @@ import { Mailout } from './mailout.type';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LastMail } from './entities/last-mail.entity';
 import { Repository } from 'typeorm';
+import { Cron } from '@nestjs/schedule';
 
 @Injectable()
 export class MailService {
@@ -326,5 +327,13 @@ export class MailService {
       },
     };
     this.sendgrid.send(mail);
+  }
+
+  @Cron('0 0 * * * *')
+  async cleanMailQueue() {
+    //Clean up jobs completed more than 100 seconds ago
+    this.mailQueue.clean(100000);
+    //Clean up jobs failed more than 1 day ago
+    this.mailQueue.clean(86400000, 'failed');
   }
 }
