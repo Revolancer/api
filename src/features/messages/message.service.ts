@@ -1,6 +1,6 @@
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, Brackets, LessThan, Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { TagsService } from '../tags/tags.service';
 import { User } from '../users/entities/user.entity';
 import { SendMessageDto } from './dto/sendmessage.dto';
@@ -8,17 +8,25 @@ import { Message } from './entities/message.entity';
 import { DateTime } from 'luxon';
 import { MailService } from '../mail/mail.service';
 import { Cron } from '@nestjs/schedule';
+import { LastMail } from '../mail/entities/last-mail.entity';
+import { UsersService } from '../users/users.service';
+import { RedlockService } from '@anchan828/nest-redlock';
 
 @Injectable()
 export class MessageService {
   constructor(
+    private readonly redlock: RedlockService,
     @InjectRepository(Message)
     private messageRepository: Repository<Message>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @Inject(forwardRef(() => UsersService))
+    private usersService: UsersService,
     private tagsService: TagsService,
     @Inject(forwardRef(() => MailService))
     private mailService: MailService,
+    @InjectRepository(LastMail)
+    private lastMailRepository: Repository<LastMail>,
   ) {}
 
   /**
@@ -132,34 +140,90 @@ export class MessageService {
   }
 
   async scheduleUnreadMessagesEmail(user: User) {
+    const lastUnreadMessagesEmail = await this.lastMailRepository.findOne({
+      where: {
+        user: { id: user.id },
+        mailout: 'unread_messages',
+      },
+    });
+    let shouldMail = true;
+    const userLastActive = await this.usersService.getLastActive(user);
+    if (lastUnreadMessagesEmail) {
+      if (
+        DateTime.fromJSDate(lastUnreadMessagesEmail.last_mail).plus({
+          day: 7,
+        }) > DateTime.now()
+      ) {
+        shouldMail = false;
+        if (
+          userLastActive >
+          DateTime.fromJSDate(lastUnreadMessagesEmail.last_mail)
+        ) {
+          shouldMail = true;
+        }
+      }
+    }
+    if (userLastActive.plus({ minute: 30 }) > DateTime.now()) {
+      shouldMail = false;
+    }
+    if (!shouldMail) {
+      return;
+    }
+
     const unread = await this.getUnreadCount(user);
+
     this.mailService.scheduleMail(user, 'unread_messages', {
       unread_messages: unread,
     });
+
+    if (lastUnreadMessagesEmail) {
+      lastUnreadMessagesEmail.last_mail = DateTime.now().toJSDate();
+      this.lastMailRepository.save(lastUnreadMessagesEmail);
+    } else {
+      const messageSent = new LastMail();
+      messageSent.last_mail = DateTime.now().toJSDate();
+      messageSent.mailout = 'unread_messages';
+      messageSent.user = user;
+      this.lastMailRepository.save(messageSent);
+    }
   }
 
   /**
    * Send an email to all users with unread messages greater than 12 hours old
    * If they have recieved this email since they were last active, do not resend it
    */
-  @Cron('0 */15 * * * *')
+  @Cron('* */15 * * * *')
   async alertUsersWithUnreadMessages() {
-    const tooOld = DateTime.now().minus({ day: 30 }).toJSDate();
-    const alertTime = DateTime.now().minus({ hour: 12 }).toJSDate();
-    const oldUnreads = await this.messageRepository.find({
-      where: { read: false, created_at: Between(tooOld, alertTime) },
-      relations: ['reciever'],
-    });
-    const usersToAlertIDs: string[] = [];
-    const usersToAlert: User[] = [];
-    for (const message of oldUnreads) {
-      if (!usersToAlertIDs.includes(message.reciever.id)) {
-        usersToAlert.push(message.reciever);
-        usersToAlertIDs.push(message.reciever.id);
-      }
-    }
-    for (const user of usersToAlert) {
-      this.scheduleUnreadMessagesEmail(user);
-    }
+    await this.redlock.using(
+      ['unread-messages-email'],
+      30000,
+      async (signal) => {
+        if (signal.aborted) {
+          throw signal.error;
+        }
+
+        const alertTime = DateTime.now().minus({ hour: 12 }).toJSDate();
+        const unreads = await this.messageRepository
+          .createQueryBuilder()
+          .select('message')
+          .from(Message, 'message')
+          .where('message.read = false')
+          .andWhere('message.created_at < :time', { time: alertTime })
+          .loadAllRelationIds()
+          .distinctOn(['message.recieverId'])
+          .getMany();
+        for (const unread of unreads) {
+          const user = await this.userRepository.findOne({
+            where: {
+              id: unread.reciever as unknown as string,
+            },
+            select: { id: true, email: true },
+          });
+          if (user) {
+            this.scheduleUnreadMessagesEmail(user);
+          }
+        }
+      },
+    );
   }
 }
