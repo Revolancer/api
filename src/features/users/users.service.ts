@@ -293,7 +293,7 @@ export class UsersService {
     const loadedUser = await this.usersRepository.findOneBy({ id: user.id });
     if (loadedUser && loadedUser.email) {
       this.mailService.scheduleMail(user, 'welcome', {
-        portfolio_link: 'https://app.revoalncer.com/u/profile',
+        portfolio_link: 'https://app.revolancer.com/u/profile',
       });
     }
   }
