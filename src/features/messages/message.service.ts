@@ -1,6 +1,6 @@
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, Brackets, LessThan, Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { TagsService } from '../tags/tags.service';
 import { User } from '../users/entities/user.entity';
 import { SendMessageDto } from './dto/sendmessage.dto';
@@ -10,10 +10,12 @@ import { MailService } from '../mail/mail.service';
 import { Cron } from '@nestjs/schedule';
 import { LastMail } from '../mail/entities/last-mail.entity';
 import { UsersService } from '../users/users.service';
+import { RedlockService } from '@anchan828/nest-redlock';
 
 @Injectable()
 export class MessageService {
   constructor(
+    private readonly redlock: RedlockService,
     @InjectRepository(Message)
     private messageRepository: Repository<Message>,
     @InjectRepository(User)
@@ -190,28 +192,38 @@ export class MessageService {
    * Send an email to all users with unread messages greater than 12 hours old
    * If they have recieved this email since they were last active, do not resend it
    */
-  @Cron('* */10 * * * *')
+  @Cron('* */15 * * * *')
   async alertUsersWithUnreadMessages() {
-    const alertTime = DateTime.now().minus({ hour: 12 }).toJSDate();
-    const unreads = await this.messageRepository
-      .createQueryBuilder()
-      .select('message')
-      .from(Message, 'message')
-      .where('message.read = false')
-      .andWhere('message.created_at < :time', { time: alertTime })
-      .loadAllRelationIds()
-      .distinctOn(['message.recieverId'])
-      .getMany();
-    for (const unread of unreads) {
-      const user = await this.userRepository.findOne({
-        where: {
-          id: unread.reciever as unknown as string,
-        },
-        select: { id: true, email: true },
-      });
-      if (user) {
-        this.scheduleUnreadMessagesEmail(user);
-      }
-    }
+    await this.redlock.using(
+      ['unread-messages-email'],
+      30000,
+      async (signal) => {
+        if (signal.aborted) {
+          throw signal.error;
+        }
+
+        const alertTime = DateTime.now().minus({ hour: 12 }).toJSDate();
+        const unreads = await this.messageRepository
+          .createQueryBuilder()
+          .select('message')
+          .from(Message, 'message')
+          .where('message.read = false')
+          .andWhere('message.created_at < :time', { time: alertTime })
+          .loadAllRelationIds()
+          .distinctOn(['message.recieverId'])
+          .getMany();
+        for (const unread of unreads) {
+          const user = await this.userRepository.findOne({
+            where: {
+              id: unread.reciever as unknown as string,
+            },
+            select: { id: true, email: true },
+          });
+          if (user) {
+            this.scheduleUnreadMessagesEmail(user);
+          }
+        }
+      },
+    );
   }
 }

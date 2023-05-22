@@ -10,7 +10,6 @@ import { Mailout } from './mailout.type';
 import { InjectRepository } from '@nestjs/typeorm';
 import { LastMail } from './entities/last-mail.entity';
 import { Repository } from 'typeorm';
-import { DateTime } from 'luxon';
 
 @Injectable()
 export class MailService {
