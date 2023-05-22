@@ -6,12 +6,15 @@ import { Message } from './entities/message.entity';
 import { MessageController } from './message.controller';
 import { MessageService } from './message.service';
 import { MailModule } from '../mail/mail.module';
+import { LastMail } from '../mail/entities/last-mail.entity';
+import { UsersModule } from '../users/users.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Message, User]),
+    TypeOrmModule.forFeature([Message, User, LastMail]),
     TagsModule,
     forwardRef(() => MailModule),
+    forwardRef(() => UsersModule),
   ],
   providers: [MessageService],
   exports: [MessageService],
