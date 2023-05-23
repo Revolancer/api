@@ -13,6 +13,7 @@ import { CreatePostDto } from './dto/createneed.dto';
 import { NeedPost } from './entities/need-post.entity';
 import { Proposal } from './entities/proposal.entity';
 import { CreateProposalDto } from './dto/createproposal.dto';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class NeedService {
@@ -22,6 +23,7 @@ export class NeedService {
     @InjectRepository(Proposal)
     private proposalRepository: Repository<Proposal>,
     private tagsService: TagsService,
+    private mailService: MailService,
   ) {}
 
   async loadTagsFromRequest(tags: CreatePostDto['tags']) {
@@ -132,7 +134,10 @@ export class NeedService {
     ) {
       throw new BadRequestException();
     }
-    const need = await this.postRepository.findOne({ where: { id: needId } });
+    const need = await this.postRepository.findOne({
+      where: { id: needId },
+      relations: ['user'],
+    });
     if (!need) throw new NotFoundException();
     const post = new Proposal();
     post.message = body.message;
@@ -141,6 +146,12 @@ export class NeedService {
     post.need = need;
     post.user = user;
     const newPost = await this.proposalRepository.save(post);
+
+    this.mailService.scheduleMail(need.user, 'proposal_new', {
+      need: need,
+      proposal: newPost,
+      someone: user,
+    });
     return newPost.id;
   }
 

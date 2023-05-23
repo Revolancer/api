@@ -11,6 +11,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { LastMail } from './entities/last-mail.entity';
 import { Repository } from 'typeorm';
 import { Cron } from '@nestjs/schedule';
+import { NeedPost } from '../need/entities/need-post.entity';
+import { Proposal } from '../need/entities/proposal.entity';
 
 @Injectable()
 export class MailService {
@@ -169,6 +171,11 @@ export class MailService {
 
   async sendMailoutProposalNew(user: User, extraData: { [key: string]: any }) {
     if (!user.email) return;
+    const need: NeedPost = extraData.need;
+    const proposal: Proposal = extraData.proposal;
+    const someone: User = extraData.someone;
+    const profile = await this.usersService.getProfile(someone);
+
     const mail: MailDataRequired = {
       to: user.email,
       from: this.sender,
@@ -177,7 +184,16 @@ export class MailService {
       dynamicTemplateData: {
         ...this.dynamicTemplateData,
         ...(await this.getRecipientProfileVariables(user)),
-        ...extraData,
+        someone_profile_picture: profile.profile_image ?? '',
+        someone_name: profile.first_name,
+        your_need: {
+          link: `https://app.revolancer.com/n/${need.id}`,
+          title: need.title ?? '',
+        },
+        someone_proposal: {
+          body: proposal.message,
+          link: `https://app.revolancer.com/n/${need.id}`,
+        },
       },
     };
     this.sendgrid.send(mail);
