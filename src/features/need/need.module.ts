@@ -5,9 +5,14 @@ import { NeedPost } from './entities/need-post.entity';
 import { NeedController } from './need.controller';
 import { NeedService } from './need.service';
 import { Proposal } from './entities/proposal.entity';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([NeedPost, Proposal]), TagsModule],
+  imports: [
+    TypeOrmModule.forFeature([NeedPost, Proposal]),
+    TagsModule,
+    MailModule,
+  ],
   providers: [NeedService],
   exports: [NeedService],
   controllers: [NeedController],
