@@ -71,4 +71,9 @@ export class AdminController {
   async getReferrers() {
     return this.adminService.countReferrals();
   }
+
+  @Get('users')
+  async getAllUsers() {
+    return this.adminService.listAllUsers();
+  }
 }
