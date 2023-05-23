@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { CacheModule } from '@nestjs/cache-manager';
 import { AppConfigModule } from './config/app/config.module';
 import { AuthModule } from './features/auth/auth.module';
 import { UsersModule } from './features/users/users.module';
@@ -34,6 +35,7 @@ class NullModule {}
     TagsModule,
     UploadModule,
     FeedModule,
+    CacheModule.register({ isGlobal: true }),
     process.env.NODE_ENV === 'production' ? NullModule : BullBoardModule, // Don't load bull-board in prod
     TypeOrmModule.forRootAsync({
       imports: [DBConfigModule],

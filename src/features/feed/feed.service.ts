@@ -1,15 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { NeedPost } from '../need/entities/need-post.entity';
 import { NeedService } from '../need/need.service';
 import { PortfolioPost } from '../portfolio/entities/portfolio-post.entity';
 import { PortfolioService } from '../portfolio/portfolio.service';
 import { User } from '../users/entities/user.entity';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class FeedService {
   constructor(
     private portfolioService: PortfolioService,
     private needService: NeedService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   async mergeFeedPosts(portfolios: PortfolioPost[], needs: NeedPost[]) {
@@ -50,8 +53,14 @@ export class FeedService {
   }
 
   async getFeed(user: User) {
+    const cachedFeed = await this.cacheManager.get('discovery-feed');
+    if (cachedFeed) {
+      return cachedFeed;
+    }
     const portfolios = await this.portfolioService.getPostsForFeed(user);
     const needs = await this.needService.getPostsForFeed(user);
-    return this.mergeFeedPosts(portfolios, needs);
+    const feed = await this.mergeFeedPosts(portfolios, needs);
+    await this.cacheManager.set('discovery-feed', feed, 5 * 60 * 1000);
+    return feed;
   }
 }
