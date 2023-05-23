@@ -1,6 +1,7 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { AdminAuthGuard } from '../auth/guards/admin.guard';
 import { AdminService } from './admin.service';
+import { AddCreditsDto } from './dto/add-credits.dto';
 
 @Controller('admin')
 export class AdminController {
@@ -73,7 +74,14 @@ export class AdminController {
   }
 
   @Get('users')
+  @UseGuards(AdminAuthGuard)
   async getAllUsers() {
     return this.adminService.listAllUsers();
+  }
+
+  @Post('user/credits')
+  @UseGuards(AdminAuthGuard)
+  async addOrRemoveCredits(@Body() body: AddCreditsDto) {
+    return this.adminService.addCredits(body);
   }
 }

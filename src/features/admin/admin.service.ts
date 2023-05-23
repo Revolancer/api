@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MoreThanOrEqual, Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
@@ -8,6 +8,9 @@ import { PortfolioPost } from '../portfolio/entities/portfolio-post.entity';
 import { NeedPost } from '../need/entities/need-post.entity';
 import { Proposal } from '../need/entities/proposal.entity';
 import { UserReferrer } from '../users/entities/userreferrer.entity';
+import { AddCreditsDto } from './dto/add-credits.dto';
+import { validate as isValidUuid } from 'uuid';
+import { CreditsService } from '../credits/credits.service';
 
 @Injectable()
 export class AdminService {
@@ -24,6 +27,7 @@ export class AdminService {
     private proposalRespository: Repository<Proposal>,
     @InjectRepository(UserReferrer)
     private referrerRepository: Repository<UserReferrer>,
+    private creditService: CreditsService,
   ) {}
 
   countUsers() {
@@ -150,5 +154,31 @@ export class AdminService {
       where: { onboardingStage: 4 },
       order: { created_at: 'DESC' },
     });
+  }
+
+  async addCredits(body: AddCreditsDto) {
+    let user: User | undefined = undefined;
+    if (!isValidUuid(body.recipient)) {
+      const userProfile = await this.userProfileRepository.findOne({
+        where: { slug: body.recipient },
+        relations: ['user'],
+      });
+      if (userProfile?.user) {
+        user = userProfile?.user;
+      }
+    } else {
+      const maybeUser = await this.userRepository.findOne({
+        where: { id: body.recipient },
+      });
+      if (maybeUser) {
+        user = maybeUser;
+      }
+    }
+
+    if (!user) {
+      throw new NotFoundException();
+    }
+
+    this.creditService.addOrRemoveUserCredits(user, body.amount, body.reason);
   }
 }
