@@ -143,4 +143,12 @@ export class AdminService {
       .groupBy('user_referrer.referrer')
       .getRawMany();
   }
+
+  async listAllUsers() {
+    return this.userProfileRepository.find({
+      select: { slug: true, created_at: true },
+      where: { onboardingStage: 4 },
+      order: { created_at: 'DESC' },
+    });
+  }
 }
