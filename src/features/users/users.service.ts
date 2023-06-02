@@ -12,7 +12,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
 //import { Subscription } from 'chargebee-typescript/lib/resources';
 import { EmailExistsError } from 'src/errors/email-exists-error';
-import { Not, Repository } from 'typeorm';
+import { FindOperator, Not, Repository } from 'typeorm';
 //import { ChargebeeService } from '../chargebee/chargebee.service';
 import { MailService } from '../mail/mail.service';
 import { Tag } from '../tags/entities/tag.entity';
@@ -75,7 +75,7 @@ export class UsersService {
   async findOneByEmail(email: string): Promise<User | null> {
     const user = await this.usersRepository.findOne({
       relations: ['roles'],
-      where: { email: email },
+      where: { email: new FindOperator('ilike', email) },
     });
     return user;
   }
@@ -97,8 +97,8 @@ export class UsersService {
   ): Promise<string> {
     const partial = this.usersRepository.create();
     if (typeof email !== 'undefined') {
-      partial.email = email;
-      if ((await this.findOneByEmail(email)) !== null) {
+      partial.email = email.toLowerCase();
+      if ((await this.findOneByEmail(partial.email)) !== null) {
         throw new EmailExistsError();
       }
     }
