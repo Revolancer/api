@@ -351,6 +351,9 @@ export class MailService {
     extraData: { [key: string]: any },
   ) {
     if (!user.email) return;
+    const need: NeedPost = extraData.need;
+    const project: Project = extraData.project;
+
     const mail: MailDataRequired = {
       to: user.email,
       from: this.sender,
@@ -359,7 +362,10 @@ export class MailService {
       dynamicTemplateData: {
         ...this.dynamicTemplateData,
         ...(await this.getRecipientProfileVariables(user)),
-        ...extraData,
+        completed_need: {
+          link: `https://app.revolancer.com/project/${project.id}`,
+          title: need.title ?? '',
+        },
       },
     };
     this.sendgrid.send(mail);
@@ -370,6 +376,9 @@ export class MailService {
     extraData: { [key: string]: any },
   ) {
     if (!user.email) return;
+    const need: NeedPost = extraData.need;
+    const project: Project = extraData.project;
+
     const mail: MailDataRequired = {
       to: user.email,
       from: this.sender,
@@ -378,7 +387,12 @@ export class MailService {
       dynamicTemplateData: {
         ...this.dynamicTemplateData,
         ...(await this.getRecipientProfileVariables(user)),
-        ...extraData,
+        completed_need: {
+          link: `https://app.revolancer.com/project/${project.id}`,
+          title: need.title ?? '',
+        },
+        portfolio_link: 'https://app.revolancer.com/u/profile',
+        wallet_link: 'https://app.revolancer.com/projects',
       },
     };
     this.sendgrid.send(mail);

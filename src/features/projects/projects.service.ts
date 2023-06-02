@@ -194,6 +194,26 @@ export class ProjectsService {
     );
     project.credits_released = true;
     this.projectRepository.save(project);
+    const loadedContractor = await this.usersService.findOne(
+      project.contractor.id,
+    );
+    if (loadedContractor) {
+      this.mailService.scheduleMail(
+        loadedContractor,
+        'project_complete_contractor',
+        {
+          need: project.need,
+          project: project,
+        },
+      );
+    }
+    const loadedClient = await this.usersService.findOne(project.client.id);
+    if (loadedClient) {
+      this.mailService.scheduleMail(loadedClient, 'project_complete_client', {
+        need: project.need,
+        project: project,
+      });
+    }
   }
 
   async markProjectApproved(user: User, id: string) {
