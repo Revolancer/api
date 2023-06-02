@@ -11,6 +11,8 @@ import { SendProjectMessageDto } from './dto/sendprojectmessage.dto';
 import { UploadService } from '../upload/upload.service';
 import { validate as isValidUUID } from 'uuid';
 import { DateTime } from 'luxon';
+import { MailService } from '../mail/mail.service';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class ProjectsService {
@@ -22,6 +24,8 @@ export class ProjectsService {
     private creditsService: CreditsService,
     private needService: NeedService,
     private uploadService: UploadService,
+    private mailService: MailService,
+    private usersService: UsersService,
   ) {}
 
   async createProject(user: User, body: NewProjectDto) {
@@ -41,6 +45,14 @@ export class ProjectsService {
     project.credits = proposal.price;
     project.status = 'active';
     const savedProject = await this.projectRepository.save(project);
+    const contractor = await this.usersService.findOne(proposal.user.id);
+    if (contractor) {
+      this.mailService.scheduleMail(contractor, 'proposal_accepted', {
+        need: need,
+        project: savedProject,
+        someone: user,
+      });
+    }
     try {
       this.needService.unPublishNeed(need.id);
     } catch (err) {}

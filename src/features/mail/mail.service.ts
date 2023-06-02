@@ -13,6 +13,7 @@ import { Repository } from 'typeorm';
 import { Cron } from '@nestjs/schedule';
 import { NeedPost } from '../need/entities/need-post.entity';
 import { Proposal } from '../need/entities/proposal.entity';
+import { Project } from '../projects/entities/project.entity';
 
 @Injectable()
 export class MailService {
@@ -204,6 +205,38 @@ export class MailService {
     extraData: { [key: string]: any },
   ) {
     if (!user.email) return;
+    const need: NeedPost = extraData.need;
+    const project: Project = extraData.project;
+    const someone: User = extraData.someone;
+    const profile = await this.usersService.getProfile(someone);
+
+    let summary = '';
+
+    if (need.data) {
+      try {
+        const parsedBody = JSON.parse(need.data);
+        const maxLength = 200;
+        for (const block of parsedBody.blocks) {
+          if (summary.length >= maxLength) {
+            return summary;
+          }
+          if (block.type == 'paragraph') {
+            if (summary.length) {
+              summary += ' ';
+            }
+            const lengthToAdd = maxLength - summary.length;
+            summary += (block.data.text as string)
+              .substring(0, maxLength - summary.length)
+              .replace(/(<([^>]+)>)/gi, '')
+              .replace(/(&([^>]+);)/gi, '');
+            if (lengthToAdd < (block.data.text as string).length) {
+              summary += '...';
+            }
+          }
+        }
+      } catch (e) {}
+    }
+
     const mail: MailDataRequired = {
       to: user.email,
       from: this.sender,
@@ -212,7 +245,13 @@ export class MailService {
       dynamicTemplateData: {
         ...this.dynamicTemplateData,
         ...(await this.getRecipientProfileVariables(user)),
-        ...extraData,
+        someone_profile_picture: profile.profile_image ?? '',
+        someone_name: profile.first_name,
+        accepted_project: {
+          link: `https://app.revolancer.com/project/${project.id}`,
+          title: need.title ?? '',
+          body: summary,
+        },
       },
     };
     this.sendgrid.send(mail);
