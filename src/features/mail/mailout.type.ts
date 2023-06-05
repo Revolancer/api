@@ -12,4 +12,5 @@ export type Mailout =
   | 'account_banned'
   | 'proposal_new'
   | 'project_complete_client'
-  | 'project_complete_contractor';
+  | 'project_complete_contractor'
+  | 'project_unread_messages';

@@ -82,6 +82,12 @@ export class MailConsumer {
           job.data.extraData,
         );
         break;
+      case 'project_unread_messages':
+        this.mailService.sendMailoutProjectUnreadMessages(
+          job.data.user,
+          job.data.extraData,
+        );
+        break;
       default:
         throw new Error(
           `Mailout ${job.data.mailout} does not have a registered handler`,
