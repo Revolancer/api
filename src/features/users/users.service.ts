@@ -37,6 +37,7 @@ import { EmailUpdateDto } from './dto/emailupdate.dto ';
 import { PasswordUpdateDto } from './dto/passwordupdate.dto';
 import { ChangeRateDto } from './dto/changerate.dto';
 import { ChangeExperienceDto } from './dto/changeexperience.dto';
+import { ChangeEmailPrefsDto } from './dto/changeemailprefs.dto';
 
 @Injectable()
 export class UsersService {
@@ -631,5 +632,44 @@ export class UsersService {
     const loadedUserProfile = await this.getProfile(user);
     loadedUserProfile.experience = body.experience;
     this.userProfileRepository.save(loadedUserProfile);
+  }
+
+  async getUserEmailPrefs(user: User) {
+    const firstParty = await this.userConsentRepository.findOne({
+      where: { user: { id: user.id }, consent_for: 'marketing-firstparty' },
+    });
+    const thirdParty = await this.userConsentRepository.findOne({
+      where: { user: { id: user.id }, consent_for: 'marketing-thirdparty' },
+    });
+    return {
+      firstparty: firstParty == null ? false : true,
+      thirdparty: thirdParty == null ? false : true,
+    };
+  }
+
+  async setUserEmailPrefs(user: User, body: ChangeEmailPrefsDto) {
+    const firstParty = await this.userConsentRepository.findOne({
+      where: { user: { id: user.id }, consent_for: 'marketing-firstparty' },
+    });
+    if (body.marketingfirstparty && !firstParty) {
+      const consent = new UserConsent();
+      consent.user = <any>{ id: user.id };
+      consent.consent_for = 'marketing-firstparty';
+      this.userConsentRepository.save(consent);
+    } else if (firstParty && !body.marketingfirstparty) {
+      this.userConsentRepository.remove(firstParty);
+    }
+
+    const thirdParty = await this.userConsentRepository.findOne({
+      where: { user: { id: user.id }, consent_for: 'marketing-thirdparty' },
+    });
+    if (body.marketingthirdparty && !thirdParty) {
+      const consent = new UserConsent();
+      consent.user = <any>{ id: user.id };
+      consent.consent_for = 'marketing-thirdparty';
+      this.userConsentRepository.save(consent);
+    } else if (thirdParty && !body.marketingthirdparty) {
+      this.userConsentRepository.remove(thirdParty);
+    }
   }
 }
