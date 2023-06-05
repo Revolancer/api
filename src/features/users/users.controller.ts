@@ -24,6 +24,7 @@ import { EmailUpdateDto } from './dto/emailupdate.dto ';
 import { PasswordUpdateDto } from './dto/passwordupdate.dto';
 import { ChangeRateDto } from './dto/changerate.dto';
 import { ChangeExperienceDto } from './dto/changeexperience.dto';
+import { ChangeEmailPrefsDto } from './dto/changeemailprefs.dto';
 
 @Controller('user')
 export class UsersController {
@@ -210,5 +211,20 @@ export class UsersController {
     @Body() body: ChangeExperienceDto,
   ) {
     return this.usersService.setUserExperience(req.user, body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('email_prefs')
+  async getUserEmailPrefs(@Req() req: IUserRequest) {
+    return this.usersService.getUserEmailPrefs(req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('email_prefs')
+  async setUserEmailPrefs(
+    @Req() req: IUserRequest,
+    @Body() body: ChangeEmailPrefsDto,
+  ) {
+    return this.usersService.setUserEmailPrefs(req.user, body);
   }
 }
