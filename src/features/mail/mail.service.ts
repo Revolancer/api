@@ -398,6 +398,34 @@ export class MailService {
     this.sendgrid.send(mail);
   }
 
+  async sendMailoutProjectUnreadMessages(
+    user: User,
+    extraData: { [key: string]: any },
+  ) {
+    if (!user.email) return;
+    const project: Project = extraData.project;
+    const someone: User = extraData.someone;
+    const profile = await this.usersService.getProfile(someone);
+
+    const mail: MailDataRequired = {
+      to: user.email,
+      from: this.sender,
+      replyTo: this.replyTo,
+      templateId: 'd-41bc2a6be2f544e7b5459730290611c1',
+      dynamicTemplateData: {
+        ...this.dynamicTemplateData,
+        ...(await this.getRecipientProfileVariables(user)),
+        someone_profile_picture: profile.profile_image ?? '',
+        someone_name: profile.first_name,
+        project: {
+          link: `https://app.revolancer.com/project/${project.id}`,
+          title: project.need.title ?? '',
+        },
+      },
+    };
+    this.sendgrid.send(mail);
+  }
+
   @Cron('0 0 * * * *')
   async cleanMailQueue() {
     //Clean up jobs completed more than 100 seconds ago

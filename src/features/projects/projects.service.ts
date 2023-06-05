@@ -13,10 +13,14 @@ import { validate as isValidUUID } from 'uuid';
 import { DateTime } from 'luxon';
 import { MailService } from '../mail/mail.service';
 import { UsersService } from '../users/users.service';
+import { LastMail } from '../mail/entities/last-mail.entity';
+import { Cron } from '@nestjs/schedule';
+import { RedlockService } from '@anchan828/nest-redlock';
 
 @Injectable()
 export class ProjectsService {
   constructor(
+    private readonly redlock: RedlockService,
     @InjectRepository(Project)
     private projectRepository: Repository<Project>,
     @InjectRepository(ProjectMessage)
@@ -26,6 +30,8 @@ export class ProjectsService {
     private uploadService: UploadService,
     private mailService: MailService,
     private usersService: UsersService,
+    @InjectRepository(LastMail)
+    private lastMailRepository: Repository<LastMail>,
   ) {}
 
   async createProject(user: User, body: NewProjectDto) {
@@ -285,5 +291,108 @@ export class ProjectsService {
     message.read = true;
     message.read_at = DateTime.now().toJSDate();
     this.projectMessageRepository.save(message);
+  }
+
+  async scheduleUnreadMessagesProjectEmail(
+    user: User,
+    project: Project,
+    someone: User,
+  ) {
+    const lastUnreadMessagesEmail = await this.lastMailRepository.findOne({
+      where: {
+        user: { id: user.id },
+        mailout: `unread_messages_${project.id}`,
+      },
+    });
+    let shouldMail = true;
+    const userLastActive = await this.usersService.getLastActive(user);
+    if (lastUnreadMessagesEmail) {
+      if (
+        DateTime.fromJSDate(lastUnreadMessagesEmail.last_mail).plus({
+          day: 3,
+        }) > DateTime.now()
+      ) {
+        shouldMail = false;
+        if (
+          userLastActive >
+          DateTime.fromJSDate(lastUnreadMessagesEmail.last_mail)
+        ) {
+          shouldMail = true;
+        }
+      }
+    }
+    if (userLastActive.plus({ minute: 30 }) > DateTime.now()) {
+      shouldMail = false;
+    }
+    if (!shouldMail) {
+      return;
+    }
+
+    someone.password = '';
+    project.client.password = '';
+    project.contractor.password = '';
+
+    this.mailService.scheduleMail(user, 'project_unread_messages', {
+      someone: someone,
+      project: project,
+    });
+
+    if (lastUnreadMessagesEmail) {
+      lastUnreadMessagesEmail.last_mail = DateTime.now().toJSDate();
+      this.lastMailRepository.save(lastUnreadMessagesEmail);
+    } else {
+      const messageSent = new LastMail();
+      messageSent.last_mail = DateTime.now().toJSDate();
+      messageSent.mailout = `unread_messages_${project.id}`;
+      messageSent.user = user;
+      this.lastMailRepository.save(messageSent);
+    }
+  }
+
+  /**
+   * Send an email to all users with unread messages greater than 12 hours old
+   * If they have recieved this email since they were last active, do not resend it
+   */
+  @Cron('27 */15 * * * *')
+  async alertUsersWithUnreadMessages() {
+    await this.redlock.using(
+      ['unread-messages-email'],
+      30000,
+      async (signal) => {
+        if (signal.aborted) {
+          throw signal.error;
+        }
+
+        const alertTime = DateTime.now().minus({ hour: 1 }).toJSDate();
+        const unreads = await this.projectMessageRepository
+          .createQueryBuilder()
+          .select('message')
+          .from(ProjectMessage, 'message')
+          .where('message.read = false')
+          .andWhere('message.created_at < :time', { time: alertTime })
+          .loadAllRelationIds()
+          .distinctOn(['message.projectId', 'message.userId'])
+          .getMany();
+        for (const unread of unreads) {
+          const project = await this.projectRepository.findOne({
+            where: {
+              id: unread.project as unknown as string,
+            },
+            relations: ['contractor', 'client'],
+          });
+          if (project) {
+            const reciever =
+              project?.contractor.id == (unread.user as unknown as string)
+                ? project.client
+                : project.contractor;
+            const sender =
+              project?.contractor.id == (unread.user as unknown as string)
+                ? project.contractor
+                : project.client;
+            this.scheduleUnreadMessagesProjectEmail(reciever, project, sender);
+          }
+        }
+      },
+    );
   }
 }
