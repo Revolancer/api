@@ -40,7 +40,7 @@
     "argon2": "^0.30.3",
     "axios": "^1.4.0",
     "bull": "^4.10.4",
-    "cache-manager": "^5.2.1",
+    "cache-manager": "^5.2.2",
     "chargebee-typescript": "^2.17.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
