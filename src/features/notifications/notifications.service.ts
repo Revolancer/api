@@ -71,4 +71,11 @@ export class NotificationsService {
 
     this.notificationRepository.save(notification);
   }
+
+  async deleteByKey(user: User, key: string) {
+    const existingNotification = await this.getByKey(user, key);
+    if (existingNotification) {
+      this.notificationRepository.softRemove(existingNotification);
+    }
+  }
 }
