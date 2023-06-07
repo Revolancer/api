@@ -132,6 +132,7 @@ export class ProjectsService {
       where: { project: { id: project.id } },
       relations: ['user', 'attachment'],
       select: { user: { id: true } },
+      order: { created_at: 'ASC' },
     });
   }
 
