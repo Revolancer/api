@@ -67,7 +67,7 @@ export class NotificationsService {
     notification.key = key;
     notification.url = url;
     notification.read = false;
-    notification.read_at = undefined;
+    notification.read_at = <any>null;
 
     this.notificationRepository.save(notification);
   }
