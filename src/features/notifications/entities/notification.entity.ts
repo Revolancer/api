@@ -7,10 +7,12 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
+  Unique,
   UpdateDateColumn,
 } from 'typeorm';
 
 @Entity()
+@Unique('user-key', ['user', 'key'])
 export class Notification {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -24,6 +26,9 @@ export class Notification {
 
   @Column()
   url!: string;
+
+  @Column()
+  key!: string;
 
   @Column({ nullable: false, default: false })
   read: boolean;
