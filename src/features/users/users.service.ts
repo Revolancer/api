@@ -246,6 +246,9 @@ export class UsersService {
   async doOnboardingStage1(user: User, body: Onboarding1Dto) {
     if (await this.checkUsernameAvailability(user, body.userName)) {
       const loadedUserProfile = await this.getProfile(user);
+      if ((loadedUserProfile.onboardingStage ?? 0) >= 2) {
+        return { success: true };
+      }
       loadedUserProfile.first_name = body.firstName;
       loadedUserProfile.last_name = body.lastName;
       loadedUserProfile.slug = body.userName;
@@ -257,6 +260,9 @@ export class UsersService {
 
   async doOnboardingStage2(user: User, body: Onboarding2Dto) {
     const loadedUserProfile = await this.getProfile(user);
+    if ((loadedUserProfile.onboardingStage ?? 0) >= 3) {
+      return { success: true };
+    }
     loadedUserProfile.experience = body.experience;
     loadedUserProfile.currency = body.currency;
     loadedUserProfile.hourly_rate = body.hourlyRate;
@@ -277,6 +283,9 @@ export class UsersService {
 
   async doOnboardingStage3(user: User, body: Onboarding3Dto) {
     const loadedUserProfile = await this.getProfile(user);
+    if ((loadedUserProfile.onboardingStage ?? 0) >= 4) {
+      return { success: true };
+    }
     if (!this.uploadService.storeFile(user, body.profileImage)) {
       return { success: false };
     }
@@ -289,7 +298,7 @@ export class UsersService {
     loadedUserProfile.profile_image = body.profileImage;
     loadedUserProfile.onboardingStage = 4;
     this.userProfileRepository.save(loadedUserProfile);
-    this.creditsService.addOrRemoveUserCredits(user, 100, 'Welcome bonus');
+    this.creditsService.addOrRemoveUserCredits(user, 500, 'Welcome bonus');
 
     const loadedUser = await this.usersRepository.findOneBy({ id: user.id });
     if (loadedUser && loadedUser.email) {
