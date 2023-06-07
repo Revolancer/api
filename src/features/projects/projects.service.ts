@@ -16,6 +16,7 @@ import { UsersService } from '../users/users.service';
 import { LastMail } from '../mail/entities/last-mail.entity';
 import { Cron } from '@nestjs/schedule';
 import { RedlockService } from '@anchan828/nest-redlock';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class ProjectsService {
@@ -32,6 +33,7 @@ export class ProjectsService {
     private usersService: UsersService,
     @InjectRepository(LastMail)
     private lastMailRepository: Repository<LastMail>,
+    private notificationsService: NotificationsService,
   ) {}
 
   async createProject(user: User, body: NewProjectDto) {
@@ -130,6 +132,7 @@ export class ProjectsService {
       where: { project: { id: project.id } },
       relations: ['user', 'attachment'],
       select: { user: { id: true } },
+      order: { created_at: 'ASC' },
     });
   }
 
@@ -143,7 +146,7 @@ export class ProjectsService {
         { id: id, client: { id: user.id } },
         { id: id, contractor: { id: user.id } },
       ],
-      relations: ['client', 'contractor'],
+      relations: ['client', 'contractor', 'need'],
       select: { client: { id: true }, contractor: { id: true } },
     });
     if (!project) {
@@ -164,6 +167,12 @@ export class ProjectsService {
         message.attachment = attachment;
       }
     }
+    this.notificationsService.createOrUpdate(
+      project.client.id == user.id ? project.contractor : project.client,
+      `You have a new message in the ${project.need.title} project`,
+      `project-message-${project.id}`,
+      `/project/${project.id}`,
+    );
 
     return await this.projectMessageRepository.save(message);
   }
@@ -237,12 +246,36 @@ export class ProjectsService {
 
     if (project.client.id == user.id) {
       project.client_approval = true;
+      this.notificationsService.createOrUpdate(
+        project.contractor,
+        `Your project ${project.need.title} is awaiting your approval`,
+        `project-approval-${project.id}`,
+        `/project/${project.id}`,
+      );
     } else if (project.contractor.id == user.id) {
       project.contractor_approval = true;
+      this.notificationsService.createOrUpdate(
+        project.client,
+        `Your project ${project.need.title} is awaiting your approval`,
+        `project-approval-${project.id}`,
+        `/project/${project.id}`,
+      );
     }
     this.projectRepository.save(project);
     if (project.client_approval && project.contractor_approval) {
       this.completeProject(project);
+      this.notificationsService.createOrUpdate(
+        project.contractor,
+        `Your project ${project.need.title} is complete!`,
+        `project-approval-${project.id}`,
+        `/project/${project.id}`,
+      );
+      this.notificationsService.createOrUpdate(
+        project.client,
+        `Your project ${project.need.title} is complete!`,
+        `project-approval-${project.id}`,
+        `/project/${project.id}`,
+      );
     }
   }
 
@@ -261,8 +294,16 @@ export class ProjectsService {
 
     if (project.client.id == user.id) {
       project.client_approval = false;
+      this.notificationsService.deleteByKey(
+        project.contractor,
+        `project-approval-${project.id}`,
+      );
     } else if (project.contractor.id == user.id) {
       project.contractor_approval = false;
+      this.notificationsService.deleteByKey(
+        project.client,
+        `project-approval-${project.id}`,
+      );
     }
     this.projectRepository.save(project);
   }

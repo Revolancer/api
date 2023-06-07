@@ -5,6 +5,7 @@ import { CreditLogEntry } from './entities/credit-log-entry.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserBalance } from './entities/user-balance.entity';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class CreditsService {
@@ -13,6 +14,7 @@ export class CreditsService {
     private creditLogRepository: Repository<CreditLogEntry>,
     @InjectRepository(UserBalance)
     private balanceRepository: Repository<UserBalance>,
+    private notificationsService: NotificationsService,
   ) {}
 
   async getUserCredits(user: User): Promise<number> {
@@ -54,7 +56,15 @@ export class CreditsService {
     entry.reason = reason;
     entry.user = user;
     entry.resultant_amount = result;
-    this.creditLogRepository.save(entry);
+    const saved = await this.creditLogRepository.save(entry);
+    this.notificationsService.createOrUpdate(
+      user,
+      `You have ${
+        amount > 0 ? 'gained' : 'lost'
+      } ${amount} credits due to ${reason}`,
+      `credit-log-${saved.id}`,
+      `/projects`,
+    );
   }
 
   async createWalletForUser(user: User) {

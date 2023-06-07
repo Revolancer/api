@@ -14,6 +14,7 @@ import { RedlockModule } from '@anchan828/nest-redlock';
 import { RedisConfigModule } from 'src/config/redis/config.module';
 import { RedisConfigService } from 'src/config/redis/config.service';
 import { Redis } from 'ioredis';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { Redis } from 'ioredis';
     CreditsModule,
     NeedModule,
     UploadModule,
+    NotificationsModule,
     forwardRef(() => UsersModule),
     RedlockModule.registerAsync({
       imports: [RedisConfigModule],
