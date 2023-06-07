@@ -18,6 +18,7 @@ import { UsersService } from './users.service';
 import { CreditsModule } from '../credits/credits.module';
 import { ProjectsModule } from '../projects/projects.module';
 import { UserReferrer } from './entities/userreferrer.entity';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { UserReferrer } from './entities/userreferrer.entity';
     MessageModule,
     CreditsModule,
     ProjectsModule,
+    NotificationsModule,
     forwardRef(() => MailModule),
     TypeOrmModule.forFeature([
       User,
