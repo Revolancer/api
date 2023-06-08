@@ -15,7 +15,7 @@ export class NotificationsService {
   async getNotifications(user: User) {
     return this.notificationRepository.find({
       where: { user: { id: user.id } },
-      order: { updated_at: 'DESC' },
+      order: { created_at: 'DESC' },
     });
   }
 
@@ -68,6 +68,7 @@ export class NotificationsService {
     notification.url = url;
     notification.read = false;
     notification.read_at = <any>null;
+    notification.created_at = DateTime.now().toJSDate();
 
     this.notificationRepository.save(notification);
   }
