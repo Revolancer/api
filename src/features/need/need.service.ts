@@ -262,6 +262,10 @@ export class NeedService {
     });
     const unpublish = DateTime.now().minus({ hour: 1 }).toJSDate();
     need.unpublish_at = unpublish;
+    this.notificationsService.deleteByKey(
+      need.user,
+      `need-proposals-${need.id}`,
+    );
     this.postRepository.save(need);
   }
 
