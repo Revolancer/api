@@ -60,7 +60,19 @@ export class ProjectsService {
         project: savedProject,
         someone: user,
       });
+      this.notificationsService.createOrUpdate(
+        contractor,
+        `Your proposal on "${need.title}" was accepted!`,
+        `project-new-${savedProject.id}`,
+        `/project/${savedProject.id}`,
+      );
     }
+    this.notificationsService.createOrUpdate(
+      user,
+      `Congratulations, your project "${need.title}" is now under way!`,
+      `project-new-${savedProject.id}`,
+      `/project/${savedProject.id}`,
+    );
     try {
       this.needService.unPublishNeed(need.id);
     } catch (err) {}
@@ -221,6 +233,12 @@ export class ProjectsService {
           project: project,
         },
       );
+      this.notificationsService.createOrUpdate(
+        loadedContractor,
+        `Congratulations, your project "${project.need.title}" is complete!`,
+        `project-new-${project.id}`,
+        `/project/${project.id}`,
+      );
     }
     const loadedClient = await this.usersService.findOne(project.client.id);
     if (loadedClient) {
@@ -228,6 +246,12 @@ export class ProjectsService {
         need: project.need,
         project: project,
       });
+      this.notificationsService.createOrUpdate(
+        loadedClient,
+        `Congratulations, your project "${project.need.title}" is complete!`,
+        `project-new-${project.id}`,
+        `/project/${project.id}`,
+      );
     }
   }
 
