@@ -259,6 +259,7 @@ export class NeedService {
         { id: id, unpublish_at: IsNull() },
         { id: id, unpublish_at: MoreThan(now) },
       ],
+      relations: ['user'],
     });
     const unpublish = DateTime.now().minus({ hour: 1 }).toJSDate();
     need.unpublish_at = unpublish;
