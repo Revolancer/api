@@ -14,6 +14,7 @@ import { NeedPost } from './entities/need-post.entity';
 import { Proposal } from './entities/proposal.entity';
 import { CreateProposalDto } from './dto/createproposal.dto';
 import { MailService } from '../mail/mail.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 @Injectable()
 export class NeedService {
@@ -24,6 +25,7 @@ export class NeedService {
     private proposalRepository: Repository<Proposal>,
     private tagsService: TagsService,
     private mailService: MailService,
+    private notificationsService: NotificationsService,
   ) {}
 
   async loadTagsFromRequest(tags: CreatePostDto['tags']) {
@@ -152,6 +154,13 @@ export class NeedService {
       proposal: newPost,
       someone: user,
     });
+    const proposalCount = await this.countProposals(need.user, need.id);
+    this.notificationsService.createOrUpdate(
+      need.user,
+      `Your need ${need.title} has ${proposalCount} proposals`,
+      `need-proposals-${need.id}`,
+      `/n/${need.id}`,
+    );
     return newPost.id;
   }
 
