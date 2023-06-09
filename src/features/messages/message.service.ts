@@ -202,7 +202,7 @@ export class MessageService {
           throw signal.error;
         }
 
-        const alertTime = DateTime.now().minus({ hour: 12 }).toJSDate();
+        const alertTime = DateTime.now().minus({ hour: 3 }).toJSDate();
         const unreads = await this.messageRepository
           .createQueryBuilder()
           .select('message')
