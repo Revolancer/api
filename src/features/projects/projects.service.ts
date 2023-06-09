@@ -288,18 +288,6 @@ export class ProjectsService {
     this.projectRepository.save(project);
     if (project.client_approval && project.contractor_approval) {
       this.completeProject(project);
-      this.notificationsService.createOrUpdate(
-        project.contractor,
-        `Your project ${project.need.title} is complete!`,
-        `project-approval-${project.id}`,
-        `/project/${project.id}`,
-      );
-      this.notificationsService.createOrUpdate(
-        project.client,
-        `Your project ${project.need.title} is complete!`,
-        `project-approval-${project.id}`,
-        `/project/${project.id}`,
-      );
     }
   }
 
