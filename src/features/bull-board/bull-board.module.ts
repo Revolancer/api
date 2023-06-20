@@ -5,7 +5,7 @@ import { BullBoardService } from './bull-board.service';
 
 @Module({
   imports: [
-    BullModule.registerQueue({ name: 'chargebee' }),
+    BullModule.registerQueue({ name: 'admin' }),
     BullModule.registerQueue({ name: 'mail' }),
   ],
   providers: [BullBoardService],

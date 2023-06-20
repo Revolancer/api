@@ -15,10 +15,16 @@ import { ImportUsersDto } from './dto/import-users.dto';
 import { parse } from 'csv-parse/sync';
 import axios from 'axios';
 import { UploadService } from '../upload/upload.service';
+import { Mailout } from '../mail/mailout.type';
+import { AdminTask } from './admintask.type';
+import { Queue } from 'bull';
+import { AdminJob } from './queue/admin.job';
+import { InjectQueue } from '@nestjs/bull';
 
 @Injectable()
 export class AdminService {
   constructor(
+    @InjectQueue('admin') private adminQueue: Queue<AdminJob>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
     @InjectRepository(UserProfile)
@@ -34,6 +40,29 @@ export class AdminService {
     private creditService: CreditsService,
     private uploadService: UploadService,
   ) {}
+
+  /**
+   * Use this method to queue an email
+   * Avoids doing expensive API calls before returning account details to new user
+   * @param user The user to link
+   */
+  async scheduleTask(
+    user: User,
+    task: AdminTask,
+    extraData: { [key: string]: any } = {},
+  ): Promise<void> {
+    await this.adminQueue.add(
+      {
+        user: { ...user, password: '' },
+        task,
+        extraData,
+      },
+      {
+        removeOnComplete: 100,
+        removeOnFail: 1000,
+      },
+    );
+  }
 
   countUsers() {
     return this.userRepository.count();
@@ -188,17 +217,20 @@ export class AdminService {
   }
 
   async importUsers(admin: User, body: ImportUsersDto) {
-    const url = body.userCsv;
-    console.log(url);
+    this.scheduleTask(admin, 'import_users', { url: body.userCsv });
+  }
+
+  async runUserImport(user: User, data: { [key: string]: any }) {
+    if (!data.url) return;
     axios
-      .get(url)
+      .get(data.url)
       .then((res) => res.data)
-      .then((data) => parse(data, {columns: true}))
+      .then((data) => parse(data, { columns: true }))
       .then((records) => {
         console.log(records);
       })
       .then(() => {
-        this.uploadService.deleteFile(this.uploadService.urlToPath(url));
+        this.uploadService.deleteFile(this.uploadService.urlToPath(data.url));
       });
   }
 }
