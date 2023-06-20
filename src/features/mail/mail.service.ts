@@ -1,5 +1,5 @@
 import { InjectQueue } from '@nestjs/bull';
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bull';
 import { SendgridConfigService } from 'src/config/sendgrid/config.service';
 import { User } from '../users/entities/user.entity';
@@ -18,6 +18,7 @@ import { Project } from '../projects/entities/project.entity';
 @Injectable()
 export class MailService {
   private sendgrid: Sendgrid;
+  private readonly logger = new Logger(MailService.name);
 
   private dynamicTemplateData = {
     manage_email_preferences_link: 'https://app.revolancer.com/settings/email',
@@ -64,7 +65,7 @@ export class MailService {
     extraData: { [key: string]: any } = {},
   ): Promise<void> {
     if (process.env.NODE_ENV !== 'production') {
-      console.log(`Schedule ${mailout} to ${user.email}`);
+      this.logger.log(`Schedule ${mailout} to ${user.email}`);
       return;
     }
     await this.mailQueue.add(
