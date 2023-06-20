@@ -63,6 +63,10 @@ export class MailService {
     mailout: Mailout,
     extraData: { [key: string]: any } = {},
   ): Promise<void> {
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`Schedule ${mailout} to ${user.email}`);
+      return;
+    }
     await this.mailQueue.add(
       {
         user: { ...user, password: '' },

@@ -9,6 +9,10 @@ export class MailConsumer {
 
   @Process()
   async process(job: Job<MailJob>) {
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`Would send ${job.data.mailout} to ${job.data.user.email}`);
+      return;
+    }
     switch (job.data.mailout) {
       case 'password_reset':
         this.mailService.sendMailoutPasswordReset(job.data.user);
