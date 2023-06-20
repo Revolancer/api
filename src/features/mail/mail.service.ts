@@ -431,6 +431,43 @@ export class MailService {
     this.sendgrid.send(mail);
   }
 
+  async sendMailoutAccountImport(
+    user: User,
+    extraData: { [key: string]: any },
+  ) {
+    if (!user.email) return;
+    const verifyKey = await this.usersService.getPasswordResetToken(user);
+    const mail: MailDataRequired = {
+      to: user.email,
+      from: this.sender,
+      replyTo: this.replyTo,
+      templateId: 'd-62c158e4f7d74dd68857a383b902fade', //TODO: template ID
+      dynamicTemplateData: {
+        reset_password: `https://app.revolancer.com/reset-password/${verifyKey}`,
+        ...this.dynamicTemplateData,
+      },
+    };
+    this.sendgrid.send(mail);
+  }
+
+  async sendMailoutAccountImportSummary(
+    user: User,
+    extraData: { [key: string]: any },
+  ) {
+    if (!user.email) return;
+    const mail: MailDataRequired = {
+      to: user.email,
+      from: this.sender,
+      replyTo: this.replyTo,
+      templateId: 'd-82eb099d81de4b629a62494adf2a605b', //TODO: template ID
+      dynamicTemplateData: {
+        ...this.dynamicTemplateData,
+        ...extraData,
+      },
+    };
+    this.sendgrid.send(mail);
+  }
+
   @Cron('0 0 * * * *')
   async cleanMailQueue() {
     //Clean up jobs completed more than 100 seconds ago

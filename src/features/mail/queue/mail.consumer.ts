@@ -13,11 +13,23 @@ export class MailConsumer {
   async process(job: Job<MailJob>) {
     if (process.env.NODE_ENV !== 'production') {
       this.logger.log(
-        `Would send ${job.data.mailout} to ${job.data.user.email}`
+        `Would send ${job.data.mailout} to ${job.data.user.email}`,
       );
       return;
     }
     switch (job.data.mailout) {
+      case 'admin_import_summary':
+        this.mailService.sendMailoutAccountImportSummary(
+          job.data.user,
+          job.data.extraData,
+        );
+        break;
+      case 'account_import':
+        this.mailService.sendMailoutAccountImport(
+          job.data.user,
+          job.data.extraData,
+        );
+        break;
       case 'password_reset':
         this.mailService.sendMailoutPasswordReset(job.data.user);
         break;

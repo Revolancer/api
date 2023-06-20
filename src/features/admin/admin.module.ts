@@ -12,6 +12,8 @@ import { CreditsModule } from '../credits/credits.module';
 import { UploadModule } from '../upload/upload.module';
 import { BullModule } from '@nestjs/bull';
 import { AdminConsumer } from './queue/admin.consumer';
+import { UsersModule } from '../users/users.module';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
@@ -25,6 +27,8 @@ import { AdminConsumer } from './queue/admin.consumer';
     ]),
     CreditsModule,
     UploadModule,
+    UsersModule,
+    MailModule,
     BullModule.registerQueue({ name: 'admin' }),
   ],
   providers: [AdminService, AdminConsumer],

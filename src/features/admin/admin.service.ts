@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MoreThanOrEqual, Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
@@ -15,14 +15,16 @@ import { ImportUsersDto } from './dto/import-users.dto';
 import { parse } from 'csv-parse/sync';
 import axios from 'axios';
 import { UploadService } from '../upload/upload.service';
-import { Mailout } from '../mail/mailout.type';
 import { AdminTask } from './admintask.type';
 import { Queue } from 'bull';
 import { AdminJob } from './queue/admin.job';
 import { InjectQueue } from '@nestjs/bull';
+import { UsersService } from '../users/users.service';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AdminService {
+  private readonly logger = new Logger(AdminService.name);
   constructor(
     @InjectQueue('admin') private adminQueue: Queue<AdminJob>,
     @InjectRepository(User)
@@ -39,6 +41,8 @@ export class AdminService {
     private referrerRepository: Repository<UserReferrer>,
     private creditService: CreditsService,
     private uploadService: UploadService,
+    private usersService: UsersService,
+    private mailService: MailService,
   ) {}
 
   /**
@@ -226,8 +230,25 @@ export class AdminService {
       .get(data.url)
       .then((res) => res.data)
       .then((data) => parse(data, { columns: true }))
-      .then((records) => {
-        console.log(records);
+      .then(async (records) => {
+        let new_accounts = 0;
+        for (const record of records) {
+          const email = record.user_email;
+          const existing_user = await this.userRepository.findOne({
+            where: { email: email },
+          });
+          if (!existing_user) {
+            new_accounts += 1;
+            this.usersService.importFromClassic(email);
+          }
+        }
+        this.logger.log(`${new_accounts} new accounts`);
+        const admin = await this.usersService.findOne(user.id);
+        if (admin) {
+          this.mailService.scheduleMail(admin, 'admin_import_summary', {
+            count: new_accounts,
+          });
+        }
       })
       .then(() => {
         this.uploadService.deleteFile(this.uploadService.urlToPath(data.url));
