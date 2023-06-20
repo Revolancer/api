@@ -45,6 +45,14 @@ export class UploadService {
     };
   }
 
+  urlToPath(url: string) {
+    return url.replace('https://uploads.revolancer.com/', '');
+  }
+
+  async deleteFile(path: string) {
+    await this.storage.bucket('uploads.revolancer.com').file(path).delete();
+  }
+
   fileBelongsToUser(user: User, url: string) {
     const prefix = `https://uploads.revolancer.com/${user.id}/`;
     return url.substring(0, prefix.length) === prefix;

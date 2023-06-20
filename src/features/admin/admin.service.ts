@@ -11,6 +11,10 @@ import { UserReferrer } from '../users/entities/userreferrer.entity';
 import { AddCreditsDto } from './dto/add-credits.dto';
 import { validate as isValidUuid } from 'uuid';
 import { CreditsService } from '../credits/credits.service';
+import { ImportUsersDto } from './dto/import-users.dto';
+import { parse } from 'csv-parse/sync';
+import axios from 'axios';
+import { UploadService } from '../upload/upload.service';
 
 @Injectable()
 export class AdminService {
@@ -28,6 +32,7 @@ export class AdminService {
     @InjectRepository(UserReferrer)
     private referrerRepository: Repository<UserReferrer>,
     private creditService: CreditsService,
+    private uploadService: UploadService,
   ) {}
 
   countUsers() {
@@ -180,5 +185,20 @@ export class AdminService {
     }
 
     this.creditService.addOrRemoveUserCredits(user, body.amount, body.reason);
+  }
+
+  async importUsers(admin: User, body: ImportUsersDto) {
+    const url = body.userCsv;
+    console.log(url);
+    axios
+      .get(url)
+      .then((res) => res.data)
+      .then((data) => parse(data, {columns: true}))
+      .then((records) => {
+        console.log(records);
+      })
+      .then(() => {
+        this.uploadService.deleteFile(this.uploadService.urlToPath(url));
+      });
   }
 }

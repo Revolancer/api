@@ -9,6 +9,7 @@ import { NeedPost } from '../need/entities/need-post.entity';
 import { Proposal } from '../need/entities/proposal.entity';
 import { UserReferrer } from '../users/entities/userreferrer.entity';
 import { CreditsModule } from '../credits/credits.module';
+import { UploadModule } from '../upload/upload.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { CreditsModule } from '../credits/credits.module';
       UserReferrer,
     ]),
     CreditsModule,
+    UploadModule,
   ],
   providers: [AdminService],
   exports: [AdminService],
