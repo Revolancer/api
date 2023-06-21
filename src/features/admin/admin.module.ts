@@ -31,7 +31,6 @@ import { MailModule } from '../mail/mail.module';
     MailModule,
     BullModule.registerQueue({
       name: 'admin',
-      settings: { lockDuration: 60 * 60 * 1000 },
     }),
   ],
   providers: [AdminService, AdminConsumer],

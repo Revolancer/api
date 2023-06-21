@@ -36,7 +36,7 @@ class NullModule {}
     UploadModule,
     FeedModule,
     CacheModule.register({ isGlobal: true }),
-    BullBoardModule, // Don't load bull-board in prod
+    process.env.NODE_ENV === 'production' ? NullModule : BullBoardModule, // Don't load bull-board in prod
     TypeOrmModule.forRootAsync({
       imports: [DBConfigModule],
       inject: [DBConfigService],
