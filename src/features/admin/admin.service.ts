@@ -231,8 +231,12 @@ export class AdminService {
     axios
       .get(data.url)
       .then((res) => res.data)
-      .then((data) => parse(data, { columns: true }))
+      .then((data) => {
+        throw new Error(`${data}`);
+        return parse(data, { columns: true });
+      })
       .then(async (records) => {
+        throw new Error(`Tried to import ${records.length}`);
         if (records.length < 1) {
           throw new Error(`No users found to import`);
         }
@@ -250,9 +254,9 @@ export class AdminService {
         this.logger.log(`${new_accounts} new accounts`);
         const admin = await this.usersService.findOne(user.id);
         if (admin) {
-          this.mailService.scheduleMail(admin, 'admin_import_summary', {
+          /*this.mailService.scheduleMail(admin, 'admin_import_summary', {
             count: new_accounts,
-          });
+          });*/
         }
       })
       .then(() => {
