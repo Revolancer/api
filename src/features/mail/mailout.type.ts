@@ -1,4 +1,6 @@
 export type Mailout =
+  | 'admin_import_summary'
+  | 'account_import'
   | 'password_reset'
   | 'account_delete'
   | 'email_change'

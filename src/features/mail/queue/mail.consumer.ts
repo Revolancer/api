@@ -2,14 +2,31 @@ import { Processor, Process } from '@nestjs/bull';
 import { Job } from 'bull';
 import { MailJob } from './mail.job';
 import { MailService } from '../mail.service';
+import { Logger } from '@nestjs/common';
 
 @Processor('mail')
 export class MailConsumer {
+  private readonly logger = new Logger(MailConsumer.name);
   constructor(private mailService: MailService) {}
 
   @Process()
   async process(job: Job<MailJob>) {
+    if (process.env.NODE_ENV !== 'production') {
+      this.logger.log(
+        `Would send ${job.data.mailout} to ${job.data.user.email}`,
+      );
+      return;
+    }
     switch (job.data.mailout) {
+      case 'admin_import_summary':
+        this.mailService.sendMailoutAccountImportSummary(
+          job.data.user,
+          job.data.extraData,
+        );
+        break;
+      case 'account_import':
+        this.mailService.sendMailoutAccountImport(job.data.user);
+        break;
       case 'password_reset':
         this.mailService.sendMailoutPasswordReset(job.data.user);
         break;

@@ -9,6 +9,11 @@ import { NeedPost } from '../need/entities/need-post.entity';
 import { Proposal } from '../need/entities/proposal.entity';
 import { UserReferrer } from '../users/entities/userreferrer.entity';
 import { CreditsModule } from '../credits/credits.module';
+import { UploadModule } from '../upload/upload.module';
+import { BullModule } from '@nestjs/bull';
+import { AdminConsumer } from './queue/admin.consumer';
+import { UsersModule } from '../users/users.module';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
@@ -21,8 +26,12 @@ import { CreditsModule } from '../credits/credits.module';
       UserReferrer,
     ]),
     CreditsModule,
+    UploadModule,
+    UsersModule,
+    MailModule,
+    BullModule.registerQueue({ name: 'admin' }),
   ],
-  providers: [AdminService],
+  providers: [AdminService, AdminConsumer],
   exports: [AdminService],
   controllers: [AdminController],
 })

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MoreThanOrEqual, Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
@@ -11,10 +11,22 @@ import { UserReferrer } from '../users/entities/userreferrer.entity';
 import { AddCreditsDto } from './dto/add-credits.dto';
 import { validate as isValidUuid } from 'uuid';
 import { CreditsService } from '../credits/credits.service';
+import { ImportUsersDto } from './dto/import-users.dto';
+import { parse } from 'csv-parse/sync';
+import axios from 'axios';
+import { UploadService } from '../upload/upload.service';
+import { AdminTask } from './admintask.type';
+import { Queue } from 'bull';
+import { AdminJob } from './queue/admin.job';
+import { InjectQueue } from '@nestjs/bull';
+import { UsersService } from '../users/users.service';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AdminService {
+  private readonly logger = new Logger(AdminService.name);
   constructor(
+    @InjectQueue('admin') private adminQueue: Queue<AdminJob>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
     @InjectRepository(UserProfile)
@@ -28,7 +40,33 @@ export class AdminService {
     @InjectRepository(UserReferrer)
     private referrerRepository: Repository<UserReferrer>,
     private creditService: CreditsService,
+    private uploadService: UploadService,
+    private usersService: UsersService,
+    private mailService: MailService,
   ) {}
+
+  /**
+   * Use this method to queue an email
+   * Avoids doing expensive API calls before returning account details to new user
+   * @param user The user to link
+   */
+  async scheduleTask(
+    user: User,
+    task: AdminTask,
+    extraData: { [key: string]: any } = {},
+  ): Promise<void> {
+    await this.adminQueue.add(
+      {
+        user: { ...user, password: '' },
+        task,
+        extraData,
+      },
+      {
+        removeOnComplete: 100,
+        removeOnFail: 1000,
+      },
+    );
+  }
 
   countUsers() {
     return this.userRepository.count();
@@ -180,5 +218,40 @@ export class AdminService {
     }
 
     this.creditService.addOrRemoveUserCredits(user, body.amount, body.reason);
+  }
+
+  async importUsers(admin: User, body: ImportUsersDto) {
+    this.scheduleTask(admin, 'import_users', { url: body.userCsv });
+  }
+
+  async runUserImport(user: User, data: { [key: string]: any }) {
+    if (!data.url) return;
+    axios
+      .get(data.url)
+      .then((res) => res.data)
+      .then((data) => parse(data, { columns: true }))
+      .then(async (records) => {
+        let new_accounts = 0;
+        for (const record of records) {
+          const email = record.user_email;
+          const existing_user = await this.userRepository.findOne({
+            where: { email: email },
+          });
+          if (!existing_user) {
+            new_accounts += 1;
+            this.usersService.importFromClassic(email);
+          }
+        }
+        this.logger.log(`${new_accounts} new accounts`);
+        const admin = await this.usersService.findOne(user.id);
+        if (admin) {
+          this.mailService.scheduleMail(admin, 'admin_import_summary', {
+            count: new_accounts,
+          });
+        }
+      })
+      .then(() => {
+        this.uploadService.deleteFile(this.uploadService.urlToPath(data.url));
+      });
   }
 }

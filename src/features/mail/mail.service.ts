@@ -1,5 +1,5 @@
 import { InjectQueue } from '@nestjs/bull';
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bull';
 import { SendgridConfigService } from 'src/config/sendgrid/config.service';
 import { User } from '../users/entities/user.entity';
@@ -18,10 +18,11 @@ import { Project } from '../projects/entities/project.entity';
 @Injectable()
 export class MailService {
   private sendgrid: Sendgrid;
+  private readonly logger = new Logger(MailService.name);
 
   private dynamicTemplateData = {
     manage_email_preferences_link: 'https://app.revolancer.com/settings/email',
-    revolancer_logo_link: 'https://app.revolancer.com/',
+    revolancer_logo_link: 'https://revolancer.com/',
     contact_support_link: 'mailto:support@revolancer.com',
     instagram_link: 'https://www.instagram.com/revolancer/',
     facebook_link: 'https://www.facebook.com/revolancercom',
@@ -63,6 +64,10 @@ export class MailService {
     mailout: Mailout,
     extraData: { [key: string]: any } = {},
   ): Promise<void> {
+    if (process.env.NODE_ENV !== 'production') {
+      this.logger.log(`Schedule ${mailout} to ${user.email}`);
+      return;
+    }
     await this.mailQueue.add(
       {
         user: { ...user, password: '' },
@@ -421,6 +426,40 @@ export class MailService {
           link: `https://app.revolancer.com/project/${project.id}`,
           title: project.need.title ?? '',
         },
+      },
+    };
+    this.sendgrid.send(mail);
+  }
+
+  async sendMailoutAccountImport(user: User) {
+    if (!user.email) return;
+    const verifyKey = await this.usersService.getAccountUpgradeToken(user);
+    const mail: MailDataRequired = {
+      to: user.email,
+      from: this.sender,
+      replyTo: this.replyTo,
+      templateId: 'd-d54393d1cf3c4822bc84f3e48a0cf809',
+      dynamicTemplateData: {
+        reset_password: `https://app.revolancer.com/reset-password/${verifyKey}`,
+        ...this.dynamicTemplateData,
+      },
+    };
+    this.sendgrid.send(mail);
+  }
+
+  async sendMailoutAccountImportSummary(
+    user: User,
+    extraData: { [key: string]: any },
+  ) {
+    if (!user.email) return;
+    const mail: MailDataRequired = {
+      to: user.email,
+      from: this.sender,
+      replyTo: this.replyTo,
+      templateId: 'd-a1a1da8b3ef44e31ab9ff22c9b3ecc43',
+      dynamicTemplateData: {
+        ...this.dynamicTemplateData,
+        ...extraData,
       },
     };
     this.sendgrid.send(mail);

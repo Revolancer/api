@@ -38,6 +38,7 @@ import { PasswordUpdateDto } from './dto/passwordupdate.dto';
 import { ChangeRateDto } from './dto/changerate.dto';
 import { ChangeExperienceDto } from './dto/changeexperience.dto';
 import { ChangeEmailPrefsDto } from './dto/changeemailprefs.dto';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class UsersService {
@@ -87,6 +88,14 @@ export class UsersService {
       return;
     }
     await this.usersRepository.softRemove(user);
+  }
+
+  async importFromClassic(email: string) {
+    const uuid = await this.create(uuidv4(), email);
+    const account = await this.findOne(uuid);
+    if (account) {
+      this.mailService.scheduleMail(account, 'account_import');
+    }
   }
 
   async create(
@@ -188,11 +197,16 @@ export class UsersService {
     );
   }
 
+  async getAccountUpgradeToken(user: User): Promise<string> {
+    return this.jwtService.sign(
+      { purpose: 'reset_password', sub: user.id },
+      { expiresIn: '30 days' },
+    );
+  }
+
   async sendResetPassword(email: string): Promise<void> {
     const user = await this.findOneByEmail(email);
     if (!(user instanceof User)) throw new NotFoundException();
-    const verifyKey = await this.getPasswordResetToken(user);
-    console.log(verifyKey);
 
     this.mailService.scheduleMail(user, 'password_reset');
   }
