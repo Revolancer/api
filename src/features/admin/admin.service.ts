@@ -225,12 +225,17 @@ export class AdminService {
   }
 
   async runUserImport(user: User, data: { [key: string]: any }) {
-    if (!data.url) return;
+    if (!data.url) {
+      throw new Error(`No url was passed`);
+    }
     axios
       .get(data.url)
       .then((res) => res.data)
       .then((data) => parse(data, { columns: true }))
       .then(async (records) => {
+        if (records.length < 1) {
+          throw new Error(`No users found to import`);
+        }
         let new_accounts = 0;
         for (const record of records) {
           const email = record.user_email;
@@ -252,6 +257,9 @@ export class AdminService {
       })
       .then(() => {
         this.uploadService.deleteFile(this.uploadService.urlToPath(data.url));
+      })
+      .catch((err) => {
+        throw new Error(err);
       });
   }
 }
