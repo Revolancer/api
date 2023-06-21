@@ -23,7 +23,7 @@ export class MailService {
   private dynamicTemplateData = {
     manage_email_preferences_link: 'https://app.revolancer.com/settings/email',
     revolancer_logo_link: 'https://revolancer.com/',
-    contact_support_link: 'mailto:support@revolancer.com',
+    contact_support_link: 'https://support.revolancer.com',
     instagram_link: 'https://www.instagram.com/revolancer/',
     facebook_link: 'https://www.facebook.com/revolancercom',
     twitter_link: 'https://twitter.com/revolancercom',
