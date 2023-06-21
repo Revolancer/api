@@ -197,6 +197,13 @@ export class UsersService {
     );
   }
 
+  async getAccountUpgradeToken(user: User): Promise<string> {
+    return this.jwtService.sign(
+      { purpose: 'reset_password', sub: user.id },
+      { expiresIn: '30 days' },
+    );
+  }
+
   async sendResetPassword(email: string): Promise<void> {
     const user = await this.findOneByEmail(email);
     if (!(user instanceof User)) throw new NotFoundException();

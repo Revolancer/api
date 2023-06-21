@@ -25,10 +25,7 @@ export class MailConsumer {
         );
         break;
       case 'account_import':
-        this.mailService.sendMailoutAccountImport(
-          job.data.user,
-          job.data.extraData,
-        );
+        this.mailService.sendMailoutAccountImport(job.data.user);
         break;
       case 'password_reset':
         this.mailService.sendMailoutPasswordReset(job.data.user);

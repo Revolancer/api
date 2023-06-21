@@ -22,7 +22,7 @@ export class MailService {
 
   private dynamicTemplateData = {
     manage_email_preferences_link: 'https://app.revolancer.com/settings/email',
-    revolancer_logo_link: 'https://app.revolancer.com/',
+    revolancer_logo_link: 'https://revolancer.com/',
     contact_support_link: 'mailto:support@revolancer.com',
     instagram_link: 'https://www.instagram.com/revolancer/',
     facebook_link: 'https://www.facebook.com/revolancercom',
@@ -431,17 +431,14 @@ export class MailService {
     this.sendgrid.send(mail);
   }
 
-  async sendMailoutAccountImport(
-    user: User,
-    extraData: { [key: string]: any },
-  ) {
+  async sendMailoutAccountImport(user: User) {
     if (!user.email) return;
-    const verifyKey = await this.usersService.getPasswordResetToken(user);
+    const verifyKey = await this.usersService.getAccountUpgradeToken(user);
     const mail: MailDataRequired = {
       to: user.email,
       from: this.sender,
       replyTo: this.replyTo,
-      templateId: 'd-62c158e4f7d74dd68857a383b902fade', //TODO: template ID
+      templateId: 'd-d54393d1cf3c4822bc84f3e48a0cf809',
       dynamicTemplateData: {
         reset_password: `https://app.revolancer.com/reset-password/${verifyKey}`,
         ...this.dynamicTemplateData,
@@ -459,7 +456,7 @@ export class MailService {
       to: user.email,
       from: this.sender,
       replyTo: this.replyTo,
-      templateId: 'd-82eb099d81de4b629a62494adf2a605b', //TODO: template ID
+      templateId: 'd-a1a1da8b3ef44e31ab9ff22c9b3ecc43',
       dynamicTemplateData: {
         ...this.dynamicTemplateData,
         ...extraData,
