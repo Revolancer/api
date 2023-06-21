@@ -29,7 +29,10 @@ import { MailModule } from '../mail/mail.module';
     UploadModule,
     UsersModule,
     MailModule,
-    BullModule.registerQueue({ name: 'admin' }),
+    BullModule.registerQueue({
+      name: 'admin',
+      settings: { lockDuration: 60 * 60 * 1000 },
+    }),
   ],
   providers: [AdminService, AdminConsumer],
   exports: [AdminService],
