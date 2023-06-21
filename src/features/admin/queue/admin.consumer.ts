@@ -11,8 +11,10 @@ export class AdminConsumer {
   async process(job: Job<AdminJob>) {
     switch (job.data.task) {
       case 'import_users':
-        this.adminService.runUserImport(job.data.user, job.data.extraData);
-        break;
+        return await this.adminService.runUserImport(
+          job.data.user,
+          job.data.extraData,
+        );
       default:
         throw new Error(
           `Task ${job.data.task} does not have a registered handler`,
