@@ -238,22 +238,9 @@ export class AdminService {
         if (records.length < 1) {
           throw new Error(`No users found to import`);
         }
-        let new_accounts = 0;
         for (const record of records) {
-          const email = record.user_email;
-          const existing_user = await this.userRepository.findOne({
-            where: { email: email },
-          });
-          if (!existing_user) {
-            new_accounts += 1;
-            this.usersService.importFromClassic(email);
-          }
-        }
-        this.logger.log(`${new_accounts} new accounts`);
-        const admin = await this.usersService.findOne(user.id);
-        if (admin) {
-          this.mailService.scheduleMail(admin, 'admin_import_summary', {
-            count: new_accounts,
+          this.scheduleTask(user, 'import_single_user', {
+            email: record.user_email,
           });
         }
       })
@@ -263,5 +250,18 @@ export class AdminService {
       .catch((err) => {
         throw new Error(err);
       });
+  }
+
+  async runSingleUserImport(user: User, data: { [key: string]: any }) {
+    const email = data.email;
+    if (!email) {
+      throw new Error(`No email was passed`);
+    }
+    const existing_user = await this.userRepository.findOne({
+      where: { email: email },
+    });
+    if (!existing_user) {
+      this.usersService.importFromClassic(email);
+    }
   }
 }

@@ -15,6 +15,11 @@ export class AdminConsumer {
           job.data.user,
           job.data.extraData,
         );
+      case 'import_single_user':
+        return await this.adminService.runSingleUserImport(
+          job.data.user,
+          job.data.extraData,
+        );
       default:
         throw new Error(
           `Task ${job.data.task} does not have a registered handler`,
