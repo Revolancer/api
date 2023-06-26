@@ -87,7 +87,6 @@ export class UsersService {
    */
   async findOneByEmailWithPassword(email: string): Promise<User | null> {
     const user = await this.usersRepository.findOne({
-      relations: ['roles'],
       where: { email: new FindOperator('ilike', email) },
       select: { password: true },
     });
