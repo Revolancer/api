@@ -198,6 +198,25 @@ export class NeedService {
    * @param needId The need to check for proposals
    * @returns Any proposls you have permission to see. Only your own if this is not your need.
    */
+  async getProposalsByUser(user: User) {
+    return this.proposalRepository.find({
+      where: {
+        user: { id: user.id },
+        need: [
+          { unpublish_at: MoreThan(DateTime.now().toJSDate()) },
+          { unpublish_at: IsNull() },
+        ],
+      },
+      relations: ['need', 'need.user'],
+    });
+  }
+
+  /**
+   * Check proposals for a given need
+   * @param user The user querying the proposals
+   * @param needId The need to check for proposals
+   * @returns Any proposls you have permission to see. Only your own if this is not your need.
+   */
   async countProposals(user: User, needId: string) {
     const need = await this.postRepository.findOne({
       where: { id: needId },

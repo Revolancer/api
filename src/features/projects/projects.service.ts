@@ -381,10 +381,6 @@ export class ProjectsService {
       return;
     }
 
-    someone.password = '';
-    project.client.password = '';
-    project.contractor.password = '';
-
     this.mailService.scheduleMail(user, 'project_unread_messages', {
       someone: someone,
       project: project,

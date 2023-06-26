@@ -82,6 +82,17 @@ export class UsersService {
     return user;
   }
 
+  /**
+   * DANGEROUS! Will return password hash. ONLY to be used for auth
+   */
+  async findOneByEmailWithPassword(email: string): Promise<User | null> {
+    const user = await this.usersRepository.findOne({
+      where: { email: new FindOperator('ilike', email) },
+      select: { password: true },
+    });
+    return user;
+  }
+
   async remove(id: string): Promise<void> {
     const user = await this.findOne(id);
     if (user === null) {
@@ -596,13 +607,17 @@ export class UsersService {
     user: User,
     body: PasswordUpdateDto,
   ): Promise<{ success: boolean }> {
-    const loadedUser = await this.usersRepository.findOneBy({
-      id: user.id,
+    const pw = await this.usersRepository.findOne({
+      where: { id: user.id },
+      select: { password: true },
     });
-    if (!loadedUser) {
+    const loadedUser = await this.usersRepository.findOne({
+      where: { id: user.id },
+    });
+    if (!loadedUser || !pw) {
       throw new NotFoundException();
     }
-    if (!(await argon2.verify(loadedUser.password, body.password))) {
+    if (!(await argon2.verify(pw.password, body.password))) {
       throw new UnauthorizedException();
     }
     if (body.newPassword1 !== body.newPassword2) {
