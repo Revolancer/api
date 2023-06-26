@@ -16,11 +16,9 @@ export class AuthService {
   ) {}
 
   async validateUser(email: string, pass: string): Promise<any> {
-    const user = await this.usersService.findOneByEmail(email);
-    if (user && (await argon2.verify(user.password, pass))) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { password, ...result } = user;
-      return result;
+    const pw = await this.usersService.findOneByEmailWithPassword(email);
+    if (pw && (await argon2.verify(pw.password, pass))) {
+      return await this.usersService.findOneByEmail(email);
     }
     return null;
   }

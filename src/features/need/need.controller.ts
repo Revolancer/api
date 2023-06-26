@@ -62,6 +62,12 @@ export class NeedController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('proposals/own')
+  async getOwnProposals(@Req() req: IUserRequest) {
+    return this.needService.getProposalsByUser(req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('proposals/:id')
   async getProposals(@Req() req: IUserRequest, @Param('id') id: string) {
     return this.needService.getProposals(req.user, id);
