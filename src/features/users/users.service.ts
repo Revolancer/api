@@ -710,4 +710,17 @@ export class UsersService {
       this.userConsentRepository.remove(thirdParty);
     }
   }
+
+  /**
+   * Delete user account, preserving all content but making profile inaccessible
+   * Will retain private messages and completed projects.
+   * Will end all active projects, notify the other party, and release credits to the other party.
+   * Will delist all portfolio posts and needs.
+   * Will remove email address and profile slug from account, freeing these for use by other accounts
+   * Will replace user profile picture and rename user to 'Deleted User' in case any elements still display profile info
+   * TODO: In future, will need to delist any active project requests, outgoing or incoming
+   *
+   * @param user User account to delete
+   */
+  async deleteUser(user: User) {}
 }
