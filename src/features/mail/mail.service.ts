@@ -122,7 +122,6 @@ export class MailService {
       templateId: 'd-ed2af3b3201d4c8192d1415fb891bd05',
       dynamicTemplateData: {
         ...this.dynamicTemplateData,
-        ...(await this.getRecipientProfileVariables(user)),
       },
     };
     this.sendgrid.send(mail);

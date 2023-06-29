@@ -39,6 +39,9 @@ import { ChangeRateDto } from './dto/changerate.dto';
 import { ChangeExperienceDto } from './dto/changeexperience.dto';
 import { ChangeEmailPrefsDto } from './dto/changeemailprefs.dto';
 import { v4 as uuidv4 } from 'uuid';
+import { PortfolioService } from '../portfolio/portfolio.service';
+import { NeedService } from '../need/need.service';
+import { ProjectsService } from '../projects/projects.service';
 
 @Injectable()
 export class UsersService {
@@ -59,6 +62,9 @@ export class UsersService {
     private uploadService: UploadService,
     private tagsService: TagsService,
     private creditsService: CreditsService,
+    private portfolioService: PortfolioService,
+    private needService: NeedService,
+    private projectsService: ProjectsService,
   ) {}
 
   findAll(): Promise<User[]> {
@@ -711,6 +717,46 @@ export class UsersService {
     }
   }
 
+  async deleteAllPortfolios(user: User) {
+    const posts = await this.portfolioService.getPostsForUser(user.id);
+    for (const post of posts) {
+      this.portfolioService.deletePost(user, post.id);
+    }
+  }
+
+  async deleteAllNeeds(user: User) {
+    const posts = await this.needService.getPostsForUser(user.id);
+    for (const post of posts) {
+      this.needService.delistNeed(user, post.id);
+    }
+  }
+
+  async resolveProjects(user: User) {
+    const projects = await this.projectsService.getActiveProjects(user);
+    for (const project of projects) {
+      this.projectsService.cancelProjectForDeletedUser(project, user);
+    }
+  }
+
+  async deleteProfilePII(user: User) {
+    const profile = await this.getProfile(user);
+    profile.about = undefined;
+    profile.date_of_birth = undefined;
+    profile.currency = undefined;
+    profile.experience = undefined;
+    profile.hourly_rate = undefined;
+    profile.last_active = undefined;
+    profile.skills = [];
+    profile.slug = undefined;
+    profile.tagline = undefined;
+    profile.timezone = undefined;
+    profile.first_name = 'Deleted';
+    profile.last_name = 'User';
+    profile.profile_image =
+      'https://app.revolancer.com/img/user/avatar-placeholder.png';
+    this.userProfileRepository.save(profile);
+  }
+
   /**
    * Delete user account, preserving all content but making profile inaccessible
    * Will retain private messages and completed projects.
@@ -722,5 +768,11 @@ export class UsersService {
    *
    * @param user User account to delete
    */
-  async deleteUser(user: User) {}
+  async deleteUser(user: User) {
+    this.deleteAllPortfolios(user);
+    this.deleteAllNeeds(user);
+    this.resolveProjects(user);
+    this.deleteProfilePII(user);
+    this.mailService.scheduleMail(user, 'account_delete');
+  }
 }
