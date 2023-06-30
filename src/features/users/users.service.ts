@@ -740,16 +740,16 @@ export class UsersService {
 
   async deleteProfilePII(user: User) {
     const profile = await this.getProfile(user);
-    profile.about = undefined;
-    profile.date_of_birth = undefined;
-    profile.currency = undefined;
-    profile.experience = undefined;
-    profile.hourly_rate = undefined;
-    profile.last_active = undefined;
+    profile.about = <any>null;
+    profile.date_of_birth = <any>null;
+    profile.currency = <any>null;
+    profile.experience = <any>null;
+    profile.hourly_rate = <any>null;
+    profile.last_active = <any>null;
     profile.skills = [];
-    profile.slug = undefined;
-    profile.tagline = undefined;
-    profile.timezone = undefined;
+    profile.slug = <any>null;
+    profile.tagline = <any>null;
+    profile.timezone = <any>null;
     profile.first_name = 'Deleted';
     profile.last_name = 'User';
     profile.profile_image =

@@ -264,4 +264,12 @@ export class AdminService {
       this.usersService.importFromClassic(email);
     }
   }
+
+  async deleteUser(id: string) {
+    const user = await this.usersService.findOne(id);
+    if (!user) {
+      throw new NotFoundException();
+    }
+    this.usersService.deleteUser(user);
+  }
 }
