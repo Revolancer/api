@@ -755,6 +755,13 @@ export class UsersService {
     profile.profile_image =
       'https://app.revolancer.com/img/user/avatar-placeholder.png';
     this.userProfileRepository.save(profile);
+    const loadedUser = await this.usersRepository.findOneBy({
+      id: user.id,
+    });
+    if (loadedUser) {
+      loadedUser.email = <any>null;
+      this.usersRepository.save(loadedUser);
+    }
   }
 
   /**
@@ -769,10 +776,10 @@ export class UsersService {
    * @param user User account to delete
    */
   async deleteUser(user: User) {
+    await this.mailService.scheduleMail(user, 'account_delete');
     this.deleteAllPortfolios(user);
     this.deleteAllNeeds(user);
     this.resolveProjects(user);
     this.deleteProfilePII(user);
-    this.mailService.scheduleMail(user, 'account_delete');
   }
 }
