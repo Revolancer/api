@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  forwardRef,
+} from '@nestjs/common';
 import { Project } from './entities/project.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Not, Repository } from 'typeorm';
@@ -30,10 +35,11 @@ export class ProjectsService {
     private needService: NeedService,
     private uploadService: UploadService,
     private mailService: MailService,
-    private usersService: UsersService,
     @InjectRepository(LastMail)
     private lastMailRepository: Repository<LastMail>,
     private notificationsService: NotificationsService,
+    @Inject(forwardRef(() => UsersService))
+    private usersService: UsersService,
   ) {}
 
   async createProject(user: User, body: NewProjectDto) {
@@ -249,6 +255,47 @@ export class ProjectsService {
       this.notificationsService.createOrUpdate(
         loadedClient,
         `Congratulations, your project "${project.need.title}" is complete!`,
+        `project-new-${project.id}`,
+        `/project/${project.id}`,
+      );
+    }
+  }
+
+  /**
+   * Cancel an active project because one participant is being deleted
+   * @param project The project to cancel
+   * @param deletedUser The user account being deleted
+   */
+  async cancelProjectForDeletedUser(project: Project, deletedUser: User) {
+    project.outcome = 'cancelled';
+    project.status = 'complete';
+    const contractor = project.contractor;
+    const client = project.client;
+    //Find user who is not being deleted
+    const remainingUser = deletedUser.id == client.id ? contractor : client;
+    this.creditsService.addOrRemoveUserCredits(
+      remainingUser,
+      project.credits,
+      `Project cancelled: ${project.need?.title ?? 'Untitled'}`,
+    );
+    project.credits_released = true;
+    this.projectRepository.save(project);
+    const loadedUser = await this.usersService.findOne(remainingUser.id);
+    if (loadedUser) {
+      //TODO: We need an email for 'project cancelled, other user closed their account'
+      /*
+      this.mailService.scheduleMail(
+        loadedUser,
+        'project_complete_contractor',
+        {
+          need: project.need,
+          project: project,
+        },
+      );
+      */
+      this.notificationsService.createOrUpdate(
+        loadedUser,
+        `Unfortunately, your project "${project.need.title}" was cancelled due to the other user's account being closed`,
         `project-new-${project.id}`,
         `/project/${project.id}`,
       );
