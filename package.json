@@ -25,7 +25,7 @@
     "@bull-board/api": "^5.5.1",
     "@bull-board/express": "^5.5.1",
     "@google-cloud/storage": "^6.11.0",
-    "@nestjs/bull": "^0.6.3",
+    "@nestjs/bull": "^10.0.0",
     "@nestjs/cache-manager": "^1.0.0",
     "@nestjs/common": "^9.4.0",
     "@nestjs/config": "^2.3.2",
