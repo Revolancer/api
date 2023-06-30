@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  forwardRef,
+} from '@nestjs/common';
 import { Project } from './entities/project.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Not, Repository } from 'typeorm';
@@ -30,10 +35,11 @@ export class ProjectsService {
     private needService: NeedService,
     private uploadService: UploadService,
     private mailService: MailService,
-    private usersService: UsersService,
     @InjectRepository(LastMail)
     private lastMailRepository: Repository<LastMail>,
     private notificationsService: NotificationsService,
+    @Inject(forwardRef(() => UsersService))
+    private usersService: UsersService,
   ) {}
 
   async createProject(user: User, body: NewProjectDto) {

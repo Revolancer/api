@@ -20,6 +20,7 @@ import { ExceptionFilter } from './exception.filter';
 import { FeedModule } from './features/feed/feed.module';
 import { AdminModule } from './features/admin/admin.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { DevtoolsModule } from '@nestjs/devtools-integration';
 
 @Module({})
 class NullModule {}
@@ -66,6 +67,9 @@ class NullModule {}
       limit: 5,
     }),
     ScheduleModule.forRoot(),
+    DevtoolsModule.register({
+      http: process.env.NODE_ENV !== 'production',
+    }),
   ],
   providers: [
     {
