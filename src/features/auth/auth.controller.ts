@@ -8,7 +8,6 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { Request } from 'express';
 import { EmailExistsError } from 'src/errors/email-exists-error';
 import { TurnstileGuard } from '../turnstile/turnstile.guard';
@@ -48,8 +47,7 @@ export class AuthController {
     }
   }
 
-  @UseGuards(ThrottlerGuard, TurnstileGuard)
-  @Throttle(1, 60)
+  @UseGuards(TurnstileGuard)
   @Post('reset_password/request')
   async sendResetPassword(@Body() body: SendResetPasswordDto) {
     await this.authService.sendResetPassword(body);
