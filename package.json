@@ -62,7 +62,7 @@
   },
   "devDependencies": {
     "@nestjs/cli": "^9.5.0",
-    "@nestjs/schematics": "^9.0.0",
+    "@nestjs/schematics": "^10.0.1",
     "@nestjs/testing": "^9.4.2",
     "@types/bull": "^4.10.0",
     "@types/compression": "^1.7.2",
