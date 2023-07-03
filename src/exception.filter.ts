@@ -19,8 +19,8 @@ export class ExceptionFilter extends BaseExceptionFilter {
         releaseStage: process.env.NODE_ENV,
       });
       if (exception instanceof HttpException) {
-        if (exception.cause) {
-          Bugsnag.notify(exception.cause);
+        if (exception.message) {
+          Bugsnag.notify(exception.message);
         }
       } else {
         Bugsnag.notify(exception as Error);
