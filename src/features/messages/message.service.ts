@@ -105,7 +105,7 @@ export class MessageService {
       )
       .loadRelationIdAndMap('sender', 'message.sender')
       .loadRelationIdAndMap('reciever', 'message.reciever')
-      .loadRelationIdAndMap('attachment', 'message.attachment')
+      .leftJoinAndSelect('message.attachment', 'attachment')
       .orderBy('message.created_at', 'ASC')
       .getMany();
   }
