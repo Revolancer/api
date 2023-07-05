@@ -25,6 +25,7 @@ import { PasswordUpdateDto } from './dto/passwordupdate.dto';
 import { ChangeRateDto } from './dto/changerate.dto';
 import { ChangeExperienceDto } from './dto/changeexperience.dto';
 import { ChangeEmailPrefsDto } from './dto/changeemailprefs.dto';
+import { DeleteAccountDto } from './dto/deleteaccount.dto';
 
 @Controller('user')
 export class UsersController {
@@ -226,5 +227,11 @@ export class UsersController {
     @Body() body: ChangeEmailPrefsDto,
   ) {
     return this.usersService.setUserEmailPrefs(req.user, body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('delete')
+  async deleteUser(@Req() req: IUserRequest, @Body() body: DeleteAccountDto) {
+    return this.usersService.deleteAccount(req.user, body);
   }
 }
