@@ -11,6 +11,8 @@ import { Cron } from '@nestjs/schedule';
 import { LastMail } from '../mail/entities/last-mail.entity';
 import { UsersService } from '../users/users.service';
 import { RedlockService } from '@anchan828/nest-redlock';
+import { validate as isValidUUID } from 'uuid';
+import { UploadService } from '../upload/upload.service';
 
 @Injectable()
 export class MessageService {
@@ -27,6 +29,7 @@ export class MessageService {
     private mailService: MailService,
     @InjectRepository(LastMail)
     private lastMailRepository: Repository<LastMail>,
+    private uploadService: UploadService,
   ) {}
 
   /**
@@ -102,6 +105,7 @@ export class MessageService {
       )
       .loadRelationIdAndMap('sender', 'message.sender')
       .loadRelationIdAndMap('reciever', 'message.reciever')
+      .leftJoinAndSelect('message.attachment', 'attachment')
       .orderBy('message.created_at', 'ASC')
       .getMany();
   }
@@ -114,6 +118,18 @@ export class MessageService {
     message.sender = user;
     message.reciever = recipient;
     message.body = body.body;
+
+    if (body.attachment && isValidUUID(body.attachment)) {
+      const attachment = await this.uploadService.getFileByIdAndUser(
+        user,
+        body.attachment,
+      );
+
+      if (attachment) {
+        message.attachment = attachment;
+      }
+    }
+
     this.messageRepository.save(message);
   }
 

@@ -12,11 +12,13 @@ import { RedlockModule } from '@anchan828/nest-redlock';
 import Redis from 'ioredis';
 import { RedisConfigModule } from 'src/config/redis/config.module';
 import { RedisConfigService } from 'src/config/redis/config.service';
+import { UploadModule } from '../upload/upload.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Message, User, LastMail]),
     TagsModule,
+    UploadModule,
     RedlockModule.registerAsync({
       imports: [RedisConfigModule],
       inject: [RedisConfigService],
