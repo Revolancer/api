@@ -14,7 +14,7 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
   logger.log(`Listening on ${appConfig.port}`);
   app.enableCors({
-    origin: appConfig.cors_url,
+    origin: process.env.NODE_ENV === 'production' ? appConfig.cors_url : '*',
   });
   app.useGlobalPipes(
     new ValidationPipe({
