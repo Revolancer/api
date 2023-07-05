@@ -8,7 +8,9 @@ import {
   DeleteDateColumn,
   JoinColumn,
   ManyToOne,
+  OneToOne,
 } from 'typeorm';
+import { File } from 'src/features/upload/entities/file.entity';
 
 @Entity()
 export class Message {
@@ -25,6 +27,10 @@ export class Message {
 
   @Column({ nullable: true })
   body?: string;
+
+  @OneToOne(() => File, { nullable: true })
+  @JoinColumn()
+  attachment?: File;
 
   @Column({ nullable: false, default: false })
   read: boolean;
