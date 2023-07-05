@@ -42,6 +42,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { PortfolioService } from '../portfolio/portfolio.service';
 import { NeedService } from '../need/need.service';
 import { ProjectsService } from '../projects/projects.service';
+import { DeleteAccountDto } from './dto/deleteaccount.dto';
 
 @Injectable()
 export class UsersService {
@@ -781,5 +782,27 @@ export class UsersService {
     this.deleteAllNeeds(user);
     this.resolveProjects(user);
     this.deleteProfilePII(user);
+  }
+
+  /**
+   * Delete Account endpoint - requires verification of user password
+   * You probably want deleteUser
+   */
+  async deleteAccount(user: User, body: DeleteAccountDto) {
+    const pw = await this.usersRepository.findOne({
+      where: { id: user.id },
+      select: { password: true },
+    });
+    const loadedUser = await this.usersRepository.findOne({
+      where: { id: user.id },
+    });
+    if (!loadedUser || !pw) {
+      throw new NotFoundException();
+    }
+    if (!(await argon2.verify(pw.password, body.password))) {
+      throw new UnauthorizedException();
+    }
+
+    this.deleteUser(loadedUser);
   }
 }
