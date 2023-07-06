@@ -6,6 +6,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserBalance } from './entities/user-balance.entity';
 import { NotificationsService } from '../notifications/notifications.service';
+import { Cron } from '@nestjs/schedule';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class CreditsService {
@@ -76,6 +78,27 @@ export class CreditsService {
       balance.balance = 0;
       balance.user = user;
       this.balanceRepository.save(balance);
+    }
+  }
+
+  @Cron('0 2 * * * *')
+  async assignMonthlyBonusCredits() {
+    const oneMonthAgo = DateTime.now().minus({ month: 1 });
+    const wallets = await this.balanceRepository.find({
+      relations: ['user'],
+    });
+    for (const wallet of wallets) {
+      const uid = wallet.user.id;
+      const lastTopup = await this.creditLogRepository.findOne({
+        where: { user: { id: uid }, reason: 'Monthly bonus' },
+        order: { created_at: 'DESC' },
+      });
+      if (
+        !lastTopup ||
+        DateTime.fromJSDate(lastTopup.created_at) <= oneMonthAgo
+      ) {
+        this.addOrRemoveUserCredits(wallet.user, 50, 'Monthly bonus');
+      }
     }
   }
 }
