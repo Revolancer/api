@@ -805,4 +805,33 @@ export class UsersService {
 
     this.deleteUser(loadedUser);
   }
+
+  /**
+   * Mark user checklist as complete
+   */
+  async markChecklistComplete(user: User) {
+    const profile = await this.userProfileRepository.findOne({
+      where: { user: { id: user.id } },
+    });
+    if (!profile) {
+      throw new NotFoundException();
+    }
+    if (profile.checklist_complete) return;
+    profile.checklist_complete = true;
+    this.userProfileRepository.save(profile);
+    this.creditsService.addOrRemoveUserCredits(user, 50, 'Profile Complete');
+  }
+
+  /**
+   * Mark user checklist as complete
+   */
+  async isChecklistComplete(user: User) {
+    const profile = await this.userProfileRepository.findOne({
+      where: { user: { id: user.id } },
+    });
+    if (!profile) {
+      throw new NotFoundException();
+    }
+    return profile.checklist_complete;
+  }
 }

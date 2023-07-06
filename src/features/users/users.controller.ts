@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Put,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -233,5 +234,17 @@ export class UsersController {
   @Post('delete')
   async deleteUser(@Req() req: IUserRequest, @Body() body: DeleteAccountDto) {
     return this.usersService.deleteAccount(req.user, body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put('checklist_complete')
+  async checklistComplete(@Req() req: IUserRequest) {
+    return this.usersService.markChecklistComplete(req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('checklist_complete')
+  async isChecklistComplete(@Req() req: IUserRequest) {
+    return this.usersService.isChecklistComplete(req.user);
   }
 }
