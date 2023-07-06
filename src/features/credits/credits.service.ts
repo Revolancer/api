@@ -81,7 +81,7 @@ export class CreditsService {
     }
   }
 
-  @Cron('0 2 * * * *')
+  @Cron('0 0 2 * * *')
   async assignMonthlyBonusCredits() {
     const oneMonthAgo = DateTime.now().minus({ month: 1 });
     const wallets = await this.balanceRepository.find({
