@@ -126,6 +126,7 @@ export class NeedService {
       order: {
         published_at: 'DESC',
       },
+      take: 250,
     });
   }
 

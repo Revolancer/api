@@ -107,6 +107,7 @@ export class PortfolioService {
       order: {
         published_at: 'DESC',
       },
+      take: 250,
     });
   }
 }
