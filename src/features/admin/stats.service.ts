@@ -13,6 +13,7 @@ import { Cron } from '@nestjs/schedule';
 import { Project } from '../projects/entities/project.entity';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { StatsLog } from './entities/stats-log.entity';
 
 @Injectable()
 export class StatsService {
@@ -33,6 +34,8 @@ export class StatsService {
     private projectRespository: Repository<Project>,
     @InjectRepository(UserReferrer)
     private referrerRepository: Repository<UserReferrer>,
+    @InjectRepository(StatsLog)
+    private statsRepository: Repository<StatsLog>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
@@ -138,15 +141,58 @@ export class StatsService {
   /**
    * Capture spot statistics
    */
-  /*
   @Cron('0 0 0 * * *')
   async captureSpotStats() {
-    const dau = await this.countActiveUsers('daily');
-    const wau = await this.countActiveUsers('weekly');
-    const mau = await this.countActiveUsers('monthly');
+    //Gather stats
+    const dailyActiveUsers = await this.countActiveUsers('daily');
+    const weeklyActiveUsers = await this.countActiveUsers('weekly');
+    const monthlyActiveUsers = await this.countActiveUsers('monthly');
     const dailyNewUsers = await this.countNewContent('daily', 'user');
     const weeklyNewUsers = await this.countNewContent('weekly', 'user');
     const monthlyNewUsers = await this.countNewContent('monthly', 'user');
+    const dailyNewPortfolios = await this.countNewContent('daily', 'portfolio');
+    const weeklyNewPortfolios = await this.countNewContent(
+      'weekly',
+      'portfolio',
+    );
+    const monthlyNewPortfolios = await this.countNewContent(
+      'monthly',
+      'portfolio',
+    );
+    const dailyNewProjects = await this.countNewContent('daily', 'project');
+    const weeklyNewProjects = await this.countNewContent('weekly', 'project');
+    const monthlyNewProjects = await this.countNewContent('monthly', 'project');
+    const dailyNewNeeds = await this.countNewContent('daily', 'need');
+    const weeklyNewNeeds = await this.countNewContent('weekly', 'need');
+    const monthlyNewNeeds = await this.countNewContent('monthly', 'need');
+    const dailyNewProposals = await this.countNewContent('daily', 'proposal');
+    const weeklyNewProposals = await this.countNewContent('weekly', 'proposal');
+    const monthlyNewProposals = await this.countNewContent(
+      'monthly',
+      'proposal',
+    );
+
+    //Log stats
+    const statsPoint = new StatsLog();
+    statsPoint.activeUsersDaily = dailyActiveUsers;
+    statsPoint.activeUsersWeekly = weeklyActiveUsers;
+    statsPoint.activeUsersMonthly = monthlyActiveUsers;
+    statsPoint.newUsersDaily = dailyNewUsers;
+    statsPoint.newUsersWeekly = weeklyNewUsers;
+    statsPoint.newUsersMonthly = monthlyNewUsers;
+    statsPoint.newNeedsDaily = dailyNewNeeds;
+    statsPoint.newNeedsWeekly = weeklyNewNeeds;
+    statsPoint.newNeedsMonthly = monthlyNewNeeds;
+    statsPoint.newPortfoliosDaily = dailyNewPortfolios;
+    statsPoint.newPortfoliosWeekly = weeklyNewPortfolios;
+    statsPoint.newPortfoliosMonthly = monthlyNewPortfolios;
+    statsPoint.newProjectsDaily = dailyNewProjects;
+    statsPoint.newProjectsWeekly = weeklyNewProjects;
+    statsPoint.newProjectsMonthly = monthlyNewProjects;
+    statsPoint.newProposalsDaily = dailyNewProposals;
+    statsPoint.newProposalsWeekly = weeklyNewProposals;
+    statsPoint.newProposalsMonthly = monthlyNewProposals;
+
+    this.statsRepository.save(statsPoint);
   }
-  */
 }
