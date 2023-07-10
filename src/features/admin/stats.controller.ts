@@ -40,6 +40,10 @@ export class StatsController {
       'daily',
       'proposal',
     );
+    const dailyProjects = await this.statsService.countNewContent(
+      'daily',
+      'project',
+    );
     const weeklyPortfolios = await this.statsService.countNewContent(
       'weekly',
       'portfolio',
@@ -51,6 +55,10 @@ export class StatsController {
     const weeklyProposals = await this.statsService.countNewContent(
       'weekly',
       'proposal',
+    );
+    const weeklyProjects = await this.statsService.countNewContent(
+      'weekly',
+      'project',
     );
     const monthlyPortfolios = await this.statsService.countNewContent(
       'monthly',
@@ -64,16 +72,23 @@ export class StatsController {
       'monthly',
       'proposal',
     );
+    const monthlyProjects = await this.statsService.countNewContent(
+      'monthly',
+      'project',
+    );
     return {
       dailyPortfolios,
       dailyNeeds,
       dailyProposals,
+      dailyProjects,
       weeklyPortfolios,
       weeklyNeeds,
       weeklyProposals,
+      weeklyProjects,
       monthlyPortfolios,
       monthlyNeeds,
       monthlyProposals,
+      monthlyProjects,
     };
   }
 
