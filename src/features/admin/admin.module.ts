@@ -17,6 +17,7 @@ import { MailModule } from '../mail/mail.module';
 import { StatsController } from './stats.controller';
 import { StatsService } from './stats.service';
 import { Project } from '../projects/entities/project.entity';
+import { StatsLog } from './entities/stats-log.entity';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { Project } from '../projects/entities/project.entity';
       Proposal,
       UserReferrer,
       Project,
+      StatsLog,
     ]),
     CreditsModule,
     UploadModule,
