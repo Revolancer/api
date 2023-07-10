@@ -14,6 +14,9 @@ import { BullModule } from '@nestjs/bull';
 import { AdminConsumer } from './queue/admin.consumer';
 import { UsersModule } from '../users/users.module';
 import { MailModule } from '../mail/mail.module';
+import { StatsController } from './stats.controller';
+import { StatsService } from './stats.service';
+import { Project } from '../projects/entities/project.entity';
 
 @Module({
   imports: [
@@ -24,6 +27,7 @@ import { MailModule } from '../mail/mail.module';
       NeedPost,
       Proposal,
       UserReferrer,
+      Project,
     ]),
     CreditsModule,
     UploadModule,
@@ -33,8 +37,8 @@ import { MailModule } from '../mail/mail.module';
       name: 'admin',
     }),
   ],
-  providers: [AdminService, AdminConsumer],
-  exports: [AdminService],
-  controllers: [AdminController],
+  providers: [AdminService, StatsService, AdminConsumer],
+  exports: [AdminService, StatsService],
+  controllers: [AdminController, StatsController],
 })
 export class AdminModule {}
