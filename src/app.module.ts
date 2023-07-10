@@ -21,12 +21,24 @@ import { FeedModule } from './features/feed/feed.module';
 import { AdminModule } from './features/admin/admin.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { DevtoolsModule } from '@nestjs/devtools-integration';
+import { RedisClientOptions } from 'redis';
+import { redisStore } from 'cache-manager-redis-yet';
 
 @Module({})
 class NullModule {}
 
 @Module({
   imports: [
+    CacheModule.registerAsync<RedisClientOptions>({
+      isGlobal: true,
+      imports: [RedisConfigModule],
+      useFactory: async (config: RedisConfigService) => ({
+        store: await redisStore({
+          url: `redis://${config.host}:${config.port}`,
+        }),
+      }),
+      inject: [RedisConfigService],
+    }),
     AppConfigModule,
     AuthModule,
     HealthModule,
@@ -36,7 +48,6 @@ class NullModule {}
     TagsModule,
     UploadModule,
     FeedModule,
-    CacheModule.register({ isGlobal: true }),
     process.env.NODE_ENV === 'production' ? NullModule : BullBoardModule, // Don't load bull-board in prod
     TypeOrmModule.forRootAsync({
       imports: [DBConfigModule],
