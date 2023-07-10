@@ -39,10 +39,10 @@ export class StatsService {
   async countUsers(): Promise<number> {
     const cachedCount = await this.cacheManager.get('stats-totalusers');
     if (cachedCount) {
-      return (<Array<number>>cachedCount)[0];
+      return <number>cachedCount;
     }
-    const count = this.userRepository.count();
-    await this.cacheManager.set('stats-totalusers', [count], 5 * 60 * 1000);
+    const count = await this.userRepository.count();
+    await this.cacheManager.set('stats-totalusers', count, 5 * 60 * 1000);
     return count;
   }
 
@@ -53,7 +53,7 @@ export class StatsService {
       `stats-activeusers-${period}`,
     );
     if (cachedCount) {
-      return (<Array<number>>cachedCount)[0];
+      return <number>cachedCount;
     }
     let timeFrom;
     if (period == 'daily') {
@@ -63,12 +63,12 @@ export class StatsService {
     } else {
       timeFrom = DateTime.now().minus({ day: 28 }).toJSDate();
     }
-    const result = this.userProfileRepository.count({
+    const result = await this.userProfileRepository.count({
       where: { last_active: MoreThanOrEqual(timeFrom) },
     });
     await this.cacheManager.set(
       `stats-activeusers-${period}`,
-      [result],
+      result,
       5 * 60 * 1000,
     );
     return result;
@@ -87,7 +87,7 @@ export class StatsService {
       `stats-newcontent-${period}-${content}`,
     );
     if (cachedCount) {
-      return (<Array<number>>cachedCount)[0];
+      return <number>cachedCount;
     }
     let timeFrom;
     if (period == 'daily') {
@@ -109,12 +109,12 @@ export class StatsService {
     } else {
       contentRepo = this.projectRespository;
     }
-    const result = contentRepo.count({
+    const result = await contentRepo.count({
       where: { created_at: MoreThanOrEqual(timeFrom) },
     });
     await this.cacheManager.set(
       `stats-newcontent-${period}-${content}`,
-      [result],
+      result,
       5 * 60 * 1000,
     );
     return result;
