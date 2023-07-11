@@ -7,7 +7,7 @@ import { AdminService } from '../admin.service';
 export class AdminConsumer {
   constructor(private adminService: AdminService) {}
 
-  @Process()
+  @Process({ concurrency: 1 })
   async process(job: Job<AdminJob>) {
     switch (job.data.task) {
       case 'import_users':

@@ -9,7 +9,7 @@ export class MailConsumer {
   private readonly logger = new Logger(MailConsumer.name);
   constructor(private mailService: MailService) {}
 
-  @Process()
+  @Process({ concurrency: 1 })
   async process(job: Job<MailJob>) {
     if (process.env.NODE_ENV !== 'production') {
       this.logger.log(
