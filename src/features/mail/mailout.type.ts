@@ -15,4 +15,6 @@ export type Mailout =
   | 'proposal_new'
   | 'project_complete_client'
   | 'project_complete_contractor'
-  | 'project_unread_messages';
+  | 'project_unread_messages'
+  | '7_days_no_needs'
+  | '3_days_no_portfolio';

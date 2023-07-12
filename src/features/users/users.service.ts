@@ -12,7 +12,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
 //import { Subscription } from 'chargebee-typescript/lib/resources';
 import { EmailExistsError } from 'src/errors/email-exists-error';
-import { FindOperator, Not, Repository } from 'typeorm';
+import { FindOperator, LessThan, Not, Repository } from 'typeorm';
 //import { ChargebeeService } from '../chargebee/chargebee.service';
 import { MailService } from '../mail/mail.service';
 import { Tag } from '../tags/entities/tag.entity';
@@ -43,6 +43,9 @@ import { PortfolioService } from '../portfolio/portfolio.service';
 import { NeedService } from '../need/need.service';
 import { ProjectsService } from '../projects/projects.service';
 import { DeleteAccountDto } from './dto/deleteaccount.dto';
+import { Cron } from '@nestjs/schedule';
+import { LastMail } from '../mail/entities/last-mail.entity';
+import { RedlockService } from '@anchan828/nest-redlock';
 
 @Injectable()
 export class UsersService {
@@ -57,6 +60,8 @@ export class UsersService {
     private userProfileRepository: Repository<UserProfile>,
     @InjectRepository(UserReferrer)
     private userReferrerRepository: Repository<UserReferrer>,
+    @InjectRepository(LastMail)
+    private lastMailRepository: Repository<LastMail>,
     private jwtService: JwtService,
     @Inject(forwardRef(() => MailService))
     private mailService: MailService, //private chargebeeService: ChargebeeService,
@@ -66,6 +71,7 @@ export class UsersService {
     private portfolioService: PortfolioService,
     private needService: NeedService,
     private projectsService: ProjectsService,
+    private readonly redlock: RedlockService,
   ) {}
 
   findAll(): Promise<User[]> {
@@ -833,5 +839,54 @@ export class UsersService {
       throw new NotFoundException();
     }
     return profile.checklist_complete;
+  }
+
+  @Cron('0 0 * * * *')
+  async checkIfUserHasNeeds() {
+    await this.redlock.using(['7-day-no-needs'], 30000, async (signal) => {
+      if (signal.aborted) {
+        throw signal.error;
+      }
+      const sevenDaysAgo = DateTime.now().minus({ day: 7 }).toJSDate();
+      const users = await this.usersRepository.find({
+        where: { posted_need: false, created_at: LessThan(sevenDaysAgo) },
+        relations: {
+          need_posts: true,
+        },
+      });
+      for (const user of users) {
+        if (user.need_posts.length > 0) {
+          //Mark users who have needs
+          user.posted_need = true;
+          this.usersRepository.save(user);
+        } else {
+          //Skip users who are still onboarding
+          const profile = await this.getProfile(user);
+          if (profile?.onboardingStage ?? 0 < 4) {
+            continue;
+          }
+          const credits = await this.creditsService.getUserCredits(user);
+          if (credits > 0) {
+            const lastUserNeedsEmail = await this.lastMailRepository.findOne({
+              where: {
+                user: { id: user.id },
+                mailout: '7_days_no_needs',
+              },
+            });
+            if (lastUserNeedsEmail) {
+              continue;
+            }
+            this.mailService.scheduleMail(user, '7_days_no_needs', {
+              credits: credits,
+            });
+            const messageSent = new LastMail();
+            messageSent.last_mail = DateTime.now().toJSDate();
+            messageSent.mailout = '7_days_no_needs';
+            messageSent.user = user;
+            this.lastMailRepository.save(messageSent);
+          }
+        }
+      }
+    });
   }
 }
