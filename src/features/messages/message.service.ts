@@ -24,7 +24,6 @@ export class MessageService {
     private userRepository: Repository<User>,
     @Inject(forwardRef(() => UsersService))
     private usersService: UsersService,
-    private tagsService: TagsService,
     @Inject(forwardRef(() => MailService))
     private mailService: MailService,
     @InjectRepository(LastMail)

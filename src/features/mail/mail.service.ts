@@ -464,6 +464,44 @@ export class MailService {
     this.sendgrid.send(mail);
   }
 
+  async sendMailoutNoNeedsPosted(
+    user: User,
+    extraData: { [key: string]: any },
+  ) {
+    if (!user.email) return;
+    const mail: MailDataRequired = {
+      to: user.email,
+      from: this.sender,
+      replyTo: this.replyTo,
+      templateId: 'd-f632e39ce3be4e1889e354bf8e82137e',
+      dynamicTemplateData: {
+        ...(await this.getRecipientProfileVariables(user)),
+        ...this.dynamicTemplateData,
+        ...extraData,
+      },
+    };
+    this.sendgrid.send(mail);
+  }
+
+  async sendMailoutNoPortfoliosPosted(
+    user: User,
+    extraData: { [key: string]: any },
+  ) {
+    if (!user.email) return;
+    const mail: MailDataRequired = {
+      to: user.email,
+      from: this.sender,
+      replyTo: this.replyTo,
+      templateId: 'd-c19177782024456d976866a324823a4b',
+      dynamicTemplateData: {
+        ...(await this.getRecipientProfileVariables(user)),
+        ...this.dynamicTemplateData,
+        ...extraData,
+      },
+    };
+    this.sendgrid.send(mail);
+  }
+
   @Cron('0 0 * * * *')
   async cleanMailQueue() {
     //Clean up jobs completed more than 100 seconds ago

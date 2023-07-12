@@ -110,6 +110,12 @@ export class User {
   )
   notifications!: Notification[];
 
+  @Column({ nullable: false, default: false })
+  posted_need: boolean;
+
+  @Column({ nullable: false, default: false })
+  posted_portfolio: boolean;
+
   @OneToOne(() => UserReferrer, (referrer: UserReferrer) => referrer.user)
   referrer?: UserReferrer;
 

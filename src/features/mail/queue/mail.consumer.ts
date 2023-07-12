@@ -105,6 +105,18 @@ export class MailConsumer {
           job.data.extraData,
         );
         break;
+      case '7_days_no_needs':
+        this.mailService.sendMailoutNoNeedsPosted(
+          job.data.user,
+          job.data.extraData,
+        );
+        break;
+      case '3_days_no_portfolio':
+        this.mailService.sendMailoutNoPortfoliosPosted(
+          job.data.user,
+          job.data.extraData,
+        );
+        break;
       default:
         throw new Error(
           `Mailout ${job.data.mailout} does not have a registered handler`,
