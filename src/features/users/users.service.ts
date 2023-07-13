@@ -46,6 +46,10 @@ import { DeleteAccountDto } from './dto/deleteaccount.dto';
 import { Cron } from '@nestjs/schedule';
 import { LastMail } from '../mail/entities/last-mail.entity';
 import { RedlockService } from '@anchan828/nest-redlock';
+import { NeedPost } from '../need/entities/need-post.entity';
+import { InjectQueue } from '@nestjs/bull';
+import { UserJob } from './queue/user.job';
+import { Queue } from 'bull';
 
 @Injectable()
 export class UsersService {
@@ -62,6 +66,8 @@ export class UsersService {
     private userReferrerRepository: Repository<UserReferrer>,
     @InjectRepository(LastMail)
     private lastMailRepository: Repository<LastMail>,
+    @InjectRepository(NeedPost)
+    private needRepository: Repository<NeedPost>,
     private jwtService: JwtService,
     @Inject(forwardRef(() => MailService))
     private mailService: MailService, //private chargebeeService: ChargebeeService,
@@ -72,6 +78,7 @@ export class UsersService {
     private needService: NeedService,
     private projectsService: ProjectsService,
     private readonly redlock: RedlockService,
+    @InjectQueue('user') private userQueue: Queue<UserJob>,
   ) {}
 
   findAll(): Promise<User[]> {
@@ -841,14 +848,22 @@ export class UsersService {
     return profile.checklist_complete;
   }
 
-  @Cron('0 0 * * * *')
+  async hasPostedNeed(user: User) {
+    return (
+      (await this.needRepository.count({ where: { user: { id: user.id } } })) >
+      0
+    );
+  }
+
+  @Cron('*/12 * * * * *')
   async checkIfUserHasNeeds() {
     await this.redlock.using(['7-day-no-needs'], 30000, async (signal) => {
       if (signal.aborted) {
         throw signal.error;
       }
+
       const sevenDaysAgo = DateTime.now().minus({ day: 7 }).toJSDate();
-      const users = await this.usersRepository.find({
+      const countUsers = await this.usersRepository.count({
         where: {
           posted_need: false,
           created_at: LessThan(sevenDaysAgo),
@@ -858,39 +873,71 @@ export class UsersService {
           need_posts: true,
         },
       });
-      for (const user of users) {
-        if (user.need_posts.length > 0) {
-          //Mark users who have needs
-          user.posted_need = true;
-          this.usersRepository.save(user);
-        } else {
-          //Skip users who are still onboarding
-          const profile = await this.getProfile(user);
-          if ((profile?.onboardingStage ?? 0) < 4) {
-            continue;
-          }
-          const credits = await this.creditsService.getUserCredits(user);
-          if (credits > 0) {
-            const lastUserNeedsEmail = await this.lastMailRepository.findOne({
-              where: {
-                user: { id: user.id },
-                mailout: '7_days_no_needs',
-              },
-            });
-            if (lastUserNeedsEmail) {
-              continue;
-            }
-            this.mailService.scheduleMail(user, '7_days_no_needs', {
-              credits: credits,
-            });
-            const messageSent = new LastMail();
-            messageSent.last_mail = DateTime.now().toJSDate();
-            messageSent.mailout = '7_days_no_needs';
-            messageSent.user = user;
-            this.lastMailRepository.save(messageSent);
-          }
-        }
+      const pageSize = 100;
+      let index = 0;
+      while (index < countUsers) {
+        const users = await this.usersRepository.find({
+          where: {
+            posted_need: false,
+            created_at: LessThan(sevenDaysAgo),
+            email: Not(IsNull()),
+          },
+          select: { id: true },
+          take: pageSize,
+          skip: index,
+        });
+        index += pageSize;
+        await this.userQueue.add(
+          {
+            task: '7_days_no_needs',
+            extraData: { users: users },
+          },
+          {
+            removeOnComplete: 100,
+            removeOnFail: 1000,
+          },
+        );
       }
     });
+  }
+
+  async sendNoNeedsEmail(users: { id: string }[]) {
+    for (const uid of users) {
+      const user = await this.findOne(uid.id);
+      if (!user) {
+        continue;
+      }
+      if (await this.hasPostedNeed(user)) {
+        //Mark users who have needs
+        user.posted_need = true;
+        this.usersRepository.save(user);
+      } else {
+        //Skip users who are still onboarding
+        const profile = await this.getProfile(user);
+        if ((profile?.onboardingStage ?? 0) < 4) {
+          continue;
+        }
+        const credits = await this.creditsService.getUserCredits(user);
+        if (credits > 0) {
+          const lastUserNeedsEmail = await this.lastMailRepository.findOne({
+            where: {
+              user: { id: user.id },
+              mailout: '7_days_no_needs',
+            },
+          });
+          if (lastUserNeedsEmail) {
+            continue;
+          }
+          this.mailService.scheduleMail(user, '7_days_no_needs', {
+            credits: credits,
+          });
+          const messageSent = new LastMail();
+          messageSent.last_mail = DateTime.now().toJSDate();
+          messageSent.mailout = '7_days_no_needs';
+          messageSent.user = user;
+          this.lastMailRepository.save(messageSent);
+        }
+      }
+    }
   }
 }

@@ -24,6 +24,9 @@ import { RedlockModule } from '@anchan828/nest-redlock';
 import { RedisConfigModule } from 'src/config/redis/config.module';
 import { RedisConfigService } from 'src/config/redis/config.service';
 import { Redis } from 'ioredis';
+import { NeedPost } from '../need/entities/need-post.entity';
+import { BullModule } from '@nestjs/bull';
+import { UserConsumer } from './queue/user.consumer';
 
 @Module({
   imports: [
@@ -63,6 +66,7 @@ import { Redis } from 'ioredis';
       UserProfile,
       UserReferrer,
       LastMail,
+      NeedPost,
     ]),
     JwtModule.registerAsync({
       imports: [AuthConfigModule],
@@ -71,8 +75,9 @@ import { Redis } from 'ioredis';
         secret: authConfig.jwtSecret,
       }),
     }),
+    BullModule.registerQueue({ name: 'user' }),
   ],
-  providers: [UsersService],
+  providers: [UsersService, UserConsumer],
   exports: [UsersService],
   controllers: [UsersController],
 })
