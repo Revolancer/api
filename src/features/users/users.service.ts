@@ -885,6 +885,7 @@ export class UsersService {
           select: { id: true },
           take: pageSize,
           skip: index,
+          order: { created_at: 'ASC' },
         });
         index += pageSize;
         await this.userQueue.add(
