@@ -855,7 +855,7 @@ export class UsersService {
     );
   }
 
-  @Cron('*/12 * * * * *')
+  @Cron('0 0 * * * *')
   async checkIfUserHasNeeds() {
     await this.redlock.using(['7-day-no-needs'], 30000, async (signal) => {
       if (signal.aborted) {
