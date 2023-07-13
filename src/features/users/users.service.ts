@@ -12,7 +12,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
 //import { Subscription } from 'chargebee-typescript/lib/resources';
 import { EmailExistsError } from 'src/errors/email-exists-error';
-import { FindOperator, LessThan, Not, Repository } from 'typeorm';
+import { FindOperator, IsNull, LessThan, Not, Repository } from 'typeorm';
 //import { ChargebeeService } from '../chargebee/chargebee.service';
 import { MailService } from '../mail/mail.service';
 import { Tag } from '../tags/entities/tag.entity';
@@ -849,7 +849,11 @@ export class UsersService {
       }
       const sevenDaysAgo = DateTime.now().minus({ day: 7 }).toJSDate();
       const users = await this.usersRepository.find({
-        where: { posted_need: false, created_at: LessThan(sevenDaysAgo) },
+        where: {
+          posted_need: false,
+          created_at: LessThan(sevenDaysAgo),
+          email: Not(IsNull()),
+        },
         relations: {
           need_posts: true,
         },
@@ -862,7 +866,7 @@ export class UsersService {
         } else {
           //Skip users who are still onboarding
           const profile = await this.getProfile(user);
-          if (profile?.onboardingStage ?? 0 < 4) {
+          if ((profile?.onboardingStage ?? 0) < 4) {
             continue;
           }
           const credits = await this.creditsService.getUserCredits(user);
