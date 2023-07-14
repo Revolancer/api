@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MoreThanOrEqual, Repository } from 'typeorm';
+import { IsNull, MoreThan, MoreThanOrEqual, Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { UserProfile } from '../users/entities/userprofile.entity';
 import { DateTime } from 'luxon';
@@ -14,6 +14,7 @@ import { Project } from '../projects/entities/project.entity';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { StatsLog } from './entities/stats-log.entity';
+import { RedlockService } from '@anchan828/nest-redlock';
 
 @Injectable()
 export class StatsService {
@@ -37,6 +38,7 @@ export class StatsService {
     @InjectRepository(StatsLog)
     private statsRepository: Repository<StatsLog>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
+    private readonly redlock: RedlockService,
   ) {}
 
   async countUsers(): Promise<number> {
@@ -44,7 +46,8 @@ export class StatsService {
     if (cachedCount) {
       return <number>cachedCount;
     }
-    const count = await this.userRepository.count();
+    const count =
+      (await this.countUsersAllTime()) - (await this.countDeletedUsers());
     await this.cacheManager.set('stats-totalusers', count, 5 * 60 * 1000);
     return count;
   }
@@ -138,61 +141,115 @@ export class StatsService {
     return result;
   }
 
+  async countDeletedUsers() {
+    const cachedCount = await this.cacheManager.get('stats-deletedusers');
+    if (cachedCount) {
+      return <number>cachedCount;
+    }
+    const count = await this.userRepository.count({
+      where: { email: IsNull() },
+    });
+    await this.cacheManager.set('stats-deletedusers', count, 5 * 60 * 1000);
+    return count;
+  }
+
+  async countUsersAllTime(): Promise<number> {
+    const cachedCount = await this.cacheManager.get('stats-totalusers-alltime');
+    if (cachedCount) {
+      return <number>cachedCount;
+    }
+    const count = await this.userRepository.count();
+    await this.cacheManager.set(
+      'stats-totalusers-alltime',
+      count,
+      5 * 60 * 1000,
+    );
+    return count;
+  }
+
   /**
    * Capture spot statistics
    */
-  @Cron('0 0 0 * * *')
+  @Cron('*/5 * * * * *')
   async captureSpotStats() {
-    //Gather stats
-    const dailyActiveUsers = await this.countActiveUsers('daily');
-    const weeklyActiveUsers = await this.countActiveUsers('weekly');
-    const monthlyActiveUsers = await this.countActiveUsers('monthly');
-    const dailyNewUsers = await this.countNewContent('daily', 'user');
-    const weeklyNewUsers = await this.countNewContent('weekly', 'user');
-    const monthlyNewUsers = await this.countNewContent('monthly', 'user');
-    const dailyNewPortfolios = await this.countNewContent('daily', 'portfolio');
-    const weeklyNewPortfolios = await this.countNewContent(
-      'weekly',
-      'portfolio',
-    );
-    const monthlyNewPortfolios = await this.countNewContent(
-      'monthly',
-      'portfolio',
-    );
-    const dailyNewProjects = await this.countNewContent('daily', 'project');
-    const weeklyNewProjects = await this.countNewContent('weekly', 'project');
-    const monthlyNewProjects = await this.countNewContent('monthly', 'project');
-    const dailyNewNeeds = await this.countNewContent('daily', 'need');
-    const weeklyNewNeeds = await this.countNewContent('weekly', 'need');
-    const monthlyNewNeeds = await this.countNewContent('monthly', 'need');
-    const dailyNewProposals = await this.countNewContent('daily', 'proposal');
-    const weeklyNewProposals = await this.countNewContent('weekly', 'proposal');
-    const monthlyNewProposals = await this.countNewContent(
-      'monthly',
-      'proposal',
-    );
+    await this.redlock.using(['stats-log'], 30000, async (signal) => {
+      if (signal.aborted) {
+        throw signal.error;
+      }
 
-    //Log stats
-    const statsPoint = new StatsLog();
-    statsPoint.activeUsersDaily = dailyActiveUsers;
-    statsPoint.activeUsersWeekly = weeklyActiveUsers;
-    statsPoint.activeUsersMonthly = monthlyActiveUsers;
-    statsPoint.newUsersDaily = dailyNewUsers;
-    statsPoint.newUsersWeekly = weeklyNewUsers;
-    statsPoint.newUsersMonthly = monthlyNewUsers;
-    statsPoint.newNeedsDaily = dailyNewNeeds;
-    statsPoint.newNeedsWeekly = weeklyNewNeeds;
-    statsPoint.newNeedsMonthly = monthlyNewNeeds;
-    statsPoint.newPortfoliosDaily = dailyNewPortfolios;
-    statsPoint.newPortfoliosWeekly = weeklyNewPortfolios;
-    statsPoint.newPortfoliosMonthly = monthlyNewPortfolios;
-    statsPoint.newProjectsDaily = dailyNewProjects;
-    statsPoint.newProjectsWeekly = weeklyNewProjects;
-    statsPoint.newProjectsMonthly = monthlyNewProjects;
-    statsPoint.newProposalsDaily = dailyNewProposals;
-    statsPoint.newProposalsWeekly = weeklyNewProposals;
-    statsPoint.newProposalsMonthly = monthlyNewProposals;
+      //Check if another worker already logged stats today
+      const earliestRetry = DateTime.now().minus({ hour: 10 }).toJSDate();
+      const lastLog = await this.statsRepository.findOne({
+        where: { created_at: MoreThan(earliestRetry) },
+      });
+      if (lastLog) return;
 
-    this.statsRepository.save(statsPoint);
+      //Gather stats
+      const dailyActiveUsers = await this.countActiveUsers('daily');
+      const weeklyActiveUsers = await this.countActiveUsers('weekly');
+      const monthlyActiveUsers = await this.countActiveUsers('monthly');
+      const dailyNewUsers = await this.countNewContent('daily', 'user');
+      const weeklyNewUsers = await this.countNewContent('weekly', 'user');
+      const monthlyNewUsers = await this.countNewContent('monthly', 'user');
+      const dailyNewPortfolios = await this.countNewContent(
+        'daily',
+        'portfolio',
+      );
+      const weeklyNewPortfolios = await this.countNewContent(
+        'weekly',
+        'portfolio',
+      );
+      const monthlyNewPortfolios = await this.countNewContent(
+        'monthly',
+        'portfolio',
+      );
+      const dailyNewProjects = await this.countNewContent('daily', 'project');
+      const weeklyNewProjects = await this.countNewContent('weekly', 'project');
+      const monthlyNewProjects = await this.countNewContent(
+        'monthly',
+        'project',
+      );
+      const dailyNewNeeds = await this.countNewContent('daily', 'need');
+      const weeklyNewNeeds = await this.countNewContent('weekly', 'need');
+      const monthlyNewNeeds = await this.countNewContent('monthly', 'need');
+      const dailyNewProposals = await this.countNewContent('daily', 'proposal');
+      const weeklyNewProposals = await this.countNewContent(
+        'weekly',
+        'proposal',
+      );
+      const monthlyNewProposals = await this.countNewContent(
+        'monthly',
+        'proposal',
+      );
+      const totalUsers = await this.countUsers();
+      const allTimeUsers = await this.countUsersAllTime();
+      const deletedUsers = await this.countDeletedUsers();
+
+      //Log stats
+      const statsPoint = new StatsLog();
+      statsPoint.activeUsersDaily = dailyActiveUsers;
+      statsPoint.activeUsersWeekly = weeklyActiveUsers;
+      statsPoint.activeUsersMonthly = monthlyActiveUsers;
+      statsPoint.newUsersDaily = dailyNewUsers;
+      statsPoint.newUsersWeekly = weeklyNewUsers;
+      statsPoint.newUsersMonthly = monthlyNewUsers;
+      statsPoint.newNeedsDaily = dailyNewNeeds;
+      statsPoint.newNeedsWeekly = weeklyNewNeeds;
+      statsPoint.newNeedsMonthly = monthlyNewNeeds;
+      statsPoint.newPortfoliosDaily = dailyNewPortfolios;
+      statsPoint.newPortfoliosWeekly = weeklyNewPortfolios;
+      statsPoint.newPortfoliosMonthly = monthlyNewPortfolios;
+      statsPoint.newProjectsDaily = dailyNewProjects;
+      statsPoint.newProjectsWeekly = weeklyNewProjects;
+      statsPoint.newProjectsMonthly = monthlyNewProjects;
+      statsPoint.newProposalsDaily = dailyNewProposals;
+      statsPoint.newProposalsWeekly = weeklyNewProposals;
+      statsPoint.newProposalsMonthly = monthlyNewProposals;
+      statsPoint.deletedUsers = deletedUsers;
+      statsPoint.allTimeUsers = allTimeUsers;
+      statsPoint.totalUsers = totalUsers;
+
+      this.statsRepository.save(statsPoint);
+    });
   }
 }

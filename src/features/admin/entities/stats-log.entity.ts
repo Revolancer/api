@@ -64,6 +64,15 @@ export class StatsLog {
   @Column({ default: 0 })
   activeUsersMonthly!: number;
 
+  @Column({ default: 0 })
+  totalUsers!: number;
+
+  @Column({ default: 0 })
+  allTimeUsers!: number;
+
+  @Column({ default: 0 })
+  deletedUsers!: number;
+
   @CreateDateColumn()
   created_at!: Date;
 }

@@ -9,7 +9,15 @@ export class StatsController {
   @Get('count_users')
   @UseGuards(AdminAuthGuard)
   async getUserCount() {
-    return await this.statsService.countUsers();
+    const count = await this.statsService.countUsers();
+    const deleted = await this.statsService.countDeletedUsers();
+    const allTime = await this.statsService.countUsersAllTime();
+
+    return {
+      count,
+      deleted,
+      allTime,
+    };
   }
 
   @Get('count_active_users')

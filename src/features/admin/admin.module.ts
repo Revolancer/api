@@ -18,6 +18,10 @@ import { StatsController } from './stats.controller';
 import { StatsService } from './stats.service';
 import { Project } from '../projects/entities/project.entity';
 import { StatsLog } from './entities/stats-log.entity';
+import { RedlockModule } from '@anchan828/nest-redlock';
+import { RedisConfigModule } from 'src/config/redis/config.module';
+import { RedisConfigService } from 'src/config/redis/config.service';
+import { Redis } from 'ioredis';
 
 @Module({
   imports: [
@@ -37,6 +41,26 @@ import { StatsLog } from './entities/stats-log.entity';
     MailModule,
     BullModule.registerQueue({
       name: 'admin',
+    }),
+    RedlockModule.registerAsync({
+      imports: [RedisConfigModule],
+      inject: [RedisConfigService],
+      useFactory: async (redisConfig: RedisConfigService) => ({
+        clients: [
+          new Redis({
+            host: redisConfig.host,
+            port: redisConfig.port,
+          }),
+        ],
+        settings: {
+          driftFactor: 0.01,
+          retryCount: 10,
+          retryDelay: 200,
+          retryJitter: 200,
+          automaticExtensionThreshold: 500,
+        },
+        duration: 1000,
+      }),
     }),
   ],
   providers: [AdminService, StatsService, AdminConsumer],
