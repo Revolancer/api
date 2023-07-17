@@ -27,6 +27,7 @@ import { Redis } from 'ioredis';
 import { NeedPost } from '../need/entities/need-post.entity';
 import { BullModule } from '@nestjs/bull';
 import { UserConsumer } from './queue/user.consumer';
+import { PortfolioPost } from '../portfolio/entities/portfolio-post.entity';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { UserConsumer } from './queue/user.consumer';
       UserReferrer,
       LastMail,
       NeedPost,
+      PortfolioPost,
     ]),
     JwtModule.registerAsync({
       imports: [AuthConfigModule],

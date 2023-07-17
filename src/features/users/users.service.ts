@@ -50,6 +50,7 @@ import { NeedPost } from '../need/entities/need-post.entity';
 import { InjectQueue } from '@nestjs/bull';
 import { UserJob } from './queue/user.job';
 import { Queue } from 'bull';
+import { PortfolioPost } from '../portfolio/entities/portfolio-post.entity';
 
 @Injectable()
 export class UsersService {
@@ -68,6 +69,8 @@ export class UsersService {
     private lastMailRepository: Repository<LastMail>,
     @InjectRepository(NeedPost)
     private needRepository: Repository<NeedPost>,
+    @InjectRepository(PortfolioPost)
+    private portfolioRepository: Repository<PortfolioPost>,
     private jwtService: JwtService,
     @Inject(forwardRef(() => MailService))
     private mailService: MailService, //private chargebeeService: ChargebeeService,
@@ -855,6 +858,15 @@ export class UsersService {
     );
   }
 
+  async hasPostedPortfolio(user: User) {
+    return (
+      (await this.portfolioRepository.count({
+        where: { user: { id: user.id } },
+        withDeleted: true,
+      })) > 0
+    );
+  }
+
   //@Cron('0 0 * * * *')
   async checkIfUserHasNeeds() {
     await this.redlock.using(['7-day-no-needs'], 30000, async (signal) => {
@@ -938,6 +950,88 @@ export class UsersService {
           messageSent.user = user;
           this.lastMailRepository.save(messageSent);
         }
+      }
+    }
+  }
+
+  @Cron('0 0 * * * *')
+  async checkIfUserHasPortfolio() {
+    await this.redlock.using(['3-day-no-portfolio'], 30000, async (signal) => {
+      if (signal.aborted) {
+        throw signal.error;
+      }
+
+      const threeDaysAgo = DateTime.now().minus({ day: 3 }).toJSDate();
+      const countUsers = await this.usersRepository.count({
+        where: {
+          posted_need: false,
+          created_at: LessThan(threeDaysAgo),
+          email: Not(IsNull()),
+        },
+        relations: {
+          need_posts: true,
+        },
+      });
+      const pageSize = 100;
+      let index = 0;
+      while (index < countUsers) {
+        const users = await this.usersRepository.find({
+          where: {
+            posted_portfolio: false,
+            created_at: LessThan(threeDaysAgo),
+            email: Not(IsNull()),
+          },
+          select: { id: true },
+          take: pageSize,
+          skip: index,
+          order: { created_at: 'ASC' },
+        });
+        index += pageSize;
+        await this.userQueue.add(
+          {
+            task: '3_days_no_portfolio',
+            extraData: { users: users },
+          },
+          {
+            removeOnComplete: 100,
+            removeOnFail: 1000,
+          },
+        );
+      }
+    });
+  }
+
+  async sendNoPortfolioEmail(users: { id: string }[]) {
+    for (const uid of users) {
+      const user = await this.findOne(uid.id);
+      if (!user) {
+        continue;
+      }
+      if (await this.hasPostedPortfolio(user)) {
+        //Mark users who have portfolios
+        user.posted_portfolio = true;
+        this.usersRepository.save(user);
+      } else {
+        //Skip users who are still onboarding
+        const profile = await this.getProfile(user);
+        if ((profile?.onboardingStage ?? 0) < 4) {
+          continue;
+        }
+        const lastUserPortfolioEmail = await this.lastMailRepository.findOne({
+          where: {
+            user: { id: user.id },
+            mailout: '3_days_no_portfolio',
+          },
+        });
+        if (lastUserPortfolioEmail) {
+          continue;
+        }
+        this.mailService.scheduleMail(user, '3_days_no_portfolio');
+        const messageSent = new LastMail();
+        messageSent.last_mail = DateTime.now().toJSDate();
+        messageSent.mailout = '3_days_no_portfolio';
+        messageSent.user = user;
+        this.lastMailRepository.save(messageSent);
       }
     }
   }

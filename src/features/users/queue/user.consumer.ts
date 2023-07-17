@@ -15,6 +15,9 @@ export class UserConsumer {
       case '7_days_no_needs':
         this.usersService.sendNoNeedsEmail(job.data.extraData.users);
         break;
+      case '3_days_no_portfolio':
+        this.usersService.sendNoPortfolioEmail(job.data.extraData.users);
+        break;
       default:
         throw new Error(
           `Task ${job.data.task} does not have a registered handler`,
