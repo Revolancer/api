@@ -954,7 +954,7 @@ export class UsersService {
     }
   }
 
-  @Cron('0 0 * * * *')
+  @Cron('0 */15 * * * *')
   async checkIfUserHasPortfolio() {
     await this.redlock.using(['3-day-no-portfolio'], 30000, async (signal) => {
       if (signal.aborted) {
@@ -964,15 +964,12 @@ export class UsersService {
       const threeDaysAgo = DateTime.now().minus({ day: 3 }).toJSDate();
       const countUsers = await this.usersRepository.count({
         where: {
-          posted_need: false,
+          posted_portfolio: false,
           created_at: LessThan(threeDaysAgo),
           email: Not(IsNull()),
         },
-        relations: {
-          need_posts: true,
-        },
       });
-      const pageSize = 100;
+      const pageSize = 50;
       let index = 0;
       while (index < countUsers) {
         const users = await this.usersRepository.find({
