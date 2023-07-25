@@ -112,6 +112,7 @@ jobs:
       with:
         workload_identity_provider: 'projects/873249516889/locations/global/workloadIdentityPools/github-actions/providers/github-actions-provider'
         service_account: '873249516889-compute@developer.gserviceaccount.com'
+        project_id: 'revolancer-api'
 
     - id: 'deploy'
       uses: 'google-github-actions/deploy-cloudrun@v1'
