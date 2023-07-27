@@ -51,6 +51,16 @@ export class NeedController {
     return this.needService.getPostsForUser(uid);
   }
 
+  @Get('own')
+  async getPostsForSelf(@Req() req: IUserRequest) {
+    return this.needService.getPostsForUser(req.user.id);
+  }
+
+  @Get('own/all')
+  async getAllPostsForSelf(@Req() req: IUserRequest) {
+    return this.needService.getPostsForUser(req.user.id, true);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Put('proposal/:id')
   async createProposal(
