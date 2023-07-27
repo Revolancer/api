@@ -51,14 +51,28 @@ export class NeedController {
     return this.needService.getPostsForUser(uid);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('own')
   async getPostsForSelf(@Req() req: IUserRequest) {
     return this.needService.getPostsForUser(req.user.id);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('own/count')
+  async countPostsForSelf(@Req() req: IUserRequest) {
+    return this.needService.countPostsForUser(req.user.id);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get('own/all')
   async getAllPostsForSelf(@Req() req: IUserRequest) {
     return this.needService.getPostsForUser(req.user.id, true);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('own/all/count')
+  async countAllPostsForSelf(@Req() req: IUserRequest) {
+    return this.needService.countPostsForUser(req.user.id, true);
   }
 
   @UseGuards(JwtAuthGuard)

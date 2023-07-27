@@ -105,6 +105,27 @@ export class NeedService {
     }
   }
 
+  async countPostsForUser(uid: string, includeAll = false) {
+    try {
+      const now = DateTime.now().toJSDate();
+      const where = includeAll
+        ? []
+        : [
+            { user: { id: uid }, unpublish_at: IsNull() },
+            { user: { id: uid }, unpublish_at: MoreThan(now) },
+          ];
+      const posts = this.postRepository.count({
+        where,
+        relations: ['tags'],
+        select: { user: { id: true } },
+        order: { published_at: 'DESC' },
+      });
+      return posts;
+    } catch (err) {
+      throw new NotFoundException('Post not found');
+    }
+  }
+
   async getPostsForFeed(user: User) {
     const now = DateTime.now().toJSDate();
     return await this.postRepository.find({
