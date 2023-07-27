@@ -84,14 +84,17 @@ export class NeedService {
     }
   }
 
-  async getPostsForUser(uid: string) {
+  async getPostsForUser(uid: string, includeAll = false) {
     try {
       const now = DateTime.now().toJSDate();
+      const where = includeAll
+        ? []
+        : [
+            { user: { id: uid }, unpublish_at: IsNull() },
+            { user: { id: uid }, unpublish_at: MoreThan(now) },
+          ];
       const posts = this.postRepository.find({
-        where: [
-          { user: { id: uid }, unpublish_at: IsNull() },
-          { user: { id: uid }, unpublish_at: MoreThan(now) },
-        ],
+        where,
         relations: ['tags'],
         select: { user: { id: true } },
         order: { published_at: 'DESC' },
