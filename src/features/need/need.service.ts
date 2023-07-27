@@ -88,7 +88,7 @@ export class NeedService {
     try {
       const now = DateTime.now().toJSDate();
       const where = includeAll
-        ? []
+        ? [{ user: { id: uid } }]
         : [
             { user: { id: uid }, unpublish_at: IsNull() },
             { user: { id: uid }, unpublish_at: MoreThan(now) },
@@ -109,7 +109,7 @@ export class NeedService {
     try {
       const now = DateTime.now().toJSDate();
       const where = includeAll
-        ? []
+        ? [{ user: { id: uid } }]
         : [
             { user: { id: uid }, unpublish_at: IsNull() },
             { user: { id: uid }, unpublish_at: MoreThan(now) },
