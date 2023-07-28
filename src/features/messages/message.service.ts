@@ -1,7 +1,6 @@
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Repository } from 'typeorm';
-import { TagsService } from '../tags/tags.service';
 import { User } from '../users/entities/user.entity';
 import { SendMessageDto } from './dto/sendmessage.dto';
 import { Message } from './entities/message.entity';
@@ -65,7 +64,7 @@ export class MessageService {
       }
     }
     const resultArray: Message[] = [];
-    for (const [_, value] of Object.entries(result)) {
+    for (const [, value] of Object.entries(result)) {
       resultArray.push(value);
     }
     resultArray.sort((a, b) => {

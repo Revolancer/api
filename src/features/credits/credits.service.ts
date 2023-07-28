@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { User } from '../users/entities/user.entity';
-import { Storage } from '@google-cloud/storage';
 import { CreditLogEntry } from './entities/credit-log-entry.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
