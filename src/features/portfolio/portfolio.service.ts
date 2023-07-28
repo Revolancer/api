@@ -94,6 +94,9 @@ export class PortfolioService {
     }
   }
 
+  //Need to ignore as this is invoked with user
+  //Later we will use the user to generate personalised feed
+  //eslint-disable-next-line @typescript-eslint/no-unused-vars
   async getPostsForFeed(user: User) {
     const now = DateTime.now().toJSDate();
     return await this.postRepository.find({
