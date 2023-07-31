@@ -11,6 +11,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 @Module({
   imports: [
     ConfigModule.forRoot({
+      envFilePath: ['.env.development.local', '.env.development'],
       load: [configuration],
       validationSchema: Joi.object({
         SENDGRID_KEY: Joi.string().default('testkey'),
