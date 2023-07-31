@@ -35,5 +35,5 @@ lerna-debug.log*
 !.vscode/extensions.json
 
 #ENVfile
-.env
+.env.*.local
 graph.json

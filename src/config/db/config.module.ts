@@ -11,11 +11,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 @Module({
   imports: [
     ConfigModule.forRoot({
+      envFilePath: ['.env.development.local', '.env.development'],
       load: [configuration],
       validationSchema: Joi.object({
         DB_POSTGRES_USER: Joi.string().default('postgres'),
         DB_POSTGRES_PASS: Joi.string().default('postgres'),
-        DB_POSTGRES_HOST: Joi.string().default('localhost'),
+        DB_POSTGRES_HOST: Joi.string().default('db'),
         DB_POSTGRES_PORT: Joi.number().default(5432),
         DB_POSTGRES_DB: Joi.string().default('postgres'),
         DB_POSTGRES_SYNC: Joi.boolean().default(true),

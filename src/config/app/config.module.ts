@@ -11,13 +11,14 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 @Module({
   imports: [
     ConfigModule.forRoot({
+      envFilePath: ['.env.development.local', '.env.development'],
       load: [configuration],
       validationSchema: Joi.object({
         APP_NAME: Joi.string().default('RevolancerAPI'),
         APP_ENV: Joi.string()
           .valid('development', 'production', 'test', 'provision')
           .default('development'),
-        APP_CORS_URL: Joi.string().default('http://localhost:3000'),
+        APP_CORS_URL: Joi.string().default(['*']),
         APP_PORT: Joi.number().default(3030),
       }),
     }),

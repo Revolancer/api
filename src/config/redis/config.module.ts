@@ -11,9 +11,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 @Module({
   imports: [
     ConfigModule.forRoot({
+      envFilePath: ['.env.development.local', '.env.development'],
       load: [configuration],
       validationSchema: Joi.object({
-        DB_REDIS_HOST: Joi.string().default('localhost'),
+        DB_REDIS_HOST: Joi.string().default('redis'),
         DB_REDIS_PORT: Joi.number().default(6379),
       }),
     }),
