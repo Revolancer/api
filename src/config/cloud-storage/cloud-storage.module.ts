@@ -11,6 +11,7 @@ import { CloudStorageConfigService } from './cloud-storage.service';
 @Module({
   imports: [
     ConfigModule.forRoot({
+      envFilePath: ['.env.development.local', '.env.development'],
       load: [configuration],
       validationSchema: Joi.object({
         CLOUD_STORAGE_KEY: Joi.string().default('{}'),
