@@ -19,6 +19,8 @@ import { Project } from 'src/features/projects/entities/project.entity';
 import { UserReferrer } from './userreferrer.entity';
 import { LastMail } from 'src/features/mail/entities/last-mail.entity';
 import { Notification } from 'src/features/notifications/entities/notification.entity';
+import { Factory } from 'nestjs-seeder';
+import { DateTime } from 'luxon';
 
 @Entity()
 export class User {
@@ -26,9 +28,14 @@ export class User {
   id!: string;
 
   @Column({ nullable: true })
+  @Factory((faker) => faker?.internet.email({ provider: 'rvdevel.com' }))
   email?: string;
 
   @Column({ select: false })
+  @Factory(
+    '$argon2id$v=19$m=65536,t=3,p=4$EaXen5KJYVQ+V8xSR59Kwg$4LjnoJc5eDhGwgmJKmfuwgMwBjcoanHo6ziFLZ9aWFQ',
+    //Password1!
+  )
   password!: string;
 
   @Column({ default: true })
@@ -120,6 +127,13 @@ export class User {
   referrer?: UserReferrer;
 
   @CreateDateColumn()
+  @Factory(
+    (faker) =>
+      faker?.date.between({
+        from: '2022-01-01T00:00:00.000Z',
+        to: DateTime.now().toJSDate(),
+      }),
+  )
   created_at!: Date;
 
   @UpdateDateColumn()

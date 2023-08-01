@@ -18,4 +18,6 @@ USER node
 
 EXPOSE 3030
 
+RUN npm run seed:refresh
+
 CMD [ "npm", "run", "start:prod" ]
