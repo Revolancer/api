@@ -20,7 +20,7 @@
     "test:e2e": "jest --config ./test/jest-e2e.json --passWithNoTests"
   },
   "dependencies": {
-    "@anchan828/nest-redlock": "^0.1.47",
+    "@anchan828/nest-redlock": "^0.1.49",
     "@bugsnag/js": "^7.20.2",
     "@bull-board/api": "^5.7.0",
     "@bull-board/express": "^5.6.0",
