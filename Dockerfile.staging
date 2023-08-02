@@ -16,6 +16,8 @@ RUN npm run build
 
 USER node
 
+ENV NODE_ENV staging
+
 EXPOSE 3030
 
 CMD [ "npm", "run", "start:staging" ]
