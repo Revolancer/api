@@ -30,12 +30,17 @@ export class UsersSeeder implements Seeder {
         (<unknown>DataFactory.createForClass(UserProfile).generate(1)[0])
       );
       const persistedUser = await this.usersRepository.save(user);
-      const consent = new UserConsent();
-      consent.consent_for = 'terms';
-      consent.user = persistedUser;
-      this.userConsentRepository.save(consent);
 
-      profile.user = persistedUser;
+      //Add terms consent
+      await this.userConsentRepository.upsert(
+        {
+          user: { id: persistedUser.id },
+          consent_for: 'terms',
+        },
+        ['user', 'consent_for'],
+      );
+
+      profile.user = <any>{ id: persistedUser.id };
 
       this.userProfileRepository.save(profile);
 
@@ -75,20 +80,26 @@ export class UsersSeeder implements Seeder {
     );
 
     //Add terms consent
-    const consent = new UserConsent();
-    consent.consent_for = 'terms';
-    consent.user = persistedAdmin;
-    this.userConsentRepository.save(consent);
+    await this.userConsentRepository.upsert(
+      {
+        user: { id: persistedAdmin.id },
+        consent_for: 'terms',
+      },
+      ['user', 'consent_for'],
+    );
 
     //Add profile
-    const profile = new UserProfile();
-    profile.first_name = 'Revolancer';
-    profile.last_name = 'Admin';
-    profile.slug = 'admin';
-    profile.profile_image =
-      'https://app.revolancer.com/img/user/avatar-placeholder.png';
-    profile.user = persistedAdmin;
-    this.userProfileRepository.save(profile);
+    await this.userProfileRepository.upsert(
+      {
+        user: { id: persistedAdmin.id },
+        first_name: 'Revolancer',
+        last_name: 'Admin',
+        slug: 'admin',
+        profile_image:
+          'https://app.revolancer.com/img/user/avatar-placeholder.png',
+      },
+      ['user'],
+    );
 
     return;
   }
