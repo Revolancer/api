@@ -90,6 +90,7 @@ jobs:
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
 
   deploy_staging:
+    environment: preview
     runs-on: ubuntu-latest
     if: ${{ github.event_name != 'pull_request' }}
     steps:
@@ -100,7 +101,7 @@ jobs:
           node-version: '18.x'
       - name: Install npm dependencies
         run: npm install
-      - name: Deploy to Staging server
+      - name: deploy
         uses: easingthemes/ssh-deploy@main
         env:
           SSH_PRIVATE_KEY: ${{ secrets.STAGING_SK }}
@@ -110,7 +111,7 @@ jobs:
           TARGET: ${{ secrets.STAGING_TARGET }}
           SCRIPT_AFTER: |
             echo $RSYNC_STDOUT
-      - name: Start docker compose containers
+      - name: upgrade
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.STAGING_HOST }}
