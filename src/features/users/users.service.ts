@@ -184,10 +184,17 @@ export class UsersService {
     });
   }
 
-  getProfile(user: User): Promise<UserProfile> {
-    return this.userProfileRepository.findOneByOrFail({
-      user: { id: user.id },
-    });
+  async getProfile(user: User): Promise<UserProfile> {
+    try {
+      return this.userProfileRepository.findOneByOrFail({
+        user: { id: user.id },
+      });
+    } catch (e) {
+      await this.createBlankProfile(user);
+      return this.userProfileRepository.findOneByOrFail({
+        user: { id: user.id },
+      });
+    }
   }
 
   async markActive(user: User) {
