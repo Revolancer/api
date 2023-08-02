@@ -12,7 +12,7 @@ export class ExceptionFilter extends BaseExceptionFilter {
         shortcut = true;
       }
     }
-    if (!shortcut) {
+    if (!shortcut && process.env.NODE_ENV == 'production') {
       Bugsnag.start({
         apiKey: process.env.BUGSNAG_API_KEY ?? '',
         appVersion: '0.32.0',

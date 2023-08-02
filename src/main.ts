@@ -7,8 +7,8 @@ import * as fs from 'fs';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    snapshot: process.env.NODE_ENV !== 'production',
-    abortOnError: process.env.NODE_ENV === 'production',
+    snapshot: process.env.NODE_ENV == 'development',
+    abortOnError: process.env.NODE_ENV == 'production',
   });
   const appConfig: AppConfigService = app.get(AppConfigService);
   const logger = new Logger('Bootstrap');

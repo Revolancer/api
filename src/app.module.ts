@@ -48,7 +48,7 @@ class NullModule {}
     TagsModule,
     UploadModule,
     FeedModule,
-    process.env.NODE_ENV === 'production' ? NullModule : BullBoardModule, // Don't load bull-board in prod
+    process.env.NODE_ENV == 'development' ? BullBoardModule : NullModule, // Don't load bull-board in prod
     TypeOrmModule.forRootAsync({
       imports: [DBConfigModule],
       inject: [DBConfigService],
@@ -79,7 +79,7 @@ class NullModule {}
     }),
     ScheduleModule.forRoot(),
     DevtoolsModule.register({
-      http: process.env.NODE_ENV !== 'production',
+      http: process.env.NODE_ENV == 'development',
     }),
   ],
   providers: [
