@@ -106,7 +106,7 @@ export class UserProfile {
   @Factory(
     (faker) =>
       faker?.date.between({
-        from: '2022-01-01T00:00:00.000Z',
+        from: '2023-01-01T00:00:00.000Z',
         to: DateTime.now().toJSDate(),
       }),
   )
