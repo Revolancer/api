@@ -117,5 +117,5 @@ jobs:
           host: ${{ secrets.STAGING_HOST }}
           username: ${{ secrets.STAGING_USER }}
           key: ${{ secrets.STAGING_SK }}
-          script: 'cd ${{ secrets.STAGING_TARGET }} && docker compose down && docker compose up --build --force-recreate -d'
+          script: 'cd ${{ secrets.STAGING_TARGET }} && docker compose down -v --rmi all && docker compose up --build --force-recreate -d'
           # TODO: Remove volumes and seed once we have available seeds

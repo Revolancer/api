@@ -22,6 +22,9 @@ export class UsersSeeder implements Seeder {
   ) {}
 
   async seed(): Promise<any> {
+    if ((await this.usersRepository.count()) > 0) {
+      return;
+    }
     const users = DataFactory.createForClass(User).generate(500);
 
     for (const u of users) {
@@ -32,13 +35,10 @@ export class UsersSeeder implements Seeder {
       const persistedUser = await this.usersRepository.save(user);
 
       //Add terms consent
-      await this.userConsentRepository.upsert(
-        {
-          user: { id: persistedUser.id },
-          consent_for: 'terms',
-        },
-        ['user', 'consent_for'],
-      );
+      await this.userConsentRepository.insert({
+        user: { id: persistedUser.id },
+        consent_for: 'terms',
+      });
 
       profile.user = <any>{ id: persistedUser.id };
 
@@ -80,17 +80,18 @@ export class UsersSeeder implements Seeder {
     );
 
     //Add terms consent
-    await this.userConsentRepository.upsert(
-      {
-        user: { id: persistedAdmin.id },
-        consent_for: 'terms',
-      },
-      ['user', 'consent_for'],
-    );
+    await this.userConsentRepository.insert({
+      user: { id: persistedAdmin.id },
+      consent_for: 'terms',
+    });
 
     //Add profile
+    const adminProfile = <UserProfile>(
+      (<unknown>DataFactory.createForClass(UserProfile).generate(1)[0])
+    );
     await this.userProfileRepository.upsert(
       {
+        ...adminProfile,
         user: { id: persistedAdmin.id },
         first_name: 'Revolancer',
         last_name: 'Admin',
