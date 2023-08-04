@@ -1,3 +1,4 @@
+import { Factory } from 'nestjs-seeder';
 import {
   Entity,
   Tree,
@@ -14,6 +15,7 @@ export class Tag {
   id!: string;
 
   @Column()
+  @Factory((faker) => faker?.commerce.productName())
   text: string;
 
   @TreeChildren()

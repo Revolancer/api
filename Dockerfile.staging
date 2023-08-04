@@ -12,6 +12,8 @@ RUN npm install
 
 COPY --chown=node:node . .
 
+RUN rm .env.development.local
+
 RUN npm run build
 
 USER node

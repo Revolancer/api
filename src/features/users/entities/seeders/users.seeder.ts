@@ -7,6 +7,8 @@ import { UserProfile } from '../userprofile.entity';
 import { UserConsent } from '../userconsent.entity';
 import * as argon2 from 'argon2';
 import { UserRole } from '../userrole.entity';
+import { Tag } from 'src/features/tags/entities/tag.entity';
+import { faker } from '@faker-js/faker';
 
 @Injectable()
 export class UsersSeeder implements Seeder {
@@ -19,6 +21,8 @@ export class UsersSeeder implements Seeder {
     private userConsentRepository: Repository<UserConsent>,
     @InjectRepository(UserRole)
     private userRoleRepository: Repository<UserRole>,
+    @InjectRepository(Tag)
+    private tagsRepository: Repository<Tag>,
   ) {}
 
   async seed(): Promise<any> {
@@ -41,6 +45,14 @@ export class UsersSeeder implements Seeder {
       });
 
       profile.user = <any>{ id: persistedUser.id };
+
+      const randomTags = await this.tagsRepository
+        .createQueryBuilder('tag')
+        .select()
+        .orderBy('RANDOM()')
+        .take(faker.number.int({ min: 3, max: 6 }))
+        .getMany();
+      profile.skills = randomTags;
 
       this.userProfileRepository.save(profile);
 
@@ -89,6 +101,7 @@ export class UsersSeeder implements Seeder {
     const adminProfile = <UserProfile>(
       (<unknown>DataFactory.createForClass(UserProfile).generate(1)[0])
     );
+
     await this.userProfileRepository.upsert(
       {
         ...adminProfile,
