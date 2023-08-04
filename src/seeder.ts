@@ -19,6 +19,7 @@ import { File } from './features/upload/entities/file.entity';
 import { LastMail } from './features/mail/entities/last-mail.entity';
 import { Notification } from './features/notifications/entities/notification.entity';
 import { TagsSeeder } from './features/tags/seeders/tags.seeder';
+import { PortfoliosSeeder } from './features/portfolio/seeders/portfolios.seeder';
 
 seeder({
   imports: [
@@ -54,4 +55,4 @@ seeder({
       Notification,
     ]),
   ],
-}).run([TagsSeeder, UsersSeeder]);
+}).run([TagsSeeder, UsersSeeder, PortfoliosSeeder]);
