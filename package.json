@@ -41,7 +41,7 @@
     "@nestjs/throttler": "^4.2.1",
     "@nestjs/typeorm": "^10.0.0",
     "@sendgrid/mail": "^7.7.0",
-    "argon2": "^0.30.3",
+    "argon2": "^0.31.0",
     "axios": "^1.4.0",
     "bull": "^4.10.4",
     "cache-manager": "^5.2.3",
