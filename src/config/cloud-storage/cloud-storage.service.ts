@@ -12,4 +12,8 @@ export class CloudStorageConfigService {
   get key(): string {
     return String(this.configService.get<string>('cloud-storage.key'));
   }
+
+  get host(): string {
+    return String(this.configService.get<string>('cloud-storage.host'));
+  }
 }

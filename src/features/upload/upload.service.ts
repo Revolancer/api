@@ -29,7 +29,7 @@ export class UploadService {
   async generateSignedUrl(path: string, size: number) {
     if (size > 40000000) return {}; //40MB max upload size
     const [url] = await this.storage
-      .bucket('uploads.revolancer.com')
+      .bucket(this.config.host)
       .file(path)
       .getSignedUrl({
         version: 'v4',
@@ -41,20 +41,20 @@ export class UploadService {
       });
     return {
       signedUrl: url,
-      publicUrl: `https://uploads.revolancer.com/${path}`,
+      publicUrl: `https://${this.config.host}/${path}`,
     };
   }
 
   urlToPath(url: string) {
-    return url.replace('https://uploads.revolancer.com/', '');
+    return url.replace(`https://${this.config.host}/`, '');
   }
 
   async deleteFile(path: string) {
-    await this.storage.bucket('uploads.revolancer.com').file(path).delete();
+    await this.storage.bucket(this.config.host).file(path).delete();
   }
 
   fileBelongsToUser(user: User, url: string) {
-    const prefix = `https://uploads.revolancer.com/${user.id}/`;
+    const prefix = `https://${this.config.host}/${user.id}/`;
     return url.substring(0, prefix.length) === prefix;
   }
 

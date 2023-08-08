@@ -15,6 +15,7 @@ import { CloudStorageConfigService } from './cloud-storage.service';
       load: [configuration],
       validationSchema: Joi.object({
         CLOUD_STORAGE_KEY: Joi.string().default('{}'),
+        CLOUD_STORAGE_HOST: Joi.string().default('uploads.revolancer.com'),
       }),
     }),
   ],
