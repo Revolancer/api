@@ -118,4 +118,10 @@ export class StatsController {
   async getReferrers() {
     return this.statsService.countReferrals();
   }
+
+  @Get('profile_top_skills')
+  @UseGuards(AdminAuthGuard)
+  async getTopProfileSkills() {
+    return this.statsService.getTopUserProfileTags();
+  }
 }

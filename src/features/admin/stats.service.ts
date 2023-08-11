@@ -136,6 +136,7 @@ export class StatsService {
       .select('user_referrer.referrer as referrer')
       .addSelect('COUNT(*) as count')
       .groupBy('user_referrer.referrer')
+      .orderBy('count', 'DESC')
       .getRawMany();
     await this.cacheManager.set('stats-referrals', result, 20 * 60 * 1000);
     return result;
@@ -251,5 +252,26 @@ export class StatsService {
 
       this.statsRepository.save(statsPoint);
     });
+  }
+
+  async getTopUserProfileTags() {
+    const cachedTags = await this.cacheManager.get('stats-top-profile-tags');
+    if (cachedTags) {
+      return cachedTags;
+    }
+    const qb = this.userProfileRepository.createQueryBuilder('profile');
+    const result = await qb
+      .leftJoinAndSelect('profile.skills', 'tag')
+      .groupBy('tag.id')
+      .select('tag.text, count(tag.id)')
+      .orderBy('count(tag.id)', 'DESC')
+      .limit(100)
+      .execute();
+    await this.cacheManager.set(
+      'stats-top-profile-tags',
+      result,
+      20 * 60 * 1000,
+    );
+    return result;
   }
 }
