@@ -252,4 +252,15 @@ export class StatsService {
       this.statsRepository.save(statsPoint);
     });
   }
+
+  async getTopUserProfileTags() {
+    const qb = this.userProfileRepository.createQueryBuilder('profile');
+    return await qb
+      .leftJoinAndSelect('profile.skills', 'tag')
+      .groupBy('tag.id')
+      .select('tag.text, count(tag.id)')
+      .orderBy('count(tag.id)', 'DESC')
+      .limit(100)
+      .execute();
+  }
 }
