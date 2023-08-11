@@ -136,6 +136,7 @@ export class StatsService {
       .select('user_referrer.referrer as referrer')
       .addSelect('COUNT(*) as count')
       .groupBy('user_referrer.referrer')
+      .orderBy('count', 'DESC')
       .getRawMany();
     await this.cacheManager.set('stats-referrals', result, 20 * 60 * 1000);
     return result;
