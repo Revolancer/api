@@ -43,7 +43,7 @@
     "@sendgrid/mail": "^7.7.0",
     "argon2": "^0.31.0",
     "axios": "^1.4.0",
-    "bull": "^4.10.4",
+    "bull": "^4.11.3",
     "cache-manager": "^5.2.3",
     "cache-manager-redis-yet": "^4.1.2",
     "chargebee-typescript": "^2.22.0",
