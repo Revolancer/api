@@ -352,7 +352,15 @@ export class UsersService {
       return { success: false };
     }
     loadedUserProfile.skills = loadedSkills;
-    loadedUserProfile.timezone = body.timezone;
+    if (body.timezone) {
+      loadedUserProfile.timezone = body.timezone;
+    } else if (body.location) {
+      const timezone = await this.mapsService.placeIdToTimezone(
+        body.location.value.place_id,
+      );
+      loadedUserProfile.timezone = timezone;
+      loadedUserProfile.placeId = body.location.value.place_id;
+    }
     loadedUserProfile.profile_image = body.profileImage;
     loadedUserProfile.onboardingStage = 4;
     this.userProfileRepository.save(loadedUserProfile);

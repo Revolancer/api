@@ -14,8 +14,8 @@ class Tag {
 }
 
 export class Onboarding3Dto {
-  @IsNotEmpty()
-  timezone!: string;
+  timezone?: string;
+  location?: { label: string; value: { place_id: string } };
 
   @IsNotEmpty()
   profileImage!: string;
