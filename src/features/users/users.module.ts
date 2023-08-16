@@ -28,6 +28,7 @@ import { NeedPost } from '../need/entities/need-post.entity';
 import { BullModule } from '@nestjs/bull';
 import { UserConsumer } from './queue/user.consumer';
 import { PortfolioPost } from '../portfolio/entities/portfolio-post.entity';
+import { MapsModule } from '../maps/maps.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { PortfolioPost } from '../portfolio/entities/portfolio-post.entity';
     CreditsModule,
     ProjectsModule,
     NotificationsModule,
+    MapsModule,
     forwardRef(() => MailModule),
     RedlockModule.registerAsync({
       imports: [RedisConfigModule],

@@ -82,6 +82,9 @@ export class UserProfile {
   @Factory((faker) => faker?.location.timeZone())
   timezone?: string;
 
+  @Column({ nullable: true })
+  placeId?: string;
+
   @ManyToMany(() => Tag)
   @JoinTable()
   skills: Tag[];

@@ -27,6 +27,7 @@ import { ChangeRateDto } from './dto/changerate.dto';
 import { ChangeExperienceDto } from './dto/changeexperience.dto';
 import { ChangeEmailPrefsDto } from './dto/changeemailprefs.dto';
 import { DeleteAccountDto } from './dto/deleteaccount.dto';
+import { LocationUpdateDto } from './dto/locationupdate.dto';
 
 @Controller('user')
 export class UsersController {
@@ -140,6 +141,15 @@ export class UsersController {
     @Body() body: TimezoneUpdateDto,
   ) {
     return this.usersService.setUserTimezone(req.user, body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('location')
+  async setUserLocation(
+    @Req() req: IUserRequest,
+    @Body() body: LocationUpdateDto,
+  ) {
+    return this.usersService.setUserLocation(req.user, body);
   }
 
   @Get('tagline/:id')

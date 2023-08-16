@@ -51,6 +51,8 @@ import { InjectQueue } from '@nestjs/bull';
 import { UserJob } from './queue/user.job';
 import { Queue } from 'bull';
 import { PortfolioPost } from '../portfolio/entities/portfolio-post.entity';
+import { LocationUpdateDto } from './dto/locationupdate.dto';
+import { MapsService } from '../maps/maps.service';
 
 @Injectable()
 export class UsersService {
@@ -80,6 +82,7 @@ export class UsersService {
     private portfolioService: PortfolioService,
     private needService: NeedService,
     private projectsService: ProjectsService,
+    private mapsService: MapsService,
     private readonly redlock: RedlockService,
     @InjectQueue('user') private userQueue: Queue<UserJob>,
   ) {}
@@ -538,6 +541,20 @@ export class UsersService {
   ): Promise<{ success: boolean }> {
     const loadedUserProfile = await this.getProfile(user);
     loadedUserProfile.timezone = body.timezone;
+    this.userProfileRepository.save(loadedUserProfile);
+    return { success: true };
+  }
+
+  async setUserLocation(
+    user: User,
+    body: LocationUpdateDto,
+  ): Promise<{ success: boolean }> {
+    const timezone = await this.mapsService.placeIdToTimezone(
+      body.location.value.place_id,
+    );
+    const loadedUserProfile = await this.getProfile(user);
+    loadedUserProfile.timezone = timezone;
+    loadedUserProfile.placeId = body.location.value.place_id;
     this.userProfileRepository.save(loadedUserProfile);
     return { success: true };
   }
