@@ -29,6 +29,7 @@ import { BullModule } from '@nestjs/bull';
 import { UserConsumer } from './queue/user.consumer';
 import { PortfolioPost } from '../portfolio/entities/portfolio-post.entity';
 import { MapsModule } from '../maps/maps.module';
+import { UserSocials } from './entities/usersocials.entity';
 
 @Module({
   imports: [
@@ -71,6 +72,7 @@ import { MapsModule } from '../maps/maps.module';
       LastMail,
       NeedPost,
       PortfolioPost,
+      UserSocials,
     ]),
     JwtModule.registerAsync({
       imports: [AuthConfigModule],

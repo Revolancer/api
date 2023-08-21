@@ -9,6 +9,7 @@ import * as argon2 from 'argon2';
 import { UserRole } from '../userrole.entity';
 import { Tag } from 'src/features/tags/entities/tag.entity';
 import { faker } from '@faker-js/faker';
+import { UserSocials } from '../usersocials.entity';
 
 @Injectable()
 export class UsersSeeder implements Seeder {
@@ -21,6 +22,8 @@ export class UsersSeeder implements Seeder {
     private userConsentRepository: Repository<UserConsent>,
     @InjectRepository(UserRole)
     private userRoleRepository: Repository<UserRole>,
+    @InjectRepository(UserSocials)
+    private userSocialsRepository: Repository<UserSocials>,
     @InjectRepository(Tag)
     private tagsRepository: Repository<Tag>,
   ) {}
@@ -64,6 +67,14 @@ export class UsersSeeder implements Seeder {
         },
         ['user', 'role'],
       );
+
+      const socials = <UserSocials>(
+        (<unknown>DataFactory.createForClass(UserSocials).generate(1)[0])
+      );
+
+      socials.user = <any>{ id: persistedUser.id };
+
+      this.userSocialsRepository.save(socials);
     }
 
     //Setup admin account
