@@ -20,6 +20,7 @@ import { LastMail } from './features/mail/entities/last-mail.entity';
 import { Notification } from './features/notifications/entities/notification.entity';
 import { TagsSeeder } from './features/tags/seeders/tags.seeder';
 import { PortfoliosSeeder } from './features/portfolio/seeders/portfolios.seeder';
+import { UserSocials } from './features/users/entities/usersocials.entity';
 
 seeder({
   imports: [
@@ -43,6 +44,7 @@ seeder({
       UserConsent,
       UserProfile,
       UserReferrer,
+      UserSocials,
       PortfolioPost,
       NeedPost,
       Tag,
