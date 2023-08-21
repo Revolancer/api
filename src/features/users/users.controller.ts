@@ -28,6 +28,7 @@ import { ChangeExperienceDto } from './dto/changeexperience.dto';
 import { ChangeEmailPrefsDto } from './dto/changeemailprefs.dto';
 import { DeleteAccountDto } from './dto/deleteaccount.dto';
 import { LocationUpdateDto } from './dto/locationupdate.dto';
+import { SocialsUpdateDto } from './dto/socialsupdate.dto';
 
 @Controller('user')
 export class UsersController {
@@ -256,5 +257,19 @@ export class UsersController {
   @Get('checklist_complete')
   async isChecklistComplete(@Req() req: IUserRequest) {
     return this.usersService.isChecklistComplete(req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('socials')
+  async updateSocials(
+    @Req() req: IUserRequest,
+    @Body() body: SocialsUpdateDto,
+  ) {
+    return this.usersService.updateSocialLinks(req.user, body.links);
+  }
+
+  @Get('socials/:id')
+  async getSocials(@Param('id') id: string) {
+    return this.usersService.getSocialLinks(id);
   }
 }

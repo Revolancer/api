@@ -53,6 +53,7 @@ import { Queue } from 'bull';
 import { PortfolioPost } from '../portfolio/entities/portfolio-post.entity';
 import { LocationUpdateDto } from './dto/locationupdate.dto';
 import { MapsService } from '../maps/maps.service';
+import { UserSocials } from './entities/usersocials.entity';
 
 @Injectable()
 export class UsersService {
@@ -67,6 +68,8 @@ export class UsersService {
     private userProfileRepository: Repository<UserProfile>,
     @InjectRepository(UserReferrer)
     private userReferrerRepository: Repository<UserReferrer>,
+    @InjectRepository(UserSocials)
+    private userSocialsRepository: Repository<UserSocials>,
     @InjectRepository(LastMail)
     private lastMailRepository: Repository<LastMail>,
     @InjectRepository(NeedPost)
@@ -1063,5 +1066,55 @@ export class UsersService {
         this.lastMailRepository.save(messageSent);
       }
     }
+  }
+
+  async createSocialsForUser(user: User) {
+    return this.userSocialsRepository.insert({
+      user: { id: user.id },
+      links: [],
+    });
+  }
+
+  async createSocialsForUserId(id: string) {
+    return this.userSocialsRepository.insert({
+      user: { id: id },
+      links: [],
+    });
+  }
+
+  async getSocialLinks(id: string) {
+    if (!(await this.findOne(id))) {
+      throw new NotFoundException();
+    }
+    const socials = await this.userSocialsRepository.findOne({
+      where: { user: { id } },
+    });
+
+    if (socials) {
+      return { links: socials.links };
+    }
+    await this.createSocialsForUserId(id);
+
+    return [];
+  }
+
+  async updateSocialLinks(user: User, links: string[]) {
+    let socials = await this.userSocialsRepository.findOne({
+      where: { user: { id: user.id } },
+    });
+
+    if (!socials) {
+      await this.createSocialsForUser(user);
+      socials = await this.userSocialsRepository.findOne({
+        where: { user: { id: user.id } },
+      });
+    }
+    if (!socials) {
+      return { success: false };
+    }
+
+    socials.links = links;
+    this.userSocialsRepository.save(socials);
+    return { success: true };
   }
 }
