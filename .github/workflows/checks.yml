@@ -1,5 +1,9 @@
 name: Checks
-on: pull_request
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['main']
 jobs:
   code_quality:
     runs-on: ubuntu-latest
@@ -9,10 +13,13 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18.x'
+          cache: 'npm'
       - name: Install npm dependencies
-        run: npm install
+        run: npm ci
       - name: Lint
         run: npm run lint
+      - name: Build
+        run: npm run build
       - name: Run tests
         run: npm run test
       - name: Run e2e tests
