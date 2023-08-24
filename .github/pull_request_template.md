@@ -8,6 +8,7 @@
 
 ## Type of change
 
+- [ ] Chore
 - [ ] Bug Fix
 - [ ] New feature (exposes new, previously unused API endpoints, or new scheduled tasks)
 - [ ] Updated feature, non-breaking
