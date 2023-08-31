@@ -60,9 +60,9 @@ export class CreditsService {
     const saved = await this.creditLogRepository.save(entry);
     this.notificationsService.createOrUpdate(
       user,
-      `You have ${
-        amount > 0 ? 'gained' : 'lost'
-      } ${amount} credits due to ${reason}`,
+      `You have ${amount > 0 ? 'gained' : 'lost'} ${Math.abs(
+        amount,
+      )} credits due to ${reason}`,
       `credit-log-${saved.id}`,
       `/projects`,
     );
