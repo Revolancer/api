@@ -101,7 +101,7 @@ export class ProjectsController {
    * Otherwise, this will request that the other user cancel
    * @param id ID of the project to cancel
    */
-  @Put(':id/cancel')
+  @Put('cancellation/:id')
   @UseGuards(JwtAuthGuard)
   async cancelProject(@Req() req: IUserRequest, @Param('id') id: string) {
     return this.projectsService.markProjectForCancellation(req.user, id);
