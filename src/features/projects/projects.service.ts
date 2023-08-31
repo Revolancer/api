@@ -278,10 +278,9 @@ export class ProjectsService {
     if (loadedContractor) {
       this.mailService.scheduleMail(
         loadedContractor,
-        'project_complete_contractor',
+        'project_cancellation_complete_contractor',
         {
           need: project.need,
-          project: project,
         },
       );
       this.notificationsService.createOrUpdate(
@@ -293,10 +292,13 @@ export class ProjectsService {
     }
     const loadedClient = await this.usersService.findOne(project.client.id);
     if (loadedClient) {
-      this.mailService.scheduleMail(loadedClient, 'project_complete_client', {
-        need: project.need,
-        project: project,
-      });
+      this.mailService.scheduleMail(
+        loadedClient,
+        'project_cancellation_complete_client',
+        {
+          need: project.need,
+        },
+      );
       this.notificationsService.createOrUpdate(
         loadedClient,
         `Your project "${project.need.title}" has been cancelled.`,
@@ -327,17 +329,13 @@ export class ProjectsService {
     this.projectRepository.save(project);
     const loadedUser = await this.usersService.findOne(remainingUser.id);
     if (loadedUser) {
-      //TODO: We need an email for 'project cancelled, other user closed their account'
-      /*
       this.mailService.scheduleMail(
         loadedUser,
-        'project_complete_contractor',
+        'project_cancellation_complete_deleted',
         {
           need: project.need,
-          project: project,
         },
       );
-      */
       this.notificationsService.createOrUpdate(
         loadedUser,
         `Unfortunately, your project "${project.need.title}" was cancelled due to the other user's account being closed`,
@@ -426,6 +424,9 @@ export class ProjectsService {
     }
 
     if (project.client.id == user.id) {
+      const loadedOther = await this.usersService.findOne(
+        project.contractor.id,
+      );
       project.client_cancellation = true;
       this.notificationsService.createOrUpdate(
         project.contractor,
@@ -433,7 +434,19 @@ export class ProjectsService {
         `project-approval-${project.id}`,
         `/project/${project.id}`,
       );
+      if (loadedOther) {
+        this.mailService.scheduleMail(
+          loadedOther,
+          'project_cancellation_pending_contractor',
+          {
+            need: project.need,
+            project: project,
+            someone: user,
+          },
+        );
+      }
     } else if (project.contractor.id == user.id) {
+      const loadedOther = await this.usersService.findOne(project.client.id);
       project.contractor_cancellation = true;
       this.notificationsService.createOrUpdate(
         project.client,
@@ -441,6 +454,17 @@ export class ProjectsService {
         `project-approval-${project.id}`,
         `/project/${project.id}`,
       );
+      if (loadedOther) {
+        this.mailService.scheduleMail(
+          loadedOther,
+          'project_cancellation_pending_client',
+          {
+            need: project.need,
+            project: project,
+            someone: user,
+          },
+        );
+      }
     }
     this.projectRepository.save(project);
     if (project.client_approval && project.contractor_approval) {
