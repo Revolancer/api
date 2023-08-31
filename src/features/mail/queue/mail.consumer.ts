@@ -99,6 +99,36 @@ export class MailConsumer {
           job.data.extraData,
         );
         break;
+      case 'project_cancellation_complete_client':
+        this.mailService.sendMailoutProjectCancellationCompleteClient(
+          job.data.user,
+          job.data.extraData,
+        );
+        break;
+      case 'project_cancellation_complete_contractor':
+        this.mailService.sendMailoutProjectCancellationCompleteContractor(
+          job.data.user,
+          job.data.extraData,
+        );
+        break;
+      case 'project_cancellation_complete_deleted':
+        this.mailService.sendMailoutProjectCancellationCompleteDeletedUser(
+          job.data.user,
+          job.data.extraData,
+        );
+        break;
+      case 'project_cancellation_pending_client':
+        this.mailService.sendMailoutProjectCancellationPendingClient(
+          job.data.user,
+          job.data.extraData,
+        );
+        break;
+      case 'project_cancellation_pending_contractor':
+        this.mailService.sendMailoutProjectCancellationPendingContractor(
+          job.data.user,
+          job.data.extraData,
+        );
+        break;
       case 'project_unread_messages':
         this.mailService.sendMailoutProjectUnreadMessages(
           job.data.user,

@@ -230,9 +230,9 @@ export class MailService {
             }
             const lengthToAdd = maxLength - summary.length;
             summary += (block.data.text as string)
-              .substring(0, maxLength - summary.length)
               .replace(/(<([^>]+)>)/gi, '')
-              .replace(/(&([^>]+);)/gi, '');
+              .replace(/(&([^>]+);)/gi, '')
+              .substring(0, maxLength - summary.length);
             if (lengthToAdd < (block.data.text as string).length) {
               summary += '...';
             }
@@ -397,6 +397,134 @@ export class MailService {
         },
         portfolio_link: 'https://app.revolancer.com/u/profile',
         wallet_link: 'https://app.revolancer.com/projects',
+      },
+    };
+    this.sendgrid.send(mail);
+  }
+
+  async sendMailoutProjectCancellationCompleteClient(
+    user: User,
+    extraData: { [key: string]: any },
+  ) {
+    if (!user.email) return;
+    const need: NeedPost = extraData.need;
+
+    const mail: MailDataRequired = {
+      to: user.email,
+      from: this.sender,
+      replyTo: this.replyTo,
+      templateId: 'd-ec963c29c84946a69008a0067c740f37',
+      dynamicTemplateData: {
+        ...this.dynamicTemplateData,
+        ...(await this.getRecipientProfileVariables(user)),
+        project: {
+          title: need.title ?? '',
+        },
+        cancelled_projects: 'https://app.revolancer.com/projects/cancelled',
+      },
+    };
+    this.sendgrid.send(mail);
+  }
+
+  async sendMailoutProjectCancellationCompleteContractor(
+    user: User,
+    extraData: { [key: string]: any },
+  ) {
+    if (!user.email) return;
+    const need: NeedPost = extraData.need;
+
+    const mail: MailDataRequired = {
+      to: user.email,
+      from: this.sender,
+      replyTo: this.replyTo,
+      templateId: 'd-ef3b8bd4a8644d04a9cb7dd40f5273f7',
+      dynamicTemplateData: {
+        ...this.dynamicTemplateData,
+        ...(await this.getRecipientProfileVariables(user)),
+        project: {
+          title: need.title ?? '',
+        },
+        cancelled_projects: 'https://app.revolancer.com/projects/cancelled',
+      },
+    };
+    this.sendgrid.send(mail);
+  }
+
+  async sendMailoutProjectCancellationCompleteDeletedUser(
+    user: User,
+    extraData: { [key: string]: any },
+  ) {
+    if (!user.email) return;
+    const need: NeedPost = extraData.need;
+
+    const mail: MailDataRequired = {
+      to: user.email,
+      from: this.sender,
+      replyTo: this.replyTo,
+      templateId: 'd-3092f7d227bf423395d63613b94f99a9',
+      dynamicTemplateData: {
+        ...this.dynamicTemplateData,
+        ...(await this.getRecipientProfileVariables(user)),
+        project: {
+          title: need.title ?? '',
+        },
+        cancelled_projects: 'https://app.revolancer.com/projects/cancelled',
+      },
+    };
+    this.sendgrid.send(mail);
+  }
+
+  async sendMailoutProjectCancellationPendingClient(
+    user: User,
+    extraData: { [key: string]: any },
+  ) {
+    if (!user.email) return;
+    const project: Project = extraData.project;
+    const someone: User = extraData.someone;
+    const profile = await this.usersService.getProfile(someone);
+
+    const mail: MailDataRequired = {
+      to: user.email,
+      from: this.sender,
+      replyTo: this.replyTo,
+      templateId: 'd-94739847eded465d86129ba9f7808eb4',
+      dynamicTemplateData: {
+        ...this.dynamicTemplateData,
+        ...(await this.getRecipientProfileVariables(user)),
+        someone_profile_picture: profile.profile_image ?? '',
+        someone_name: profile.first_name,
+        project: {
+          link: `https://app.revolancer.com/project/${project.id}`,
+          title: project.need.title ?? '',
+        },
+      },
+    };
+    this.sendgrid.send(mail);
+  }
+
+  async sendMailoutProjectCancellationPendingContractor(
+    user: User,
+    extraData: { [key: string]: any },
+  ) {
+    if (!user.email) return;
+    const project: Project = extraData.project;
+    const someone: User = extraData.someone;
+    const profile = await this.usersService.getProfile(someone);
+
+    const mail: MailDataRequired = {
+      to: user.email,
+      from: this.sender,
+      replyTo: this.replyTo,
+      templateId: 'd-ef3b8bd4a8644d04a9cb7dd40f5273f7',
+      dynamicTemplateData: {
+        ...this.dynamicTemplateData,
+        ...(await this.getRecipientProfileVariables(user)),
+        someone_profile_picture: profile.profile_image ?? '',
+        someone_name: profile.first_name,
+        project: {
+          link: `https://app.revolancer.com/project/${project.id}`,
+          title: project.need.title ?? '',
+        },
       },
     };
     this.sendgrid.send(mail);

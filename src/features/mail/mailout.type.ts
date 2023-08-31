@@ -16,5 +16,10 @@ export type Mailout =
   | 'project_complete_client'
   | 'project_complete_contractor'
   | 'project_unread_messages'
+  | 'project_cancellation_pending_client'
+  | 'project_cancellation_pending_contractor'
+  | 'project_cancellation_complete_client'
+  | 'project_cancellation_complete_contractor'
+  | 'project_cancellation_complete_deleted'
   | '7_days_no_needs'
   | '3_days_no_portfolio';
