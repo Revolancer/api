@@ -261,6 +261,51 @@ export class ProjectsService {
     }
   }
 
+  async cancelProjectMutually(project: Project) {
+    project.outcome = 'cancelled';
+    project.status = 'complete';
+    const client = project.client;
+    this.creditsService.addOrRemoveUserCredits(
+      client,
+      project.credits,
+      `Project Cancelled: ${project.need?.title ?? 'Untitled'}`,
+    );
+    project.credits_released = true;
+    this.projectRepository.save(project);
+    const loadedContractor = await this.usersService.findOne(
+      project.contractor.id,
+    );
+    if (loadedContractor) {
+      this.mailService.scheduleMail(
+        loadedContractor,
+        'project_complete_contractor',
+        {
+          need: project.need,
+          project: project,
+        },
+      );
+      this.notificationsService.createOrUpdate(
+        loadedContractor,
+        `Your project "${project.need.title}" has been cancelled.`,
+        `project-new-${project.id}`,
+        `/project/${project.id}`,
+      );
+    }
+    const loadedClient = await this.usersService.findOne(project.client.id);
+    if (loadedClient) {
+      this.mailService.scheduleMail(loadedClient, 'project_complete_client', {
+        need: project.need,
+        project: project,
+      });
+      this.notificationsService.createOrUpdate(
+        loadedClient,
+        `Your project "${project.need.title}" has been cancelled.`,
+        `project-new-${project.id}`,
+        `/project/${project.id}`,
+      );
+    }
+  }
+
   /**
    * Cancel an active project because one participant is being deleted
    * @param project The project to cancel
@@ -365,6 +410,42 @@ export class ProjectsService {
       );
     }
     this.projectRepository.save(project);
+  }
+
+  async markProjectForCancellation(user: User, id: string) {
+    const project = await this.projectRepository.findOne({
+      where: [
+        { id: id, client: { id: user.id } },
+        { id: id, contractor: { id: user.id } },
+      ],
+      relations: ['client', 'contractor', 'need'],
+      select: { client: { id: true }, contractor: { id: true } },
+    });
+    if (!project) {
+      throw new NotFoundException();
+    }
+
+    if (project.client.id == user.id) {
+      project.client_cancellation = true;
+      this.notificationsService.createOrUpdate(
+        project.contractor,
+        `Your project ${project.need.title} is pending cancellation`,
+        `project-approval-${project.id}`,
+        `/project/${project.id}`,
+      );
+    } else if (project.contractor.id == user.id) {
+      project.contractor_cancellation = true;
+      this.notificationsService.createOrUpdate(
+        project.client,
+        `Your project ${project.need.title} is pending cancellation`,
+        `project-approval-${project.id}`,
+        `/project/${project.id}`,
+      );
+    }
+    this.projectRepository.save(project);
+    if (project.client_approval && project.contractor_approval) {
+      this.completeProject(project);
+    }
   }
 
   async markMessageAsRead(user: User, id: string) {

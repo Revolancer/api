@@ -94,4 +94,16 @@ export class ProjectsController {
   async acknowledgeMessage(@Req() req: IUserRequest, @Param('id') id: string) {
     return this.projectsService.markMessageAsRead(req.user, id);
   }
+
+  /**
+   * Either request or confirm cancellation of a project
+   * If the other user has requested to cancel, this will cancel a project.
+   * Otherwise, this will request that the other user cancel
+   * @param id ID of the project to cancel
+   */
+  @Put(':id/cancel')
+  @UseGuards(JwtAuthGuard)
+  async cancelProject(@Req() req: IUserRequest, @Param('id') id: string) {
+    return this.projectsService.markProjectForCancellation(req.user, id);
+  }
 }
