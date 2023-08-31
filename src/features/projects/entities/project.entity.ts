@@ -54,6 +54,12 @@ export class Project {
   @Column({ default: false })
   contractor_approval!: boolean;
 
+  @Column({ default: false })
+  client_cancellation!: boolean;
+
+  @Column({ default: false })
+  contractor_cancellation!: boolean;
+
   @OneToMany(
     () => ProjectMessage,
     (message: ProjectMessage) => message.project,
