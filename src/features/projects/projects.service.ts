@@ -467,8 +467,8 @@ export class ProjectsService {
       }
     }
     this.projectRepository.save(project);
-    if (project.client_approval && project.contractor_approval) {
-      this.completeProject(project);
+    if (project.client_cancellation && project.contractor_cancellation) {
+      this.cancelProjectMutually(project);
     }
   }
 
