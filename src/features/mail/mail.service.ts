@@ -480,6 +480,7 @@ export class MailService {
   ) {
     if (!user.email) return;
     const project: Project = extraData.project;
+    const need: NeedPost = extraData.need;
     const someone: User = extraData.someone;
     const profile = await this.usersService.getProfile(someone);
 
@@ -495,7 +496,7 @@ export class MailService {
         someone_name: profile.first_name,
         project: {
           link: `https://app.revolancer.com/project/${project.id}`,
-          title: project.need.title ?? '',
+          title: need.title ?? '',
         },
       },
     };
@@ -508,6 +509,7 @@ export class MailService {
   ) {
     if (!user.email) return;
     const project: Project = extraData.project;
+    const need: NeedPost = extraData.need;
     const someone: User = extraData.someone;
     const profile = await this.usersService.getProfile(someone);
 
@@ -523,7 +525,7 @@ export class MailService {
         someone_name: profile.first_name,
         project: {
           link: `https://app.revolancer.com/project/${project.id}`,
-          title: project.need.title ?? '',
+          title: need.title ?? '',
         },
       },
     };
