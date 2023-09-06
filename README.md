@@ -1,5 +1,7 @@
 # Revolancer API
 
+![coverage](https://revolancer.github.io/api/badges/coverage.svg)
+
 This is the API for the Revolancer platform. Copyright 2021-2023 Revolancer Ltd, all rights reserved.
 
 ## Contributing
