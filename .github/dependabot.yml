@@ -21,3 +21,4 @@ updates:
           - 'passport'
           - 'passport-*'
           - '@types/passport-*'
+    open-pull-requests-limit: 50
