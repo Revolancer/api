@@ -11,7 +11,7 @@ import { BullModule } from '@nestjs/bull';
 import { RedisConfigModule } from './config/redis/config.module';
 import { RedisConfigService } from './config/redis/config.service';
 import { MailModule } from './features/mail/mail.module';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule, seconds } from '@nestjs/throttler';
 import { BullBoardModule } from './features/bull-board/bull-board.module';
 import { TagsModule } from './features/tags/tags.module';
 import { UploadModule } from './features/upload/upload.module';
@@ -73,10 +73,12 @@ class NullModule {}
         },
       }),
     }),
-    ThrottlerModule.forRoot({
-      ttl: 30,
-      limit: 5,
-    }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: seconds(30),
+        limit: 5,
+      },
+    ]),
     ScheduleModule.forRoot(),
     DevtoolsModule.register({
       http: process.env.NODE_ENV == 'development',
