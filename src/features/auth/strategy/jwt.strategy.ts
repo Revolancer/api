@@ -17,6 +17,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (payload.purpose != 'authenticate') {
       return false;
     }
-    return { id: payload.sub };
+    return { id: payload.sub, roles: payload.roles };
   }
 }
