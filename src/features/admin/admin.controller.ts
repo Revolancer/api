@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Query,
   Post,
   Req,
   UseGuards,
@@ -18,10 +19,20 @@ import { ImportUsersDto } from './dto/import-users.dto';
 export class AdminController {
   constructor(private adminService: AdminService) {}
 
-  @Get('users')
+  @Get('users/all')
   @UseGuards(AdminAuthGuard)
   async getAllUsers() {
     return this.adminService.listAllUsers();
+  }
+
+  @Get('users')
+  @UseGuards(AdminAuthGuard)
+  async getUsersForAdmin(
+    @Query('page') page: number,
+    @Query('sortBy') sortBy: string,
+    @Query('order') order: string,
+  ) {
+    return this.adminService.listUsersForAdmin(page, sortBy, order);
   }
 
   @Post('user/credits')
