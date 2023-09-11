@@ -1,13 +1,16 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
-import { AdminAuthGuard } from '../auth/guards/admin.guard';
 import { StatsService } from './stats.service';
+import { HasRoles } from '../auth/has-roles.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RoleGuard } from '../auth/guards/role.guard';
 
 @Controller('admin/stats')
 export class StatsController {
   constructor(private statsService: StatsService) {}
 
   @Get('count_users')
-  @UseGuards(AdminAuthGuard)
+  @HasRoles('admin', 'moderator', 'stats_viewer')
+  @UseGuards(JwtAuthGuard, RoleGuard)
   async getUserCount() {
     const count = await this.statsService.countUsers();
     const deleted = await this.statsService.countDeletedUsers();
@@ -21,7 +24,8 @@ export class StatsController {
   }
 
   @Get('count_active_users')
-  @UseGuards(AdminAuthGuard)
+  @HasRoles('admin', 'moderator', 'stats_viewer')
+  @UseGuards(JwtAuthGuard, RoleGuard)
   async getActiveUserCount() {
     const dau = await this.statsService.countActiveUsers('daily');
     const wau = await this.statsService.countActiveUsers('weekly');
@@ -37,7 +41,8 @@ export class StatsController {
   }
 
   @Get('count_new_posts')
-  @UseGuards(AdminAuthGuard)
+  @HasRoles('admin', 'moderator', 'stats_viewer')
+  @UseGuards(JwtAuthGuard, RoleGuard)
   async getNewPostCount() {
     const dailyPortfolios = await this.statsService.countNewContent(
       'daily',
@@ -101,7 +106,8 @@ export class StatsController {
   }
 
   @Get('count_new_users')
-  @UseGuards(AdminAuthGuard)
+  @HasRoles('admin', 'moderator', 'stats_viewer')
+  @UseGuards(JwtAuthGuard, RoleGuard)
   async getNewUserCount() {
     const daily = await this.statsService.countNewContent('daily', 'user');
     const weekly = await this.statsService.countNewContent('weekly', 'user');
@@ -114,13 +120,15 @@ export class StatsController {
   }
 
   @Get('referrers')
-  @UseGuards(AdminAuthGuard)
+  @HasRoles('admin', 'moderator', 'stats_viewer')
+  @UseGuards(JwtAuthGuard, RoleGuard)
   async getReferrers() {
     return this.statsService.countReferrals();
   }
 
   @Get('profile_top_skills')
-  @UseGuards(AdminAuthGuard)
+  @HasRoles('admin', 'moderator', 'stats_viewer')
+  @UseGuards(JwtAuthGuard, RoleGuard)
   async getTopProfileSkills() {
     return this.statsService.getTopUserProfileTags();
   }
