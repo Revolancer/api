@@ -71,7 +71,7 @@
     "@faker-js/faker": "^8.0.2",
     "@nestjs/cli": "^10.1.17",
     "@nestjs/schematics": "^10.0.2",
-    "@nestjs/testing": "^10.2.4",
+    "@nestjs/testing": "^10.2.5",
     "@types/bull": "^4.10.0",
     "@types/compression": "^1.7.3",
     "@types/cron": "^2.4.0",
