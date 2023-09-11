@@ -9,9 +9,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { IUserRequest } from 'src/interface/iuserrequest';
-import { AdminAuthGuard } from '../auth/guards/admin.guard';
 import { CreateTagDto } from './dto/create-user.dto';
 import { TagsService } from './tags.service';
+import { HasRoles } from '../auth/has-roles.decorator';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RoleGuard } from '../auth/guards/role.guard';
 
 @Controller('tags')
 export class TagsController {
@@ -28,13 +30,15 @@ export class TagsController {
   }
 
   @Put()
-  @UseGuards(AdminAuthGuard)
+  @HasRoles('admin')
+  @UseGuards(JwtAuthGuard, RoleGuard)
   async createTag(@Req() req: IUserRequest, @Body() body: CreateTagDto) {
     return await this.tagsService.createTag(body);
   }
 
   @Delete(':id')
-  @UseGuards(AdminAuthGuard)
+  @HasRoles('admin')
+  @UseGuards(JwtAuthGuard, RoleGuard)
   async deleteTag(@Param('id') id: string) {
     return await this.tagsService.deleteTag(id);
   }
