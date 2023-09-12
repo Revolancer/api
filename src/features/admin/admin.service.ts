@@ -96,19 +96,28 @@ export class AdminService {
         'order can either be "asc"(ascending) or "desc"(descending)',
       );
     }
-    return this.userProfileRepository.find({
-      select: {
-        id: true,
-        first_name: true,
-        last_name: true,
-        created_at: true,
-        profile_image: true,
-      },
-      where: { onboardingStage: 4 },
-      order: { [sortBy]: order },
-      skip: 20 * (page - 1),
-      take: 20,
-    });
+    return this.userProfileRepository
+      .find({
+        relations: ['user.roles'],
+        select: [
+          'id',
+          'first_name',
+          'last_name',
+          'created_at',
+          'profile_image',
+          'slug',
+        ],
+        where: { onboardingStage: 4 },
+        order: { [sortBy]: order },
+        skip: 20 * (page - 1),
+        take: 20,
+      })
+      .then((userProfiles) => {
+        return userProfiles.map((profile) => ({
+          ...profile,
+          roles: profile.user.roles.map((role) => role.role),
+        }));
+      });
   }
 
   async addCredits(body: AddCreditsDto) {
