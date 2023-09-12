@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
@@ -58,6 +63,38 @@ export class AdminService {
       select: { slug: true, created_at: true },
       where: { onboardingStage: 4 },
       order: { created_at: 'DESC' },
+    });
+  }
+
+  async listUsersForAdmin(page: number, sortBy: string, order: string) {
+    const allowedSortBy = ['first_name', 'last_name', 'slug', 'created_at'];
+    const allowedOrder = ['desc', 'asc'];
+
+    if (!allowedSortBy.includes(sortBy)) {
+      throw new BadRequestException(
+        `sortBy should be one of these - ${allowedSortBy
+          .map((sb) => `"${sb}"`)
+          .join(' ')}`,
+      );
+    }
+
+    if (!allowedOrder.includes(order.toLowerCase())) {
+      throw new BadRequestException(
+        'order can either be "asc"(ascending) or "desc"(descending)',
+      );
+    }
+    return this.userProfileRepository.find({
+      select: {
+        id: true,
+        first_name: true,
+        last_name: true,
+        created_at: true,
+        profile_image: true,
+      },
+      where: { onboardingStage: 4 },
+      order: { [sortBy]: order },
+      skip: 20 * (page - 1),
+      take: 20,
     });
   }
 
