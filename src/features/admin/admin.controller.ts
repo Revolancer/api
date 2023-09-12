@@ -39,6 +39,13 @@ export class AdminController {
     return this.adminService.listUsersForAdmin(page, sortBy, order);
   }
 
+  @Get('users/withroles')
+  @HasRoles('admin', 'moderator')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async getUsersWithRoles() {
+    return this.adminService.listUsersWithRoles();
+  }
+
   @Post('user/credits')
   @HasRoles('admin', 'moderator')
   @UseGuards(JwtAuthGuard, RoleGuard)

@@ -66,6 +66,19 @@ export class AdminService {
     });
   }
 
+  async listUsersWithRoles() {
+    const qb = this.userProfileRepository.createQueryBuilder('profile');
+    return qb
+      .select(
+        'user.id, profile.slug, profile.profile_image, profile.first_name, profile.last_name, roles.role',
+      )
+      .leftJoin('profile.user', 'user')
+      .leftJoin('user.roles', 'roles')
+      .where("roles.role != 'user'")
+      .orderBy('user.created_at', 'ASC')
+      .execute();
+  }
+
   async listUsersForAdmin(page: number, sortBy: string, order: string) {
     const allowedSortBy = ['first_name', 'last_name', 'slug', 'created_at'];
     const allowedOrder = ['desc', 'asc'];

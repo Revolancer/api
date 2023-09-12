@@ -54,6 +54,7 @@ import { PortfolioPost } from '../portfolio/entities/portfolio-post.entity';
 import { LocationUpdateDto } from './dto/locationupdate.dto';
 import { MapsService } from '../maps/maps.service';
 import { UserSocials } from './entities/usersocials.entity';
+import { NameUpdateDto } from './dto/nameupdate.dto';
 
 @Injectable()
 export class UsersService {
@@ -586,12 +587,38 @@ export class UsersService {
     return profile;
   }
 
+  async getUserName(id: string): Promise<UserProfile | Record<string, never>> {
+    const profile = await this.userProfileRepository.findOne({
+      where: { user: { id: id } },
+      select: {
+        id: true,
+        first_name: true,
+        last_name: true,
+      },
+    });
+    if (!(profile instanceof UserProfile)) {
+      return {};
+    }
+    return profile;
+  }
+
   async setUserTagline(
     user: User,
     body: TaglineUpdateDto,
   ): Promise<{ success: boolean }> {
     const loadedUserProfile = await this.getProfile(user);
     loadedUserProfile.tagline = body.tagline;
+    this.userProfileRepository.save(loadedUserProfile);
+    return { success: true };
+  }
+
+  async setUserName(
+    user: User,
+    body: NameUpdateDto,
+  ): Promise<{ success: boolean }> {
+    const loadedUserProfile = await this.getProfile(user);
+    loadedUserProfile.first_name = body.first_name;
+    loadedUserProfile.last_name = body.last_name;
     this.userProfileRepository.save(loadedUserProfile);
     return { success: true };
   }

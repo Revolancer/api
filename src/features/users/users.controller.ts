@@ -29,6 +29,7 @@ import { ChangeEmailPrefsDto } from './dto/changeemailprefs.dto';
 import { DeleteAccountDto } from './dto/deleteaccount.dto';
 import { LocationUpdateDto } from './dto/locationupdate.dto';
 import { SocialsUpdateDto } from './dto/socialsupdate.dto';
+import { NameUpdateDto } from './dto/nameupdate.dto';
 
 @Controller('user')
 export class UsersController {
@@ -165,6 +166,17 @@ export class UsersController {
     @Body() body: TaglineUpdateDto,
   ) {
     return this.usersService.setUserTagline(req.user, body);
+  }
+
+  @Get('name/:id')
+  async getUserName(@Param('id') id: string) {
+    return this.usersService.getUserName(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('name')
+  async setUserName(@Req() req: IUserRequest, @Body() body: NameUpdateDto) {
+    return this.usersService.setUserName(req.user, body);
   }
 
   @Get('about/:id')
