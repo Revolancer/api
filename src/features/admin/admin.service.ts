@@ -70,7 +70,7 @@ export class AdminService {
     const qb = this.userProfileRepository.createQueryBuilder('profile');
     return qb
       .select(
-        'user.id, profile.slug, profile.profile_image, profile.first_name, profile.last_name, roles.role',
+        'user.id, user.email, profile.slug, profile.profile_image, profile.first_name, profile.last_name, roles.role',
       )
       .leftJoin('profile.user', 'user')
       .leftJoin('user.roles', 'roles')
