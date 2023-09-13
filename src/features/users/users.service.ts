@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   forwardRef,
   Inject,
@@ -55,6 +56,7 @@ import { LocationUpdateDto } from './dto/locationupdate.dto';
 import { MapsService } from '../maps/maps.service';
 import { UserSocials } from './entities/usersocials.entity';
 import { NameUpdateDto } from './dto/nameupdate.dto';
+import { validate as isValidUUID } from 'uuid';
 
 @Injectable()
 export class UsersService {
@@ -98,6 +100,7 @@ export class UsersService {
   }
 
   findOne(id: string): Promise<User | null> {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     return this.usersRepository.findOne({
       relations: ['roles'],
       where: { id: id },
@@ -124,6 +127,7 @@ export class UsersService {
   }
 
   async remove(id: string): Promise<void> {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     const user = await this.findOne(id);
     if (user === null) {
       return;
@@ -260,6 +264,7 @@ export class UsersService {
   }
 
   async resetPassword(uid: string, password: string) {
+    if (!isValidUUID(uid)) throw new BadRequestException('Invalid ID Format');
     const loadedUser = await this.usersRepository.findOneBy({
       id: uid,
     });
@@ -441,6 +446,7 @@ export class UsersService {
   async getUserProfileData(
     id: string,
   ): Promise<UserProfile | Record<string, never>> {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     const profile = await this.userProfileRepository.findOne({
       where: { user: { id: id } },
       relations: ['user'],
@@ -466,6 +472,7 @@ export class UsersService {
   async getUserSkills(
     id: string,
   ): Promise<UserProfile | Record<string, never>> {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     const profile = await this.userProfileRepository.findOne({
       where: { user: { id: id } },
       relations: ['skills'],
@@ -505,6 +512,7 @@ export class UsersService {
   async getUserProfileImage(
     id: string,
   ): Promise<UserProfile | Record<string, never>> {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     const profile = await this.userProfileRepository.findOne({
       where: { user: { id: id } },
       select: {
@@ -534,6 +542,7 @@ export class UsersService {
   async getUserTimezone(
     id: string,
   ): Promise<UserProfile | Record<string, never>> {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     const profile = await this.userProfileRepository.findOne({
       where: { user: { id: id } },
       select: {
@@ -574,6 +583,7 @@ export class UsersService {
   async getUserTagline(
     id: string,
   ): Promise<UserProfile | Record<string, never>> {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     const profile = await this.userProfileRepository.findOne({
       where: { user: { id: id } },
       select: {
@@ -588,6 +598,7 @@ export class UsersService {
   }
 
   async getUserName(id: string): Promise<UserProfile | Record<string, never>> {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     const profile = await this.userProfileRepository.findOne({
       where: { user: { id: id } },
       select: {
@@ -624,6 +635,7 @@ export class UsersService {
   }
 
   async getUserAbout(id: string): Promise<UserProfile | Record<string, never>> {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     const profile = await this.userProfileRepository.findOne({
       where: { user: { id: id } },
       select: {
@@ -978,6 +990,8 @@ export class UsersService {
 
   async sendNoNeedsEmail(users: { id: string }[]) {
     for (const uid of users) {
+      if (!isValidUUID(uid.id))
+        throw new BadRequestException('Invalid ID Format');
       const user = await this.findOne(uid.id);
       if (!user) {
         continue;
@@ -1062,6 +1076,8 @@ export class UsersService {
 
   async sendNoPortfolioEmail(users: { id: string }[]) {
     for (const uid of users) {
+      if (!isValidUUID(uid.id))
+        throw new BadRequestException('Invalid ID Format');
       const user = await this.findOne(uid.id);
       if (!user) {
         continue;
@@ -1103,6 +1119,7 @@ export class UsersService {
   }
 
   async createSocialsForUserId(id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     return this.userSocialsRepository.insert({
       user: { id: id },
       links: [],
@@ -1110,6 +1127,7 @@ export class UsersService {
   }
 
   async getSocialLinks(id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     if (!(await this.findOne(id))) {
       throw new NotFoundException();
     }
