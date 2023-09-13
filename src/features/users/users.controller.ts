@@ -90,6 +90,11 @@ export class UsersController {
     );
   }
 
+  @Get('profile/by_id/:id')
+  async getUserProfileDataById(@Param('id') id: string) {
+    return this.usersService.getUserProfileData(id);
+  }
+
   @Get('profile/:slug')
   async getUserProfileData(@Param('slug') slug: string) {
     return this.usersService.getUserProfileDataBySlug(slug);
@@ -99,11 +104,6 @@ export class UsersController {
   @Get('profile')
   async getOwnUserProfileData(@Req() req: IUserRequest) {
     return this.usersService.getUserProfileData(req.user.id);
-  }
-
-  @Get('profile/by_id/:id')
-  async getUserProfileDataById(@Param('id') id: string) {
-    return this.usersService.getUserProfileData(id);
   }
 
   @Get('skills/:id')
