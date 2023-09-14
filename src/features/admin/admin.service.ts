@@ -79,9 +79,20 @@ export class AdminService {
       .execute();
   }
 
-  async listUsersForAdmin(page: number, sortBy: string, order: string) {
+  async listUsersForAdmin(
+    page: number,
+    sortBy: string,
+    order: 'ASC' | 'DESC' | undefined,
+    search: string,
+  ) {
     const allowedSortBy = ['first_name', 'last_name', 'slug', 'created_at'];
-    const allowedOrder = ['desc', 'asc'];
+    const allowedOrder = ['ASC', 'DESC'];
+    const searchTerms = search
+      ? search
+          .split(',')
+          .map((term) => term.trim().toLowerCase())
+          .filter((term) => term != '')
+      : [];
 
     if (!allowedSortBy.includes(sortBy)) {
       throw new BadRequestException(
@@ -91,33 +102,51 @@ export class AdminService {
       );
     }
 
-    if (!allowedOrder.includes(order.toLowerCase())) {
+    if (order && !allowedOrder.includes(order.toUpperCase())) {
       throw new BadRequestException(
         'order can either be "asc"(ascending) or "desc"(descending)',
       );
     }
-    return this.userProfileRepository
-      .find({
-        relations: ['user.roles'],
-        select: [
-          'id',
-          'first_name',
-          'last_name',
-          'created_at',
-          'profile_image',
-          'slug',
-        ],
-        where: { onboardingStage: 4 },
-        order: { [sortBy]: order },
-        skip: 20 * (page - 1),
-        take: 20,
-      })
-      .then((userProfiles) => {
-        return userProfiles.map((profile) => ({
-          ...profile,
-          roles: profile.user.roles.map((role) => role.role),
-        }));
+    const userProfilesQuery = this.userProfileRepository
+      .createQueryBuilder('userProfile')
+      .leftJoinAndSelect('userProfile.user', 'user')
+      .leftJoinAndSelect('user.roles', 'roles')
+      .select([
+        'userProfile.id',
+        'userProfile.first_name',
+        'userProfile.last_name',
+        'userProfile.created_at',
+        'userProfile.profile_image',
+        'userProfile.slug',
+        'user.email',
+        'roles.role',
+      ])
+      .where('userProfile.onboardingStage = :onboardingStage', {
+        onboardingStage: 4,
       });
+
+    if (searchTerms.length > 0) {
+      userProfilesQuery.andWhere(
+        `(userProfile.first_name ILIKE ANY(:searchTerms) OR userProfile.last_name ILIKE ANY(:searchTerms) OR CONCAT(userProfile.first_name, ' ', userProfile.last_name) ILIKE ANY(:searchTerms) OR userProfile.slug ILIKE ANY(:searchTerms) OR user.email LIKE ANY(:strictSearchTerms))`,
+        {
+          searchTerms: searchTerms.map((term) => `%${term.toLowerCase()}%`),
+          strictSearchTerms: searchTerms,
+        },
+      );
+    }
+
+    userProfilesQuery
+      .orderBy(`userProfile.${sortBy}`, order)
+      .skip(20 * (page - 1))
+      .take(20);
+    const userProfiles = await userProfilesQuery.getMany();
+
+    return userProfiles.map((profile) => ({
+      ...profile,
+      roles: profile.user.roles.map((role) => role.role),
+      email: profile.user.email,
+      user: undefined,
+    }));
   }
 
   async addCredits(body: AddCreditsDto) {
