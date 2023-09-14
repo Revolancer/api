@@ -32,11 +32,12 @@ export class AdminController {
   @HasRoles('admin', 'moderator')
   @UseGuards(JwtAuthGuard, RoleGuard)
   async getUsersForAdmin(
+    @Query('search') search: string,
     @Query('page') page: number,
     @Query('sortBy') sortBy: string,
-    @Query('order') order: string,
+    @Query('order') order: 'ASC' | 'DESC' | undefined,
   ) {
-    return this.adminService.listUsersForAdmin(page, sortBy, order);
+    return this.adminService.listUsersForAdmin(page, sortBy, order, search);
   }
 
   @Get('users/withroles')
