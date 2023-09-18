@@ -94,6 +94,8 @@ export class AdminService {
           .filter((term) => term != '')
       : [];
 
+    const nPerPage = 20;
+
     if (!allowedSortBy.includes(sortBy)) {
       throw new BadRequestException(
         `sortBy should be one of these - ${allowedSortBy
@@ -137,16 +139,17 @@ export class AdminService {
 
     userProfilesQuery
       .orderBy(`userProfile.${sortBy}`, order)
-      .skip(20 * (page - 1))
-      .take(20);
-    const userProfiles = await userProfilesQuery.getMany();
-
-    return userProfiles.map((profile) => ({
+      .skip(nPerPage * (page - 1))
+      .take(nPerPage);
+    const [userProfiles, count] = await userProfilesQuery.getManyAndCount();
+    const data = userProfiles.map((profile) => ({
       ...profile,
       roles: profile.user.roles.map((role) => role.role),
       email: profile.user.email,
       user: undefined,
     }));
+
+    return { data, totalPages: Math.ceil(count / nPerPage) };
   }
 
   async addCredits(body: AddCreditsDto) {
