@@ -65,7 +65,7 @@
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.8.1",
     "typeorm": "^0.3.17",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@faker-js/faker": "^8.0.2",
@@ -87,7 +87,7 @@
     "@types/pg": "^8.10.2",
     "@types/pg-types": "^2.2.0",
     "@types/supertest": "^2.0.12",
-    "@types/uuid": "^9.0.3",
+    "@types/uuid": "^9.0.4",
     "@typescript-eslint/eslint-plugin": "^6.7.0",
     "@typescript-eslint/parser": "^6.6.0",
     "cron": "^2.4.3",
