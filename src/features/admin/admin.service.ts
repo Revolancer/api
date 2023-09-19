@@ -120,6 +120,7 @@ export class AdminService {
         'userProfile.created_at',
         'userProfile.profile_image',
         'userProfile.slug',
+        'user.id',
         'user.email',
         'roles.role',
       ])
@@ -146,6 +147,7 @@ export class AdminService {
       ...profile,
       roles: profile.user.roles.map((role) => role.role),
       email: profile.user.email,
+      id: profile.user.id,
       user: undefined,
     }));
 
