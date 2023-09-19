@@ -20,6 +20,7 @@ import { Queue } from 'bull';
 import { AdminJob } from './queue/admin.job';
 import { InjectQueue } from '@nestjs/bull';
 import { UsersService } from '../users/users.service';
+import { UserRole } from '../users/entities/userrole.entity';
 
 @Injectable()
 export class AdminService {
@@ -30,6 +31,8 @@ export class AdminService {
     private userRepository: Repository<User>,
     @InjectRepository(UserProfile)
     private userProfileRepository: Repository<UserProfile>,
+    @InjectRepository(UserRole)
+    private userRoleRepository: Repository<UserRole>,
     private creditService: CreditsService,
     private uploadService: UploadService,
     private usersService: UsersService,
@@ -77,6 +80,13 @@ export class AdminService {
       .where("roles.role != 'user'")
       .orderBy('user.created_at', 'ASC')
       .execute();
+  }
+
+  async getRolesForUser(id: string) {
+    return this.userRoleRepository.find({
+      select: { role: true },
+      where: { user: { id } },
+    });
   }
 
   async listUsersForAdmin(

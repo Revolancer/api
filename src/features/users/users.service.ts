@@ -449,7 +449,7 @@ export class UsersService {
     if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     const profile = await this.userProfileRepository.findOne({
       where: { user: { id: id } },
-      relations: ['user', 'user.roles'],
+      relations: ['user'],
       select: {
         id: true,
         first_name: true,
@@ -459,12 +459,10 @@ export class UsersService {
         slug: true,
         user: {
           id: true,
-          roles: {
-            role: true,
-          },
         },
       },
     });
+    console.log(profile);
     if (!(profile instanceof UserProfile)) {
       return {};
     }
