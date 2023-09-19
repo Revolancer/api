@@ -103,7 +103,7 @@ jobs:
         uses: easingthemes/ssh-deploy@main
         env:
           SSH_PRIVATE_KEY: ${{ secrets.STAGING_SK }}
-          ARGS: '-rlgoDzvc -i'
+          ARGS: '-rlgoDzvc -i --delete-after'
           REMOTE_HOST: ${{ secrets.STAGING_HOST }}
           REMOTE_USER: ${{ secrets.STAGING_USER }}
           TARGET: ${{ secrets.STAGING_TARGET }}
