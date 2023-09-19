@@ -61,13 +61,6 @@ export class AdminController {
     return this.adminService.addCredits(body);
   }
 
-  @Post('user/import')
-  @HasRoles('admin')
-  @UseGuards(JwtAuthGuard, RoleGuard)
-  async importUsers(@Req() req: IUserRequest, @Body() body: ImportUsersDto) {
-    return this.adminService.importUsers(req.user, body);
-  }
-
   @Delete('user/:id')
   @HasRoles('admin', 'moderator')
   @UseGuards(JwtAuthGuard, RoleGuard)

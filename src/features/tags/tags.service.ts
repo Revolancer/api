@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateTagDto } from './dto/create-user.dto';
 import { Tag } from './entities/tag.entity';
+import { validate as isValidUUID } from 'uuid';
 
 @Injectable()
 export class TagsService {
@@ -20,6 +21,7 @@ export class TagsService {
   }
 
   findOne(id: string): Promise<Tag | null> {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     return this.tagsRepository.findOne({
       where: { id: id },
     });
@@ -37,6 +39,7 @@ export class TagsService {
   }
 
   async deleteTag(id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     this.tagsRepository.delete({ id: id });
   }
 }
