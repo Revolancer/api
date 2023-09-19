@@ -15,6 +15,7 @@ import { Proposal } from './entities/proposal.entity';
 import { CreateProposalDto } from './dto/createproposal.dto';
 import { MailService } from '../mail/mail.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { validate as isValidUUID } from 'uuid';
 
 @Injectable()
 export class NeedService {
@@ -55,6 +56,7 @@ export class NeedService {
   }
 
   async updatePost(user: User, id: string, body: CreatePostDto) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     try {
       const post = await this.postRepository.findOneOrFail({
         where: { id: id, user: { id: user.id } },
@@ -72,6 +74,7 @@ export class NeedService {
   }
 
   async getPost(id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     try {
       const post = this.postRepository.findOne({
         where: { id: id },
@@ -85,6 +88,7 @@ export class NeedService {
   }
 
   async getPostsForUser(uid: string, includeAll = false) {
+    if (!isValidUUID(uid)) throw new BadRequestException('Invalid ID Format');
     try {
       const now = DateTime.now().toJSDate();
       const where = includeAll
@@ -106,6 +110,7 @@ export class NeedService {
   }
 
   async countPostsForUser(uid: string, includeAll = false) {
+    if (!isValidUUID(uid)) throw new BadRequestException('Invalid ID Format');
     try {
       const now = DateTime.now().toJSDate();
       const where = includeAll
@@ -158,6 +163,8 @@ export class NeedService {
   }
 
   async createProposal(user: User, needId: string, body: CreateProposalDto) {
+    if (!isValidUUID(needId))
+      throw new BadRequestException('Invalid ID Format');
     if (
       !Number.isSafeInteger(body.estHours) ||
       !Number.isSafeInteger(body.price)
@@ -199,6 +206,8 @@ export class NeedService {
    * @returns Any proposls you have permission to see. Only your own if this is not your need.
    */
   async getProposals(user: User, needId: string) {
+    if (!isValidUUID(needId))
+      throw new BadRequestException('Invalid ID Format');
     const need = await this.postRepository.findOne({
       where: { id: needId },
       relations: ['user'],
@@ -246,6 +255,8 @@ export class NeedService {
    * @returns Any proposls you have permission to see. Only your own if this is not your need.
    */
   async countProposals(user: User, needId: string) {
+    if (!isValidUUID(needId))
+      throw new BadRequestException('Invalid ID Format');
     const need = await this.postRepository.findOne({
       where: { id: needId },
       relations: ['user'],
@@ -268,6 +279,7 @@ export class NeedService {
   }
 
   async deleteProposal(user: User, id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     const proposal = await this.proposalRepository.findOne({
       where: { id: id, user: { id: user.id } },
     });
@@ -276,6 +288,7 @@ export class NeedService {
   }
 
   async getNeed(id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     try {
       return this.postRepository.findOneOrFail({
         where: { id: id },
@@ -288,6 +301,7 @@ export class NeedService {
   }
 
   async getProposal(id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     try {
       return this.proposalRepository.findOneOrFail({
         where: { id: id },
@@ -300,6 +314,7 @@ export class NeedService {
   }
 
   async unPublishNeed(id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     const now = DateTime.now().toJSDate();
     const need = await this.postRepository.findOneOrFail({
       where: [
@@ -318,6 +333,7 @@ export class NeedService {
   }
 
   async delistNeed(user: User, id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     const need = await this.postRepository.findOne({
       where: { id: id, user: { id: user.id } },
     });

@@ -11,10 +11,8 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
-//import { Subscription } from 'chargebee-typescript/lib/resources';
 import { EmailExistsError } from 'src/errors/email-exists-error';
 import { FindOperator, IsNull, LessThan, Not, Repository } from 'typeorm';
-//import { ChargebeeService } from '../chargebee/chargebee.service';
 import { MailService } from '../mail/mail.service';
 import { Tag } from '../tags/entities/tag.entity';
 import { TagsService } from '../tags/tags.service';
@@ -81,7 +79,7 @@ export class UsersService {
     private portfolioRepository: Repository<PortfolioPost>,
     private jwtService: JwtService,
     @Inject(forwardRef(() => MailService))
-    private mailService: MailService, //private chargebeeService: ChargebeeService,
+    private mailService: MailService,
     private uploadService: UploadService,
     private tagsService: TagsService,
     private creditsService: CreditsService,
@@ -174,8 +172,6 @@ export class UsersService {
       userReferrer.referrer = referrer;
       this.userReferrerRepository.save(userReferrer);
     }
-    //Link to chargebee
-    //await this.chargebeeService.createRemoteAndLink(user);
     return user.id;
   }
 
@@ -275,40 +271,6 @@ export class UsersService {
     this.usersRepository.save(loadedUser);
     return { success: true };
   }
-
-  /*
-  async getSubscriptionStatus(user: User) {
-    const subscription = {
-      active: false, // is currently active?
-      type: 'none', // one of ['none', 'paid', 'trial']
-      expires: 0, // timestamp of expiry
-      card_status: 'no_card',
-    };
-
-    const currentDate = new Date();
-    const currentTime = currentDate.getTime();
-
-    const customer = await this.chargebeeService.findOneByUser(user);
-    let sub: void | Subscription;
-    if (customer != null) {
-      sub = await this.chargebeeService.getSubscription(customer);
-      subscription.card_status = await this.chargebeeService.getCardStatus(
-        customer,
-      );
-      if (sub) {
-        if (sub.status == 'in_trial') {
-          subscription.expires = sub.trial_end ?? 0;
-          subscription.type = 'trial';
-        } else {
-          subscription.type = 'paid';
-          subscription.expires = sub.current_term_end ?? 0;
-        }
-      }
-    }
-    subscription.active = subscription.expires * 1000 > currentTime;
-    return subscription;
-  }
-*/
 
   async doOnboardingStage1(user: User, body: Onboarding1Dto) {
     if (await this.checkUsernameAvailability(user, body.userName)) {
@@ -462,9 +424,8 @@ export class UsersService {
         },
       },
     });
-    console.log(profile);
     if (!(profile instanceof UserProfile)) {
-      return {};
+      throw new NotFoundException();
     }
     return profile;
   }
@@ -485,7 +446,7 @@ export class UsersService {
       },
     });
     if (!(profile instanceof UserProfile)) {
-      return {};
+      throw new NotFoundException();
     }
     return profile;
   }
@@ -498,11 +459,11 @@ export class UsersService {
       where: { user: { id: user.id } },
     });
     if (!(profile instanceof UserProfile)) {
-      return { success: false };
+      throw new NotFoundException();
     }
     const loadedSkills = await this.loadSkillsFromRequest(body.skills);
     if (loadedSkills.length > 20 || loadedSkills.length < 3) {
-      return { success: false };
+      throw new BadRequestException('Provide between 3 and 20 skills');
     }
     profile.skills = loadedSkills;
     this.userProfileRepository.save(profile);
@@ -521,7 +482,7 @@ export class UsersService {
       },
     });
     if (!(profile instanceof UserProfile)) {
-      return {};
+      throw new NotFoundException();
     }
     return profile;
   }
@@ -532,7 +493,7 @@ export class UsersService {
   ): Promise<{ success: boolean }> {
     const loadedUserProfile = await this.getProfile(user);
     if (!this.uploadService.storeFile(user, body.profileImage)) {
-      return { success: false };
+      throw new BadRequestException('Unable to upload image');
     }
     loadedUserProfile.profile_image = body.profileImage;
     this.userProfileRepository.save(loadedUserProfile);
@@ -551,7 +512,7 @@ export class UsersService {
       },
     });
     if (!(profile instanceof UserProfile)) {
-      return {};
+      throw new NotFoundException();
     }
     return profile;
   }
@@ -592,7 +553,7 @@ export class UsersService {
       },
     });
     if (!(profile instanceof UserProfile)) {
-      return {};
+      throw new NotFoundException();
     }
     return profile;
   }
@@ -608,7 +569,7 @@ export class UsersService {
       },
     });
     if (!(profile instanceof UserProfile)) {
-      return {};
+      throw new NotFoundException();
     }
     return profile;
   }
@@ -644,7 +605,7 @@ export class UsersService {
       },
     });
     if (!(profile instanceof UserProfile)) {
-      return {};
+      throw new NotFoundException();
     }
     return profile;
   }
@@ -735,7 +696,7 @@ export class UsersService {
       },
     });
     if (!(profile instanceof UserProfile)) {
-      return {};
+      throw new NotFoundException();
     }
     return profile;
   }
@@ -758,7 +719,7 @@ export class UsersService {
       },
     });
     if (!(profile instanceof UserProfile)) {
-      return {};
+      throw new NotFoundException();
     }
     return profile;
   }

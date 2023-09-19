@@ -1,4 +1,9 @@
-import { Inject, Injectable, forwardRef } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  forwardRef,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Brackets, Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
@@ -75,6 +80,8 @@ export class MessageService {
   }
 
   async getMessagesBetween(uid1: string, uid2: string) {
+    if (!isValidUUID(uid1)) throw new BadRequestException('Invalid ID Format');
+    if (!isValidUUID(uid2)) throw new BadRequestException('Invalid ID Format');
     const sender = await this.userRepository.findOneOrFail({
       where: { id: uid1 },
     });
@@ -109,6 +116,8 @@ export class MessageService {
   }
 
   async sendMessage(user: User, recipientId: string, body: SendMessageDto) {
+    if (!isValidUUID(recipientId))
+      throw new BadRequestException('Invalid ID Format');
     const recipient = await this.userRepository.findOneOrFail({
       where: { id: recipientId },
     });
@@ -144,6 +153,7 @@ export class MessageService {
   }
 
   async markMessageAsRead(user: User, id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     const message = await this.messageRepository.findOne({
       where: { id: id, reciever: { id: user.id } },
     });

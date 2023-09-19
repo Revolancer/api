@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DateTime } from 'luxon';
 import { LessThan, Repository } from 'typeorm';
@@ -7,6 +11,7 @@ import { TagsService } from '../tags/tags.service';
 import { User } from '../users/entities/user.entity';
 import { CreatePostDto } from './dto/createpost.dto';
 import { PortfolioPost } from './entities/portfolio-post.entity';
+import { validate as isValidUUID } from 'uuid';
 
 @Injectable()
 export class PortfolioService {
@@ -40,6 +45,7 @@ export class PortfolioService {
   }
 
   async updatePost(user: User, id: string, body: CreatePostDto) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     try {
       const post = await this.postRepository.findOneOrFail({
         where: { id: id, user: { id: user.id } },
@@ -57,6 +63,7 @@ export class PortfolioService {
   }
 
   async deletePost(user: User, id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     try {
       return await this.postRepository
         .createQueryBuilder()
@@ -69,6 +76,7 @@ export class PortfolioService {
   }
 
   async getPost(id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     try {
       const post = this.postRepository.findOne({
         where: { id: id },
@@ -82,6 +90,7 @@ export class PortfolioService {
   }
 
   async getPostsForUser(uid: string) {
+    if (!isValidUUID(uid)) throw new BadRequestException('Invalid ID Format');
     try {
       const posts = this.postRepository.find({
         where: { user: { id: uid } },

@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Inject,
   Injectable,
   NotFoundException,
@@ -91,6 +92,9 @@ export class ProjectsService {
   }
 
   async getProject(user: User, id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
+    if (!isValidUUID(user.id))
+      throw new BadRequestException('Invalid ID Format');
     return this.projectRepository.findOne({
       where: [
         { id: id, client: { id: user.id } },
@@ -135,6 +139,7 @@ export class ProjectsService {
   }
 
   async getProjectMessages(user: User, id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     const project = await this.projectRepository.findOne({
       where: [
         { id: id, client: { id: user.id } },
@@ -159,6 +164,7 @@ export class ProjectsService {
     id: string,
     body: SendProjectMessageDto,
   ) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     const project = await this.projectRepository.findOne({
       where: [
         { id: id, client: { id: user.id } },
@@ -196,6 +202,7 @@ export class ProjectsService {
   }
 
   async countProjectUnreadMessages(user: User, id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     const project = await this.projectRepository.findOne({
       where: [
         { id: id, client: { id: user.id } },
@@ -346,6 +353,7 @@ export class ProjectsService {
   }
 
   async markProjectApproved(user: User, id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     const project = await this.projectRepository.findOne({
       where: [
         { id: id, client: { id: user.id } },
@@ -382,6 +390,7 @@ export class ProjectsService {
   }
 
   async markProjectNotApproved(user: User, id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     const project = await this.projectRepository.findOne({
       where: [
         { id: id, client: { id: user.id } },
@@ -411,6 +420,7 @@ export class ProjectsService {
   }
 
   async markProjectForCancellation(user: User, id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     const project = await this.projectRepository.findOne({
       where: [
         { id: id, client: { id: user.id } },
@@ -473,6 +483,7 @@ export class ProjectsService {
   }
 
   async markMessageAsRead(user: User, id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     const message = await this.projectMessageRepository.findOne({
       where: { id: id },
       relations: ['project'],

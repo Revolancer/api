@@ -9,7 +9,7 @@ import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { UserProfile } from '../users/entities/userprofile.entity';
 import { AddCreditsDto } from './dto/add-credits.dto';
-import { validate as isValidUuid } from 'uuid';
+import { validate as isValidUUID } from 'uuid';
 import { CreditsService } from '../credits/credits.service';
 import { ImportUsersDto } from './dto/import-users.dto';
 import { parse } from 'csv-parse/sync';
@@ -83,6 +83,7 @@ export class AdminService {
   }
 
   async getRolesForUser(id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     return this.userRoleRepository.find({
       select: { role: true },
       where: { user: { id } },
@@ -166,7 +167,7 @@ export class AdminService {
 
   async addCredits(body: AddCreditsDto) {
     let user: User | undefined = undefined;
-    if (!isValidUuid(body.recipient)) {
+    if (!isValidUUID(body.recipient)) {
       const userProfile = await this.userProfileRepository.findOne({
         where: { slug: body.recipient },
         relations: ['user'],
@@ -188,51 +189,6 @@ export class AdminService {
     }
 
     this.creditService.addOrRemoveUserCredits(user, body.amount, body.reason);
-  }
-
-  async importUsers(admin: User, body: ImportUsersDto) {
-    this.scheduleTask(admin, 'import_users', { url: body.userCsv });
-  }
-
-  async runUserImport(user: User, data: { [key: string]: any }) {
-    if (!data.url) {
-      throw new Error(`No url was passed`);
-    }
-    await axios
-      .get(data.url)
-      .then((res) => res.data)
-      .then((data) => {
-        return parse(data, { columns: true });
-      })
-      .then(async (records) => {
-        if (records.length < 1) {
-          throw new Error(`No users found to import`);
-        }
-        for (const record of records) {
-          this.scheduleTask(user, 'import_single_user', {
-            email: record.user_email,
-          });
-        }
-      })
-      .then(() => {
-        this.uploadService.deleteFile(this.uploadService.urlToPath(data.url));
-      })
-      .catch((err) => {
-        throw new Error(err);
-      });
-  }
-
-  async runSingleUserImport(user: User, data: { [key: string]: any }) {
-    const email = data.email;
-    if (!email) {
-      throw new Error(`No email was passed`);
-    }
-    const existing_user = await this.userRepository.findOne({
-      where: { email: email },
-    });
-    if (!existing_user) {
-      this.usersService.importFromClassic(email);
-    }
   }
 
   async deleteUser(id: string) {

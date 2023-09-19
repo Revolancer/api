@@ -1,9 +1,14 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Notification } from './entities/notification.entity';
 import { Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { DateTime } from 'luxon';
+import { validate as isValidUUID } from 'uuid';
 
 @Injectable()
 export class NotificationsService {
@@ -26,6 +31,7 @@ export class NotificationsService {
   }
 
   async markNotificationAsRead(user: User, id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     const notification = await this.notificationRepository.findOne({
       where: { id: id, user: { id: user.id } },
     });
@@ -49,6 +55,7 @@ export class NotificationsService {
   }
 
   async get(id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     return this.notificationRepository.findOne({
       where: {
         id: id,
