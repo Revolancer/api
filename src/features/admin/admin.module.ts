@@ -22,12 +22,14 @@ import { RedlockModule } from '@anchan828/nest-redlock';
 import { RedisConfigModule } from 'src/config/redis/config.module';
 import { RedisConfigService } from 'src/config/redis/config.service';
 import { Redis } from 'ioredis';
+import { UserRole } from '../users/entities/userrole.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([
       User,
       UserProfile,
+      UserRole,
       PortfolioPost,
       NeedPost,
       Proposal,
