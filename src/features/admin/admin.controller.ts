@@ -7,12 +7,15 @@ import {
   Query,
   Post,
   UseGuards,
+  Put,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { AddCreditsDto } from './dto/add-credits.dto';
 import { HasRoles } from '../auth/has-roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RoleGuard } from '../auth/guards/role.guard';
+import { DeleteUsersDto } from './dto/delete-users.dto';
+import { ChangeRoleDto } from './dto/change-role.dto';
 
 @Controller('admin')
 export class AdminController {
@@ -35,6 +38,20 @@ export class AdminController {
     @Query('order') order: 'ASC' | 'DESC' | undefined,
   ) {
     return this.adminService.listUsersForAdmin(page, sortBy, order, search);
+  }
+
+  @Delete('users')
+  @HasRoles('admin', 'moderator')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async deleteUsers(@Body() body: DeleteUsersDto) {
+    return this.adminService.deleteUsers(body.usersToDelete);
+  }
+
+  @Put('users/role')
+  @HasRoles('admin')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async changeRole(@Body() body: ChangeRoleDto) {
+    return this.adminService.changeRole(body.usersToChangeRole, body.role);
   }
 
   @Get('users/withroles')
