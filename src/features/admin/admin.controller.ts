@@ -54,7 +54,7 @@ export class AdminController {
   @Get('users/:id/projects')
   @HasRoles('admin', 'moderator')
   @UseGuards(JwtAuthGuard, RoleGuard)
-  async getUserForAdmin(@Param('id') id: string) {
+  async getUserProjectsForAdmin(@Param('id') id: string) {
     return this.adminService.getUserProjectsForAdmin(id);
   }
 

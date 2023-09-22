@@ -166,6 +166,7 @@ export class AdminService {
   }
 
   async getUserProjectsForAdmin(id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     return this.projectRepository.find({
       where: [
         { client: { id: id }, status: 'active' },
