@@ -90,6 +90,87 @@ export class AdminService {
     });
   }
 
+  async deleteUsers(users: string[]) {
+    const qb = this.userRepository.createQueryBuilder('user');
+
+    const usersToDelete: { id: string; role: string }[] = await qb
+      .select('user.id, role.role')
+      .where('user.id IN(:...selectedUsers)', { selectedUsers: users })
+      .leftJoin('user.roles', 'role')
+      .execute();
+    const notAllowedUsersPresent = usersToDelete.some(
+      (u) =>
+        u.role == 'admin' || u.role == 'moderator' || u.role == 'stats_viewer',
+    );
+    if (notAllowedUsersPresent) {
+      throw new BadRequestException(
+        'users with admin, moderator and stats_viewer can not be deleted.',
+      );
+    }
+
+    try {
+      users.forEach(async (user) => {
+        await this.softDeleteUser(user);
+      });
+    } catch (err) {
+      console.log(err);
+      throw new BadRequestException('User Id does not exist.');
+    }
+    return usersToDelete;
+  }
+
+  async softDeleteUser(userId: string): Promise<void> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    user.deleted_at = new Date();
+
+    await this.userRepository.save(user);
+  }
+
+  async changeRole(users: string[], role: string) {
+    for (const userId of users) {
+      const user = await this.userRepository.findOne({
+        where: { id: userId },
+        relations: { roles: true },
+      });
+
+      if (user && user.roles) {
+        // delete every other role except user role
+        user.roles.forEach(async (role: UserRole) => {
+          if (role.role != 'user') {
+            await this.userRoleRepository.remove([role]);
+          }
+        });
+
+        user.roles = user?.roles.filter(
+          (role: UserRole) => role.role == 'user',
+        );
+        try {
+          // create new role
+          const roleRepo = await this.userRoleRepository.create({
+            role: role,
+            user: user,
+          });
+          const roleObj = await this.userRoleRepository.save(roleRepo);
+          if (user.roles[0].role != role && roleObj) {
+            user.roles = [...user.roles, roleObj];
+          }
+
+          // save newly added role
+          this.userRepository.save(user);
+        } catch (err) {
+          console.log(err);
+        }
+      }
+    }
+  }
+
   async listUsersForAdmin(
     page: number,
     sortBy: string,
@@ -123,7 +204,6 @@ export class AdminService {
     const userProfilesQuery = this.userProfileRepository
       .createQueryBuilder('userProfile')
       .leftJoinAndSelect('userProfile.user', 'user')
-      .leftJoinAndSelect('user.roles', 'roles')
       .select([
         'userProfile.id',
         'userProfile.first_name',
@@ -133,11 +213,17 @@ export class AdminService {
         'userProfile.slug',
         'user.id',
         'user.email',
-        'roles.role',
+        'user.id',
       ])
-      .where('userProfile.onboardingStage = :onboardingStage', {
-        onboardingStage: 4,
-      });
+      .leftJoinAndSelect('user.roles', 'roles')
+      .where(
+        'user.deleted_at IS NULL AND userProfile.onboardingStage = :onboardingStage',
+        {
+          onboardingStage: 4,
+        },
+      )
+      .skip(nPerPage * (page - 1))
+      .take(nPerPage);
 
     if (searchTerms.length > 0) {
       userProfilesQuery.andWhere(
@@ -149,18 +235,17 @@ export class AdminService {
       );
     }
 
-    userProfilesQuery
-      .orderBy(`userProfile.${sortBy}`, order)
-      .skip(nPerPage * (page - 1))
-      .take(nPerPage);
+    userProfilesQuery.orderBy(`userProfile.${sortBy}`, order);
     const [userProfiles, count] = await userProfilesQuery.getManyAndCount();
-    const data = userProfiles.map((profile) => ({
-      ...profile,
-      roles: profile.user.roles.map((role) => role.role),
-      email: profile.user.email,
-      id: profile.user.id,
-      user: undefined,
-    }));
+    const data = userProfiles
+      .filter((profile) => profile.user?.id)
+      .map((profile) => ({
+        ...profile,
+        roles: profile.user.roles.map((role) => role.role),
+        email: profile.user.email,
+        user_id: profile.user.id,
+        user: undefined,
+      }));
 
     return { data, totalPages: Math.ceil(count / nPerPage) };
   }
