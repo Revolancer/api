@@ -148,7 +148,7 @@ export class MessageService {
 
   async getAllMessageCount(user: User) {
     return this.messageRepository.count({
-      where: [{ reciever: { id: user.id } }, { sender: user }],
+      where: [{ reciever: { id: user.id } }, { sender: { id: user.id } }],
     });
   }
 
