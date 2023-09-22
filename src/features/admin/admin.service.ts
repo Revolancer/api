@@ -18,6 +18,7 @@ import { AdminJob } from './queue/admin.job';
 import { InjectQueue } from '@nestjs/bull';
 import { UsersService } from '../users/users.service';
 import { UserRole } from '../users/entities/userrole.entity';
+import { Project } from '../projects/entities/project.entity';
 
 @Injectable()
 export class AdminService {
@@ -30,6 +31,8 @@ export class AdminService {
     private userProfileRepository: Repository<UserProfile>,
     @InjectRepository(UserRole)
     private userRoleRepository: Repository<UserRole>,
+    @InjectRepository(Project)
+    private projectRepository: Repository<Project>,
     private creditService: CreditsService,
     private uploadService: UploadService,
     private usersService: UsersService,
@@ -160,6 +163,24 @@ export class AdminService {
     }));
 
     return { data, totalPages: Math.ceil(count / nPerPage) };
+  }
+
+  async getUserProjectsForAdmin(id: string) {
+    return this.projectRepository.find({
+      where: [
+        { client: { id: id }, status: 'active' },
+        { contractor: { id: id }, status: 'active' },
+      ],
+      relations: ['client', 'contractor', 'need'],
+      select: {
+        client: { id: true },
+        contractor: { id: true },
+        credits: true,
+        status: true,
+        outcome: true,
+        created_at: true,
+      },
+    });
   }
 
   async addCredits(body: AddCreditsDto) {
