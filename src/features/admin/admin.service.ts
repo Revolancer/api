@@ -165,7 +165,7 @@ export class AdminService {
     return { data, totalPages: Math.ceil(count / nPerPage) };
   }
 
-  async getUserProjectsForAdmin(id: string) {
+  async getUserActiveProjectsForAdmin(id: string) {
     if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     return this.projectRepository.find({
       where: [
@@ -181,6 +181,17 @@ export class AdminService {
         outcome: true,
         created_at: true,
       },
+    });
+  }
+
+  async countUserActiveProjectsForAdmin(id: string) {
+    return this.projectRepository.count({
+      where: [
+        { client: { id: id }, status: 'active' },
+        { contractor: { id: id }, status: 'active' },
+      ],
+      relations: ['client', 'contractor'],
+      select: { client: { id: true }, contractor: { id: true } },
     });
   }
 
