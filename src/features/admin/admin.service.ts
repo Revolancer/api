@@ -280,4 +280,12 @@ export class AdminService {
     }
     this.usersService.deleteUser(user);
   }
+
+  async getUserEmailPrefs(id: string) {
+    const user = await this.usersService.findOne(id);
+    if (!user) {
+      throw new NotFoundException();
+    }
+    return this.usersService.getUserEmailPrefs(user);
+  }
 }
