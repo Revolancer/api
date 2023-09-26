@@ -82,6 +82,13 @@ export class AdminController {
     return this.adminService.countUserActiveProjectsForAdmin(id);
   }
 
+  @Get('user/prefs/:id')
+  @HasRoles('admin', 'moderator')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async getEmailPrefsForUser(@Param('id') id: string) {
+    return this.adminService.getUserEmailPrefs(id);
+  }
+
   @Post('user/credits')
   @HasRoles('admin', 'moderator')
   @UseGuards(JwtAuthGuard, RoleGuard)
