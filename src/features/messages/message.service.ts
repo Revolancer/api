@@ -79,6 +79,46 @@ export class MessageService {
     return resultArray;
   }
 
+  async getUserMessageThreadsForAdmin(id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
+    const builder = this.messageRepository.createQueryBuilder('message');
+    const result: { [key: string]: Message } = {};
+    const threads = await builder
+      .distinctOn(['message.sender', 'message.reciever'])
+      .where('message.sender = :sender', { sender: id })
+      .orWhere('message.reciever = :reciever', { reciever: id })
+      .orderBy('message.sender', 'DESC')
+      .addOrderBy('message.reciever', 'DESC')
+      .addOrderBy('message.created_at', 'DESC')
+      .loadRelationIdAndMap('sender', 'message.sender')
+      .loadRelationIdAndMap('reciever', 'message.reciever')
+      .getMany();
+    threads.sort((a, b) => {
+      return a.created_at > b.created_at ? -1 : 1;
+    });
+    for (const message of threads) {
+      let otherId;
+      if ((message.reciever as any as string) == id) {
+        otherId = message.sender as any as string;
+      } else {
+        otherId = message.reciever as any as string;
+      }
+
+      if (!result[otherId]) {
+        result[otherId] = message;
+      }
+    }
+    const resultArray: Message[] = [];
+    for (const [, value] of Object.entries(result)) {
+      resultArray.push(value);
+    }
+    resultArray.sort((a, b) => {
+      return a.created_at > b.created_at ? -1 : 1;
+    });
+
+    return resultArray;
+  }
+
   async getMessagesBetween(uid1: string, uid2: string) {
     if (!isValidUUID(uid1)) throw new BadRequestException('Invalid ID Format');
     if (!isValidUUID(uid2)) throw new BadRequestException('Invalid ID Format');

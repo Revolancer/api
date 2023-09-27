@@ -12,6 +12,8 @@ import { IUserRequest } from 'src/interface/iuserrequest';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { SendMessageDto } from './dto/sendmessage.dto';
 import { MessageService } from './message.service';
+import { RoleGuard } from '../auth/guards/role.guard';
+import { HasRoles } from '../auth/has-roles.decorator';
 
 @Controller('message')
 export class MessageController {
@@ -21,6 +23,13 @@ export class MessageController {
   @Get()
   async getThreads(@Req() req: IUserRequest) {
     return this.messageService.getMessageThreads(req.user);
+  }
+
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  @Get('admin/:id')
+  @HasRoles('admin', 'moderator')
+  async getUserMessageThreadsForAdmin(@Param('id') id: string) {
+    return this.messageService.getUserMessageThreadsForAdmin(id);
   }
 
   @UseGuards(JwtAuthGuard)
