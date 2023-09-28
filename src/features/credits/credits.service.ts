@@ -43,6 +43,30 @@ export class CreditsService {
     });
   }
 
+  async getUserCreditsForAdmin(id: string): Promise<number> {
+    const balance = await this.balanceRepository.findOne({
+      where: { user: { id: id } },
+    });
+    if (balance) {
+      return balance.balance;
+    }
+    return 0;
+  }
+
+  async getUserCreditLogForAdmin(id: string) {
+    return await this.creditLogRepository.find({
+      where: { user: { id: id } },
+      order: { updated_at: 'DESC' },
+    });
+  }
+
+  async getUserCreditLogReverseForAdmin(id: string) {
+    return await this.creditLogRepository.find({
+      where: { user: { id: id } },
+      order: { updated_at: 'ASC' },
+    });
+  }
+
   async addOrRemoveUserCredits(user: User, amount: number, reason = '') {
     amount = Math.floor(amount);
     const currentCredits = await this.getUserCredits(user);

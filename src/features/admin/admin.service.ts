@@ -21,6 +21,7 @@ import { UserRole } from '../users/entities/userrole.entity';
 import { Onboarding3Dto } from '../users/dto/onboarding3.dto';
 import { TagsService } from '../tags/tags.service';
 import { UpdateLocationDto } from './dto/update-location.dto';
+import { Project } from '../projects/entities/project.entity';
 
 @Injectable()
 export class AdminService {
@@ -33,6 +34,8 @@ export class AdminService {
     private userProfileRepository: Repository<UserProfile>,
     @InjectRepository(UserRole)
     private userRoleRepository: Repository<UserRole>,
+    @InjectRepository(Project)
+    private projectRepository: Repository<Project>,
     private creditService: CreditsService,
     private uploadService: UploadService,
     private tagsService: TagsService,
@@ -249,6 +252,37 @@ export class AdminService {
       }));
 
     return { data, totalPages: Math.ceil(count / nPerPage) };
+  }
+
+  async getUserActiveProjectsForAdmin(id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
+    return this.projectRepository.find({
+      where: [
+        { client: { id: id }, status: 'active' },
+        { contractor: { id: id }, status: 'active' },
+      ],
+      relations: ['client', 'contractor', 'need'],
+      select: {
+        id: true,
+        client: { id: true },
+        contractor: { id: true },
+        credits: true,
+        status: true,
+        outcome: true,
+        created_at: true,
+      },
+    });
+  }
+
+  async countUserActiveProjectsForAdmin(id: string) {
+    return this.projectRepository.count({
+      where: [
+        { client: { id: id }, status: 'active' },
+        { contractor: { id: id }, status: 'active' },
+      ],
+      relations: ['client', 'contractor'],
+      select: { client: { id: true }, contractor: { id: true } },
+    });
   }
 
   async addCredits(body: AddCreditsDto) {
