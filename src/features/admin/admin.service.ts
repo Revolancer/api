@@ -18,6 +18,9 @@ import { AdminJob } from './queue/admin.job';
 import { InjectQueue } from '@nestjs/bull';
 import { UsersService } from '../users/users.service';
 import { UserRole } from '../users/entities/userrole.entity';
+import { Onboarding3Dto } from '../users/dto/onboarding3.dto';
+import { TagsService } from '../tags/tags.service';
+import { UpdateLocationDto } from './dto/update-location.dto';
 
 @Injectable()
 export class AdminService {
@@ -32,6 +35,7 @@ export class AdminService {
     private userRoleRepository: Repository<UserRole>,
     private creditService: CreditsService,
     private uploadService: UploadService,
+    private tagsService: TagsService,
     private usersService: UsersService,
   ) {}
 
@@ -287,5 +291,78 @@ export class AdminService {
       throw new NotFoundException();
     }
     return this.usersService.getUserEmailPrefs(user);
+  }
+
+  async setUserNameByAdmin(
+    userId: string,
+    firstName: string,
+    lastName: string,
+  ) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+    await this.usersService.setUserName(user, {
+      first_name: firstName,
+      last_name: lastName,
+    });
+  }
+
+  async setUserTaglineByAdmin(userId: string, tagline: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+    await this.usersService.setUserTagline(user, { tagline });
+  }
+
+  async setUserAboutByAdmin(userId: string, about: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+    await this.usersService.setUserAbout(user, {
+      about,
+    });
+  }
+
+  async setUserSocialsByAdmin(userId: string, links: string[]) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+    await this.usersService.updateSocialLinks(user, links);
+  }
+
+  async setUserLocationByAdmin(
+    userId: string,
+    location: UpdateLocationDto['location'],
+  ) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+    await this.usersService.setUserLocation(user, { location });
+  }
+
+  async setUserProfileImageByAdmin(userId: string, profileImage: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+    await this.usersService.setUserProfileImage(user, { profileImage });
+  }
+
+  async setUserSkillsByAdmin(userId: string, skills: Onboarding3Dto['skills']) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+    await this.usersService.setUserSkills(user, { skills });
   }
 }

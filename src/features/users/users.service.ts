@@ -492,7 +492,7 @@ export class UsersService {
     body: ProfileImageUpdateDto,
   ): Promise<{ success: boolean }> {
     const loadedUserProfile = await this.getProfile(user);
-    if (!this.uploadService.storeFile(user, body.profileImage)) {
+    if (!this.uploadService.storeFileAsAdmin(user, body.profileImage)) {
       throw new BadRequestException('Unable to upload image');
     }
     loadedUserProfile.profile_image = body.profileImage;
