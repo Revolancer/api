@@ -51,6 +51,15 @@ export class MessageController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('/admin/:id1/messages/:id2')
+  async getAdminMessagesBetween(
+    @Param('id1') id1: string,
+    @Param('id2') id2: string,
+  ) {
+    return this.messageService.getMessagesBetween(id1, id2);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Put(':id')
   async sendMessage(
     @Req() req: IUserRequest,
