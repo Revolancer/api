@@ -339,7 +339,7 @@ export class AdminService {
     if (!(user instanceof User)) {
       throw new NotFoundException();
     }
-    await this.usersService.setUserName(user, {
+    return await this.usersService.setUserName(user, {
       first_name: firstName,
       last_name: lastName,
     });
@@ -353,7 +353,7 @@ export class AdminService {
     if (!(user instanceof User)) {
       throw new NotFoundException();
     }
-    await this.usersService.setUserTagline(user, { tagline });
+    return await this.usersService.setUserTagline(user, { tagline });
   }
 
   async setUserAboutByAdmin(userId: string, about: string) {
@@ -364,7 +364,7 @@ export class AdminService {
     if (!(user instanceof User)) {
       throw new NotFoundException();
     }
-    await this.usersService.setUserAbout(user, {
+    return await this.usersService.setUserAbout(user, {
       about,
     });
   }
@@ -377,7 +377,7 @@ export class AdminService {
     if (!(user instanceof User)) {
       throw new NotFoundException();
     }
-    await this.usersService.updateSocialLinks(user, links);
+    return await this.usersService.updateSocialLinks(user, links);
   }
 
   async setUserLocationByAdmin(
@@ -390,7 +390,7 @@ export class AdminService {
     if (!(user instanceof User)) {
       throw new NotFoundException();
     }
-    await this.usersService.setUserLocation(user, { location });
+    return await this.usersService.setUserLocation(user, { location });
   }
 
   async setUserProfileImageByAdmin(userId: string, profileImage: string) {
@@ -400,7 +400,9 @@ export class AdminService {
     if (!(user instanceof User)) {
       throw new NotFoundException();
     }
-    await this.usersService.setUserProfileImageAsAdmin(user, { profileImage });
+    return await this.usersService.setUserProfileImageAsAdmin(user, {
+      profileImage,
+    });
   }
 
   async setUserSkillsByAdmin(userId: string, skills: Onboarding3Dto['skills']) {
@@ -411,6 +413,6 @@ export class AdminService {
     if (!(user instanceof User)) {
       throw new NotFoundException();
     }
-    await this.usersService.setUserSkills(user, { skills });
+    return await this.usersService.setUserSkills(user, { skills });
   }
 }
