@@ -259,6 +259,7 @@ export class AdminService {
       ],
       relations: ['client', 'contractor', 'need'],
       select: {
+        id: true,
         client: { id: true },
         contractor: { id: true },
         credits: true,
