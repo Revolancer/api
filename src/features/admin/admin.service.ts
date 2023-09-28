@@ -332,6 +332,8 @@ export class AdminService {
     firstName: string,
     lastName: string,
   ) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!(user instanceof User)) {
@@ -344,6 +346,8 @@ export class AdminService {
   }
 
   async setUserTaglineByAdmin(userId: string, tagline: string) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!(user instanceof User)) {
@@ -353,6 +357,8 @@ export class AdminService {
   }
 
   async setUserAboutByAdmin(userId: string, about: string) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!(user instanceof User)) {
@@ -364,6 +370,8 @@ export class AdminService {
   }
 
   async setUserSocialsByAdmin(userId: string, links: string[]) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!(user instanceof User)) {
@@ -376,6 +384,8 @@ export class AdminService {
     userId: string,
     location: UpdateLocationDto['location'],
   ) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!(user instanceof User)) {
       throw new NotFoundException();
@@ -384,14 +394,18 @@ export class AdminService {
   }
 
   async setUserProfileImageByAdmin(userId: string, profileImage: string) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!(user instanceof User)) {
       throw new NotFoundException();
     }
-    await this.usersService.setUserProfileImage(user, { profileImage });
+    await this.usersService.setUserProfileImageAsAdmin(user, { profileImage });
   }
 
   async setUserSkillsByAdmin(userId: string, skills: Onboarding3Dto['skills']) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
     const user = await this.userRepository.findOne({ where: { id: userId } });
 
     if (!(user instanceof User)) {
