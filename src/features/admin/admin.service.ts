@@ -18,7 +18,14 @@ import { AdminJob } from './queue/admin.job';
 import { InjectQueue } from '@nestjs/bull';
 import { UsersService } from '../users/users.service';
 import { UserRole } from '../users/entities/userrole.entity';
+import { Onboarding3Dto } from '../users/dto/onboarding3.dto';
+import { TagsService } from '../tags/tags.service';
+import { UpdateLocationDto } from './dto/update-location.dto';
 import { Project } from '../projects/entities/project.entity';
+import { EmailUpdateDto } from '../users/dto/emailupdate.dto ';
+import { ChangeExperienceDto } from '../users/dto/changeexperience.dto';
+import { ChangeRateDto } from '../users/dto/changerate.dto';
+import { ChangeDateOfBirthDto } from '../users/dto/changedateofbirth.dto';
 
 @Injectable()
 export class AdminService {
@@ -35,6 +42,7 @@ export class AdminService {
     private projectRepository: Repository<Project>,
     private creditService: CreditsService,
     private uploadService: UploadService,
+    private tagsService: TagsService,
     private usersService: UsersService,
   ) {}
 
@@ -356,5 +364,199 @@ export class AdminService {
       throw new NotFoundException();
     }
     return this.usersService.getUserEmailPrefs(user);
+  }
+
+  async getUserEmailAsAdmin(userId: string) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+    return { email: user.email };
+  }
+
+  async setUserNameByAdmin(
+    userId: string,
+    firstName: string,
+    lastName: string,
+  ) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+    return await this.usersService.setUserName(user, {
+      first_name: firstName,
+      last_name: lastName,
+    });
+  }
+
+  async setUserTaglineByAdmin(userId: string, tagline: string) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+    return await this.usersService.setUserTagline(user, { tagline });
+  }
+
+  async setUserAboutByAdmin(userId: string, about: string) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+    return await this.usersService.setUserAbout(user, {
+      about,
+    });
+  }
+
+  async setUserSocialsByAdmin(userId: string, links: string[]) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+    return await this.usersService.updateSocialLinks(user, links);
+  }
+
+  async setUserLocationByAdmin(
+    userId: string,
+    location: UpdateLocationDto['location'],
+  ) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+    return await this.usersService.setUserLocation(user, { location });
+  }
+  async setUserEmailAsAdmin(userId: string, body: EmailUpdateDto) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+    return await this.usersService.setUserEmail(user, body);
+  }
+
+  async setUserProfileImageByAdmin(userId: string, profileImage: string) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+    return await this.usersService.setUserProfileImageAsAdmin(user, {
+      profileImage,
+    });
+  }
+
+  async setUserSkillsByAdmin(userId: string, skills: Onboarding3Dto['skills']) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+    return await this.usersService.setUserSkills(user, { skills });
+  }
+
+  async getUserExperienceAsAdmin(userId: string) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+
+    const profile = await this.usersService.getProfile(user);
+
+    return { experience: profile.experience };
+  }
+
+  async setUserExperienceAsAdmin(userId: string, body: ChangeExperienceDto) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+    return await this.usersService.setUserExperience(user, body);
+  }
+
+  async sendResetPasswordMailByAdmin(userId: string) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+    if (user.email) {
+      await this.usersService.sendResetPassword(user.email);
+      return { success: true };
+    } else {
+      return { success: false };
+    }
+  }
+
+  async getUserRateAsAdmin(userId: string) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+
+    const rate = await this.usersService.getUserRate(user);
+
+    return rate;
+  }
+
+  async setUserRateAsAdmin(userId: string, body: ChangeRateDto) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+    return await this.usersService.setUserRate(user, body);
+  }
+
+  async getUserDOBAsAdmin(userId: string) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+
+    return await this.usersService.getUserDateOfBirth(user);
+  }
+
+  async setUserDOBAsAdmin(userId: string, body: ChangeDateOfBirthDto) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+
+    await this.usersService.setUserDateOfBirth(user, body);
+    return { success: true };
   }
 }

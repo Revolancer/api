@@ -75,6 +75,18 @@ export class UploadService {
     ).identifiers[0].id;
   }
 
+  async storeFileAsAdmin(user: User, url: string) {
+    const fNameStart = url.lastIndexOf('/');
+    const filename = url.substring(fNameStart + 1);
+    return (
+      await this.fileRepository.insert({
+        filename,
+        url,
+        user: { id: user.id },
+      })
+    ).identifiers[0].id;
+  }
+
   async getFileByIdAndUser(user: User, id: string) {
     return await this.fileRepository.findOne({
       where: { id: id, user: { id: user.id } },

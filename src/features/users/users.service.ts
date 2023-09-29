@@ -55,6 +55,7 @@ import { MapsService } from '../maps/maps.service';
 import { UserSocials } from './entities/usersocials.entity';
 import { NameUpdateDto } from './dto/nameupdate.dto';
 import { validate as isValidUUID } from 'uuid';
+import { ChangeDateOfBirthDto } from './dto/changedateofbirth.dto';
 
 @Injectable()
 export class UsersService {
@@ -500,6 +501,19 @@ export class UsersService {
     return { success: true };
   }
 
+  async setUserProfileImageAsAdmin(
+    user: User,
+    body: ProfileImageUpdateDto,
+  ): Promise<{ success: boolean }> {
+    const loadedUserProfile = await this.getProfile(user);
+    if (!this.uploadService.storeFileAsAdmin(user, body.profileImage)) {
+      throw new BadRequestException('Unable to upload image');
+    }
+    loadedUserProfile.profile_image = body.profileImage;
+    this.userProfileRepository.save(loadedUserProfile);
+    return { success: true };
+  }
+
   async getUserTimezone(
     id: string,
   ): Promise<UserProfile | Record<string, never>> {
@@ -705,6 +719,21 @@ export class UsersService {
     const loadedUserProfile = await this.getProfile(user);
     loadedUserProfile.currency = body.currency;
     loadedUserProfile.hourly_rate = body.hourlyRate;
+    this.userProfileRepository.save(loadedUserProfile);
+  }
+
+  async getUserDateOfBirth(user: User) {
+    const loadedUserProfile = await this.getProfile(user);
+
+    if (!(loadedUserProfile instanceof UserProfile)) {
+      throw new NotFoundException();
+    }
+    return { date_of_birth: loadedUserProfile.date_of_birth };
+  }
+
+  async setUserDateOfBirth(user: User, body: ChangeDateOfBirthDto) {
+    const loadedUserProfile = await this.getProfile(user);
+    loadedUserProfile.date_of_birth = new Date(body.date_of_birth);
     this.userProfileRepository.save(loadedUserProfile);
   }
 
