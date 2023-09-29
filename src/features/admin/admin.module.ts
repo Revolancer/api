@@ -23,6 +23,8 @@ import { RedisConfigModule } from 'src/config/redis/config.module';
 import { RedisConfigService } from 'src/config/redis/config.service';
 import { Redis } from 'ioredis';
 import { UserRole } from '../users/entities/userrole.entity';
+import { Tag } from '../tags/entities/tag.entity';
+import { TagsService } from '../tags/tags.service';
 
 @Module({
   imports: [
@@ -36,6 +38,7 @@ import { UserRole } from '../users/entities/userrole.entity';
       UserReferrer,
       Project,
       StatsLog,
+      Tag,
     ]),
     CreditsModule,
     UploadModule,
@@ -65,7 +68,7 @@ import { UserRole } from '../users/entities/userrole.entity';
       }),
     }),
   ],
-  providers: [AdminService, StatsService, AdminConsumer],
+  providers: [AdminService, StatsService, AdminConsumer, TagsService],
   exports: [AdminService, StatsService],
   controllers: [AdminController, StatsController],
 })

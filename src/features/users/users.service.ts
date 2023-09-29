@@ -500,6 +500,19 @@ export class UsersService {
     return { success: true };
   }
 
+  async setUserProfileImageAsAdmin(
+    user: User,
+    body: ProfileImageUpdateDto,
+  ): Promise<{ success: boolean }> {
+    const loadedUserProfile = await this.getProfile(user);
+    if (!this.uploadService.storeFileAsAdmin(user, body.profileImage)) {
+      throw new BadRequestException('Unable to upload image');
+    }
+    loadedUserProfile.profile_image = body.profileImage;
+    this.userProfileRepository.save(loadedUserProfile);
+    return { success: true };
+  }
+
   async getUserTimezone(
     id: string,
   ): Promise<UserProfile | Record<string, never>> {
