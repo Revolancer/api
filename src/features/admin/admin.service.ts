@@ -281,6 +281,41 @@ export class AdminService {
     });
   }
 
+  async getUserCompletedProjectsForAdmin(id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
+    return this.projectRepository.find({
+      where: [
+        { client: { id: id }, outcome: 'success' },
+        { contractor: { id: id }, outcome: 'success' },
+        { client: { id: id }, outcome: 'cancelled' },
+        { contractor: { id: id }, outcome: 'cancelled' },
+      ],
+      relations: ['client', 'contractor', 'need'],
+      select: {
+        id: true,
+        client: { id: true },
+        contractor: { id: true },
+        credits: true,
+        status: true,
+        outcome: true,
+        created_at: true,
+      },
+    });
+  }
+
+  async countUserCompletedProjectsForAdmin(id: string) {
+    return this.projectRepository.count({
+      where: [
+        { client: { id: id }, outcome: 'success' },
+        { contractor: { id: id }, outcome: 'success' },
+        { client: { id: id }, outcome: 'cancelled' },
+        { contractor: { id: id }, outcome: 'cancelled' },
+      ],
+      relations: ['client', 'contractor'],
+      select: { client: { id: true }, contractor: { id: true } },
+    });
+  }
+
   async addCredits(body: AddCreditsDto) {
     let user: User | undefined = undefined;
     if (!isValidUUID(body.recipient)) {

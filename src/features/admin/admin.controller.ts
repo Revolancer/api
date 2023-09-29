@@ -82,6 +82,20 @@ export class AdminController {
     return this.adminService.countUserActiveProjectsForAdmin(id);
   }
 
+  @Get('users/:id/projects/completed')
+  @HasRoles('admin', 'moderator')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async getUserCompletedProjectsForAdmin(@Param('id') id: string) {
+    return this.adminService.getUserCompletedProjectsForAdmin(id);
+  }
+
+  @Get('users/:id/projects/completed/count')
+  @HasRoles('admin', 'moderator')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async countCompletedProjects(@Param('id') id: string) {
+    return this.adminService.countUserCompletedProjectsForAdmin(id);
+  }
+
   @Get('user/prefs/:id')
   @HasRoles('admin', 'moderator')
   @UseGuards(JwtAuthGuard, RoleGuard)
