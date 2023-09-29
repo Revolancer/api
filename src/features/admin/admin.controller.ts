@@ -20,6 +20,13 @@ import { EmailUpdateDto } from '../users/dto/emailupdate.dto ';
 import { ChangeExperienceDto } from '../users/dto/changeexperience.dto';
 import { ChangeRateDto } from '../users/dto/changerate.dto';
 import { ChangeDateOfBirthDto } from '../users/dto/changedateofbirth.dto';
+import { UpdateNameDto } from './dto/update-name.dto';
+import { UpdateTaglineDto } from './dto/update-tagline.dto';
+import { UpdateAboutDto } from './dto/update-about.dto';
+import { UpdateSkillsDto } from './dto/update-skills.dto';
+import { UpdateSocialsDto } from './dto/update-socials.dto';
+import { UpdateLocationDto } from './dto/update-location.dto';
+import { UpdateProfileImageDto } from './dto/update-profile-image.dto';
 
 @Controller('admin')
 export class AdminController {
@@ -180,5 +187,60 @@ export class AdminController {
     @Body() body: ChangeDateOfBirthDto,
   ) {
     return this.adminService.setUserDOBAsAdmin(id, body);
+  }
+  @Put('user/edit/name')
+  @HasRoles('admin')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async setUserName(@Body() body: UpdateNameDto) {
+    await this.adminService.setUserNameByAdmin(
+      body.userId,
+      body.first_name,
+      body.last_name,
+    );
+  }
+
+  @Put('user/edit/tagline')
+  @HasRoles('admin')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async setUserTagline(@Body() body: UpdateTaglineDto) {
+    await this.adminService.setUserTaglineByAdmin(body.userId, body.tagline);
+  }
+
+  @Put('user/edit/about')
+  @HasRoles('admin')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async setUserAbout(@Body() body: UpdateAboutDto) {
+    await this.adminService.setUserAboutByAdmin(body.userId, body.about);
+  }
+
+  @Put('user/edit/skills')
+  @HasRoles('admin')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async setUserSkills(@Body() body: UpdateSkillsDto) {
+    await this.adminService.setUserSkillsByAdmin(body.userId, body.skills);
+  }
+
+  @Put('user/edit/socials')
+  @HasRoles('admin')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async setUserSocials(@Body() body: UpdateSocialsDto) {
+    await this.adminService.setUserSocialsByAdmin(body.userId, body.links);
+  }
+
+  @Put('user/edit/location')
+  @HasRoles('admin')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async setUserLocation(@Body() body: UpdateLocationDto) {
+    await this.adminService.setUserLocationByAdmin(body.userId, body.location);
+  }
+
+  @Put('user/edit/profile_picture')
+  @HasRoles('admin')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async setUserProfileImage(@Body() body: UpdateProfileImageDto) {
+    await this.adminService.setUserProfileImageByAdmin(
+      body.userId,
+      body.profileImage,
+    );
   }
 }
