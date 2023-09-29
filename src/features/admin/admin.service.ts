@@ -293,10 +293,8 @@ export class AdminService {
     if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     return this.projectRepository.find({
       where: [
-        { client: { id: id }, outcome: 'success' },
-        { contractor: { id: id }, outcome: 'success' },
-        { client: { id: id }, outcome: 'cancelled' },
-        { contractor: { id: id }, outcome: 'cancelled' },
+        { client: { id: id }, status: 'complete' },
+        { contractor: { id: id }, status: 'complete' },
       ],
       relations: ['client', 'contractor', 'need'],
       select: {
