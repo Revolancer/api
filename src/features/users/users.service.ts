@@ -55,6 +55,7 @@ import { MapsService } from '../maps/maps.service';
 import { UserSocials } from './entities/usersocials.entity';
 import { NameUpdateDto } from './dto/nameupdate.dto';
 import { validate as isValidUUID } from 'uuid';
+import { ChangeDateOfBirthDto } from './dto/changedateofbirth.dto';
 
 @Injectable()
 export class UsersService {
@@ -718,6 +719,21 @@ export class UsersService {
     const loadedUserProfile = await this.getProfile(user);
     loadedUserProfile.currency = body.currency;
     loadedUserProfile.hourly_rate = body.hourlyRate;
+    this.userProfileRepository.save(loadedUserProfile);
+  }
+
+  async getUserDateOfBirth(user: User) {
+    const loadedUserProfile = await this.getProfile(user);
+
+    if (!(loadedUserProfile instanceof UserProfile)) {
+      throw new NotFoundException();
+    }
+    return { date_of_birth: loadedUserProfile.date_of_birth };
+  }
+
+  async setUserDateOfBirth(user: User, body: ChangeDateOfBirthDto) {
+    const loadedUserProfile = await this.getProfile(user);
+    loadedUserProfile.date_of_birth = new Date(body.date_of_birth);
     this.userProfileRepository.save(loadedUserProfile);
   }
 

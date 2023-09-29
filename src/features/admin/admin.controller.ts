@@ -16,6 +16,10 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RoleGuard } from '../auth/guards/role.guard';
 import { DeleteUsersDto } from './dto/delete-users.dto';
 import { ChangeRoleDto } from './dto/change-role.dto';
+import { EmailUpdateDto } from '../users/dto/emailupdate.dto ';
+import { ChangeExperienceDto } from '../users/dto/changeexperience.dto';
+import { ChangeRateDto } from '../users/dto/changerate.dto';
+import { ChangeDateOfBirthDto } from '../users/dto/changedateofbirth.dto';
 import { UpdateNameDto } from './dto/update-name.dto';
 import { UpdateTaglineDto } from './dto/update-tagline.dto';
 import { UpdateAboutDto } from './dto/update-about.dto';
@@ -110,6 +114,80 @@ export class AdminController {
     return this.adminService.deleteUser(id);
   }
 
+  @Get('user/email/:id')
+  @HasRoles('admin')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async getUserEmailAsAdmin(@Param('id') id: string) {
+    return this.adminService.getUserEmailAsAdmin(id);
+  }
+
+  @Post('user/email/:id')
+  @HasRoles('admin')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async setUserEmailAsAdmin(
+    @Param('id') id: string,
+    @Body() body: EmailUpdateDto,
+  ) {
+    return this.adminService.setUserEmailAsAdmin(id, body);
+  }
+
+  @Get('user/experience/:id')
+  @HasRoles('admin')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async getUserExperienceAsAdmin(@Param('id') id: string) {
+    return this.adminService.getUserExperienceAsAdmin(id);
+  }
+
+  @Post('user/experience/:id')
+  @HasRoles('admin')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async setUserExperienceAsAdmin(
+    @Param('id') id: string,
+    @Body() body: ChangeExperienceDto,
+  ) {
+    return this.adminService.setUserExperienceAsAdmin(id, body);
+  }
+
+  @Put('user/password/:id')
+  @HasRoles('admin')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async sendResetPasswordMailByAdmin(@Param('id') id: string) {
+    return this.adminService.sendResetPasswordMailByAdmin(id);
+  }
+
+  @Get('user/rate/:id')
+  @HasRoles('admin')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async getUserRateAsAdmin(@Param('id') id: string) {
+    return this.adminService.getUserRateAsAdmin(id);
+  }
+
+  @Post('user/rate/:id')
+  @HasRoles('admin')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async setUserRateAsAdmin(
+    @Param('id') id: string,
+    @Body() body: ChangeRateDto,
+  ) {
+    return this.adminService.setUserRateAsAdmin(id, body);
+  }
+
+  @Get('user/dob/:id')
+  @HasRoles('admin')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async getUserDOBAsAdmin(@Param('id') id: string) {
+    return this.adminService.getUserDOBAsAdmin(id);
+  }
+
+  @Post('user/dob/:id')
+  @HasRoles('admin')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async setUserDOBAsAdmin(
+    @Param('id') id: string,
+    @Body() body: ChangeDateOfBirthDto,
+  ) {
+    return this.adminService.setUserDOBAsAdmin(id, body);
+  }
   @Put('user/edit/name')
   @HasRoles('admin')
   @UseGuards(JwtAuthGuard, RoleGuard)
@@ -134,6 +212,7 @@ export class AdminController {
   async setUserAbout(@Body() body: UpdateAboutDto) {
     await this.adminService.setUserAboutByAdmin(body.userId, body.about);
   }
+
   @Put('user/edit/skills')
   @HasRoles('admin')
   @UseGuards(JwtAuthGuard, RoleGuard)
