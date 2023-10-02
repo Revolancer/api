@@ -129,14 +129,14 @@ export class AdminController {
   }
 
   @Get('user/email/:id')
-  @HasRoles('admin')
+  @HasRoles('admin', 'moderator')
   @UseGuards(JwtAuthGuard, RoleGuard)
   async getUserEmailAsAdmin(@Param('id') id: string) {
     return this.adminService.getUserEmailAsAdmin(id);
   }
 
   @Post('user/email/:id')
-  @HasRoles('admin')
+  @HasRoles('admin', 'moderator')
   @UseGuards(JwtAuthGuard, RoleGuard)
   async setUserEmailAsAdmin(
     @Param('id') id: string,
@@ -146,14 +146,14 @@ export class AdminController {
   }
 
   @Get('user/experience/:id')
-  @HasRoles('admin')
+  @HasRoles('admin', 'moderator')
   @UseGuards(JwtAuthGuard, RoleGuard)
   async getUserExperienceAsAdmin(@Param('id') id: string) {
     return this.adminService.getUserExperienceAsAdmin(id);
   }
 
   @Post('user/experience/:id')
-  @HasRoles('admin')
+  @HasRoles('admin', 'moderator')
   @UseGuards(JwtAuthGuard, RoleGuard)
   async setUserExperienceAsAdmin(
     @Param('id') id: string,
@@ -163,21 +163,21 @@ export class AdminController {
   }
 
   @Put('user/password/:id')
-  @HasRoles('admin')
+  @HasRoles('admin', 'moderator')
   @UseGuards(JwtAuthGuard, RoleGuard)
   async sendResetPasswordMailByAdmin(@Param('id') id: string) {
     return this.adminService.sendResetPasswordMailByAdmin(id);
   }
 
   @Get('user/rate/:id')
-  @HasRoles('admin')
+  @HasRoles('admin', 'moderator')
   @UseGuards(JwtAuthGuard, RoleGuard)
   async getUserRateAsAdmin(@Param('id') id: string) {
     return this.adminService.getUserRateAsAdmin(id);
   }
 
   @Post('user/rate/:id')
-  @HasRoles('admin')
+  @HasRoles('admin', 'moderator')
   @UseGuards(JwtAuthGuard, RoleGuard)
   async setUserRateAsAdmin(
     @Param('id') id: string,
@@ -187,14 +187,14 @@ export class AdminController {
   }
 
   @Get('user/dob/:id')
-  @HasRoles('admin')
+  @HasRoles('admin', 'moderator')
   @UseGuards(JwtAuthGuard, RoleGuard)
   async getUserDOBAsAdmin(@Param('id') id: string) {
     return this.adminService.getUserDOBAsAdmin(id);
   }
 
   @Post('user/dob/:id')
-  @HasRoles('admin')
+  @HasRoles('admin', 'moderator')
   @UseGuards(JwtAuthGuard, RoleGuard)
   async setUserDOBAsAdmin(
     @Param('id') id: string,
@@ -203,7 +203,7 @@ export class AdminController {
     return this.adminService.setUserDOBAsAdmin(id, body);
   }
   @Put('user/edit/name')
-  @HasRoles('admin')
+  @HasRoles('admin', 'moderator')
   @UseGuards(JwtAuthGuard, RoleGuard)
   async setUserName(@Body() body: UpdateNameDto) {
     await this.adminService.setUserNameByAdmin(
@@ -214,42 +214,42 @@ export class AdminController {
   }
 
   @Put('user/edit/tagline')
-  @HasRoles('admin')
+  @HasRoles('admin', 'moderator')
   @UseGuards(JwtAuthGuard, RoleGuard)
   async setUserTagline(@Body() body: UpdateTaglineDto) {
     await this.adminService.setUserTaglineByAdmin(body.userId, body.tagline);
   }
 
   @Put('user/edit/about')
-  @HasRoles('admin')
+  @HasRoles('admin', 'moderator')
   @UseGuards(JwtAuthGuard, RoleGuard)
   async setUserAbout(@Body() body: UpdateAboutDto) {
     await this.adminService.setUserAboutByAdmin(body.userId, body.about);
   }
 
   @Put('user/edit/skills')
-  @HasRoles('admin')
+  @HasRoles('admin', 'moderator')
   @UseGuards(JwtAuthGuard, RoleGuard)
   async setUserSkills(@Body() body: UpdateSkillsDto) {
     await this.adminService.setUserSkillsByAdmin(body.userId, body.skills);
   }
 
   @Put('user/edit/socials')
-  @HasRoles('admin')
+  @HasRoles('admin', 'moderator')
   @UseGuards(JwtAuthGuard, RoleGuard)
   async setUserSocials(@Body() body: UpdateSocialsDto) {
     await this.adminService.setUserSocialsByAdmin(body.userId, body.links);
   }
 
   @Put('user/edit/location')
-  @HasRoles('admin')
+  @HasRoles('admin', 'moderator')
   @UseGuards(JwtAuthGuard, RoleGuard)
   async setUserLocation(@Body() body: UpdateLocationDto) {
     await this.adminService.setUserLocationByAdmin(body.userId, body.location);
   }
 
   @Put('user/edit/profile_picture')
-  @HasRoles('admin')
+  @HasRoles('admin', 'moderator')
   @UseGuards(JwtAuthGuard, RoleGuard)
   async setUserProfileImage(@Body() body: UpdateProfileImageDto) {
     await this.adminService.setUserProfileImageByAdmin(
