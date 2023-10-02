@@ -19,7 +19,7 @@ export class NotificationsController {
     @Req() req: IUserRequest,
     @Param('id') id: string,
   ) {
-    this.notificationsService.markNotificationAsRead(req.user, id);
+    return this.notificationsService.markNotificationAsRead(req.user, id);
   }
 
   @UseGuards(JwtAuthGuard)

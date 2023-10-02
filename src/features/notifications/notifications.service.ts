@@ -41,6 +41,10 @@ export class NotificationsService {
     notification.read = true;
     notification.read_at = DateTime.now().toJSDate();
     this.notificationRepository.save(notification);
+    return this.notificationRepository.find({
+      where: { user: { id: user.id } },
+      order: { created_at: 'DESC' },
+    });
   }
 
   async getByKey(user: User, key: string) {
