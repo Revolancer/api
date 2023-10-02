@@ -1,6 +1,6 @@
 # Revolancer API
 
-![coverage](https://revolancer.github.io/api/badges/coverage.svg)
+![coverage](https://github.com/revolancer/api/raw/gh-pages/badges/coverage.svg?raw=true)
 
 This is the API for the Revolancer platform. Copyright 2021-2023 Revolancer Ltd, all rights reserved.
 
