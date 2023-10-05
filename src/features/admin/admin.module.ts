@@ -25,6 +25,7 @@ import { Redis } from 'ioredis';
 import { UserRole } from '../users/entities/userrole.entity';
 import { Tag } from '../tags/entities/tag.entity';
 import { TagsService } from '../tags/tags.service';
+import { NeedModule } from '../need/need.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { TagsService } from '../tags/tags.service';
     UploadModule,
     UsersModule,
     MailModule,
+    NeedModule,
     BullModule.registerQueue({
       name: 'admin',
     }),

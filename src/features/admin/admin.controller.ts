@@ -257,4 +257,31 @@ export class AdminController {
       body.profileImage,
     );
   }
+
+  @Get('user/:id/needs')
+  @HasRoles('admin', 'moderator')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async getUserNeedAsAdmin(@Param('id') id: string) {
+    return this.adminService.getUserNeedsAsAdmin(id);
+  }
+
+  @Get('user/:id/needs/:nid/proposals')
+  @HasRoles('admin', 'moderator')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async getUserProposalsAsAdmin(
+    @Param('id') id: string,
+    @Param('nid') nid: string,
+  ) {
+    return this.adminService.getUserProposalsAsAdmin(id, nid);
+  }
+
+  @Delete('user/:id/needs/:nid')
+  @HasRoles('admin', 'moderator')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async deleteNeedForUserAsAdmin(
+    @Param('id') id: string,
+    @Param('nid') nid: string,
+  ) {
+    return this.adminService.deleteNeedForUserAsAdmin(id, nid);
+  }
 }

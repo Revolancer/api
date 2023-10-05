@@ -26,6 +26,7 @@ import { EmailUpdateDto } from '../users/dto/emailupdate.dto ';
 import { ChangeExperienceDto } from '../users/dto/changeexperience.dto';
 import { ChangeRateDto } from '../users/dto/changerate.dto';
 import { ChangeDateOfBirthDto } from '../users/dto/changedateofbirth.dto';
+import { NeedService } from '../need/need.service';
 
 @Injectable()
 export class AdminService {
@@ -44,6 +45,7 @@ export class AdminService {
     private uploadService: UploadService,
     private tagsService: TagsService,
     private usersService: UsersService,
+    private needService: NeedService,
   ) {}
 
   /**
@@ -556,5 +558,35 @@ export class AdminService {
 
     await this.usersService.setUserDateOfBirth(user, body);
     return { success: true };
+  }
+
+  async getUserNeedsAsAdmin(userId: string) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
+
+    return await this.needService.getPostsForUser(userId);
+  }
+
+  async deleteNeedForUserAsAdmin(userId: string, needId: string) {
+    if (!isValidUUID(userId) && !isValidUUID(needId))
+      throw new BadRequestException('Invalid ID Format');
+
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+    await this.needService.delistNeed(user, needId);
+    return { success: true };
+  }
+
+  async getUserProposalsAsAdmin(userId: string, needId: string) {
+    if (!isValidUUID(userId) && !isValidUUID(needId))
+      throw new BadRequestException('Invalid ID Format');
+
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+    return await this.needService.getProposals(user, needId);
   }
 }
