@@ -23,6 +23,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { DevtoolsModule } from '@nestjs/devtools-integration';
 import { RedisClientOptions } from 'redis';
 import { redisStore } from 'cache-manager-redis-yet';
+import { IndexModule } from './features/index/index.module';
 
 @Module({})
 class NullModule {}
@@ -48,6 +49,7 @@ class NullModule {}
     TagsModule,
     UploadModule,
     FeedModule,
+    IndexModule,
     process.env.NODE_ENV == 'development' ? BullBoardModule : NullModule, // Don't load bull-board in prod
     TypeOrmModule.forRootAsync({
       imports: [DBConfigModule],
