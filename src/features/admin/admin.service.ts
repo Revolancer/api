@@ -27,6 +27,7 @@ import { EmailUpdateDto } from '../users/dto/emailupdate.dto ';
 import { ChangeExperienceDto } from '../users/dto/changeexperience.dto';
 import { ChangeRateDto } from '../users/dto/changerate.dto';
 import { ChangeDateOfBirthDto } from '../users/dto/changedateofbirth.dto';
+import { PortfolioService } from '../portfolio/portfolio.service';
 
 @Injectable()
 export class AdminService {
@@ -47,6 +48,7 @@ export class AdminService {
     private uploadService: UploadService,
     private tagsService: TagsService,
     private usersService: UsersService,
+    private portfolioService: PortfolioService,
   ) {}
 
   /**
@@ -592,6 +594,25 @@ export class AdminService {
     }
 
     await this.usersService.setUserDateOfBirth(user, body);
+    return { success: true };
+  }
+
+  async getUserPortfoliosAsAdmin(userId: string) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
+
+    return await this.portfolioService.getPostsForUser(userId);
+  }
+
+  async deletePortfolioForUserAsAdmin(userId: string, portfolioId: string) {
+    if (!isValidUUID(userId) && !isValidUUID(portfolioId))
+      throw new BadRequestException('Invalid ID Format');
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+
+    await this.portfolioService.deletePost(user, portfolioId);
     return { success: true };
   }
 }

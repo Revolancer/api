@@ -94,7 +94,8 @@ export class PortfolioService {
     try {
       const posts = this.postRepository.find({
         where: { user: { id: uid } },
-        relations: ['tags'],
+        relations: ['tags', 'user'],
+        select: { user: { id: true } },
         order: { published_at: 'DESC' },
       });
       return posts;
