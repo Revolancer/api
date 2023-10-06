@@ -931,7 +931,7 @@ export class UsersService {
     );
   }
 
-  @Cron('0 0 * * * *')
+  @Cron('0 */15 * * * *')
   async checkIfUserHasNeeds() {
     await this.redlock.using(['7-day-no-needs'], 30000, async (signal) => {
       if (signal.aborted) {
@@ -964,6 +964,7 @@ export class UsersService {
           order: { created_at: 'ASC' },
         });
         index += pageSize;
+        console.log(`scheduling to ${users.length} users`);
         await this.userQueue.add(
           {
             task: '7_days_no_needs',
@@ -997,25 +998,23 @@ export class UsersService {
           continue;
         }
         const credits = await this.creditsService.getUserCredits(user);
-        if (credits > 0) {
-          const lastUserNeedsEmail = await this.lastMailRepository.findOne({
-            where: {
-              user: { id: user.id },
-              mailout: '7_days_no_needs',
-            },
-          });
-          if (lastUserNeedsEmail) {
-            continue;
-          }
-          this.mailService.scheduleMail(user, '7_days_no_needs', {
-            credits: credits,
-          });
-          const messageSent = new LastMail();
-          messageSent.last_mail = DateTime.now().toJSDate();
-          messageSent.mailout = '7_days_no_needs';
-          messageSent.user = user;
-          this.lastMailRepository.save(messageSent);
+        const lastUserNeedsEmail = await this.lastMailRepository.findOne({
+          where: {
+            user: { id: user.id },
+            mailout: '7_days_no_needs',
+          },
+        });
+        if (lastUserNeedsEmail) {
+          continue;
         }
+        this.mailService.scheduleMail(user, '7_days_no_needs', {
+          credits: credits,
+        });
+        const messageSent = new LastMail();
+        messageSent.last_mail = DateTime.now().toJSDate();
+        messageSent.mailout = '7_days_no_needs';
+        messageSent.user = user;
+        this.lastMailRepository.save(messageSent);
       }
     }
   }
