@@ -257,4 +257,21 @@ export class AdminController {
       body.profileImage,
     );
   }
+
+  @Get('user/:id/portfolios')
+  @HasRoles('admin', 'moderator')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async getUserPortfoliosAsAdmin(@Param('id') id: string) {
+    return this.adminService.getUserPortfoliosAsAdmin(id);
+  }
+
+  @Delete('user/:id/portfolio/:pid')
+  @HasRoles('admin', 'moderator')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async deleteProposalForUserAsAdmin(
+    @Param('id') id: string,
+    @Param('pid') pid: string,
+  ) {
+    return this.adminService.deletePortfolioForUserAsAdmin(id, pid);
+  }
 }
