@@ -200,7 +200,7 @@ export class IndexService {
       case 'need':
       case 'portfolio':
       case 'user':
-        where = { datatype: type };
+        where = { contentType: type };
     }
 
     return this.contentIndexRepository.count({ where });
