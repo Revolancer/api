@@ -333,7 +333,7 @@ export class NeedService {
       need.user,
       `need-proposals-${need.id}`,
     );
-    //TODO: De-index deleted need
+    this.indexService.deleteIndexEntry('need', need.id);
     this.postRepository.save(need);
   }
 

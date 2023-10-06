@@ -1,4 +1,10 @@
-import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  Logger,
+  forwardRef,
+} from '@nestjs/common';
 import { User } from '../users/entities/user.entity';
 import { MoreThan, Repository } from 'typeorm';
 import { ContentIndex } from './entities/contentindex.entity';
@@ -11,6 +17,7 @@ import { InjectQueue } from '@nestjs/bull';
 import { IndexJob } from './queue/index.job';
 import { Queue } from 'bull';
 import { DateTime } from 'luxon';
+import { validate as isValidUUID } from 'uuid';
 
 @Injectable()
 export class IndexService {
@@ -205,5 +212,10 @@ export class IndexService {
     }
 
     return this.contentIndexRepository.count({ where });
+  }
+
+  deleteIndexEntry(type: 'need' | 'portfolio' | 'user', id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID format');
+    this.contentIndexRepository.delete({ otherId: id, contentType: type });
   }
 }
