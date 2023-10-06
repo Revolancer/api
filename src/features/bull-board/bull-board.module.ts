@@ -8,6 +8,7 @@ import { BullBoardService } from './bull-board.service';
     BullModule.registerQueue({ name: 'admin' }),
     BullModule.registerQueue({ name: 'mail' }),
     BullModule.registerQueue({ name: 'user' }),
+    BullModule.registerQueue({ name: 'index' }),
   ],
   providers: [BullBoardService],
   controllers: [BullBoardController],

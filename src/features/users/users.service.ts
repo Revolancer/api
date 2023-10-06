@@ -4,6 +4,7 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  Logger,
   NotAcceptableException,
   NotFoundException,
   UnauthorizedException,
@@ -59,6 +60,7 @@ import { ChangeDateOfBirthDto } from './dto/changedateofbirth.dto';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
@@ -964,7 +966,7 @@ export class UsersService {
           order: { created_at: 'ASC' },
         });
         index += pageSize;
-        console.log(`scheduling to ${users.length} users`);
+        this.logger.log(`scheduling needs email to ${users.length} users`);
         await this.userQueue.add(
           {
             task: '7_days_no_needs',
@@ -1049,6 +1051,7 @@ export class UsersService {
           order: { created_at: 'ASC' },
         });
         index += pageSize;
+        this.logger.log(`scheduling portfolio email to ${users.length} users`);
         await this.userQueue.add(
           {
             task: '3_days_no_portfolio',
