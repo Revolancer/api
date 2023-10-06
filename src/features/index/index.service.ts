@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { User } from '../users/entities/user.entity';
 import { MoreThan, Repository } from 'typeorm';
 import { ContentIndex } from './entities/contentindex.entity';
@@ -24,6 +24,7 @@ export class IndexService {
     private needRepository: Repository<NeedPost>,
     @InjectRepository(PortfolioPost)
     private portfolioRepository: Repository<PortfolioPost>,
+    @Inject(forwardRef(() => UsersService))
     private userService: UsersService,
     private readonly redlock: RedlockService,
     @InjectQueue('index') private indexQueue: Queue<IndexJob>,

@@ -16,6 +16,7 @@ import { CreateProposalDto } from './dto/createproposal.dto';
 import { MailService } from '../mail/mail.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { validate as isValidUUID } from 'uuid';
+import { IndexService } from '../index/index.service';
 
 @Injectable()
 export class NeedService {
@@ -27,6 +28,7 @@ export class NeedService {
     private tagsService: TagsService,
     private mailService: MailService,
     private notificationsService: NotificationsService,
+    private indexService: IndexService,
   ) {}
 
   async loadTagsFromRequest(tags: CreatePostDto['tags']) {
@@ -52,6 +54,7 @@ export class NeedService {
       post.unpublish_at = body.unpublish_at;
     }
     const newPost = await this.postRepository.save(post);
+    this.indexService.indexNeed(newPost);
     return newPost.id;
   }
 
@@ -67,6 +70,7 @@ export class NeedService {
       post.title = body.title;
       post.tags = await this.loadTagsFromRequest(body.tags);
       const newPost = await this.postRepository.save(post);
+      this.indexService.indexNeed(newPost);
       return newPost.id;
     } catch (err) {
       throw new NotFoundException('Post not found');
@@ -329,6 +333,7 @@ export class NeedService {
       need.user,
       `need-proposals-${need.id}`,
     );
+    //TODO: De-index deleted need
     this.postRepository.save(need);
   }
 

@@ -12,6 +12,7 @@ import { User } from '../users/entities/user.entity';
 import { CreatePostDto } from './dto/createpost.dto';
 import { PortfolioPost } from './entities/portfolio-post.entity';
 import { validate as isValidUUID } from 'uuid';
+import { IndexService } from '../index/index.service';
 
 @Injectable()
 export class PortfolioService {
@@ -19,6 +20,7 @@ export class PortfolioService {
     @InjectRepository(PortfolioPost)
     private postRepository: Repository<PortfolioPost>,
     private tagsService: TagsService,
+    private indexService: IndexService,
   ) {}
 
   async loadTagsFromRequest(tags: CreatePostDto['tags']) {
@@ -41,6 +43,7 @@ export class PortfolioService {
     post.title = body.title;
     post.tags = await this.loadTagsFromRequest(body.tags);
     const newPost = await this.postRepository.save(post);
+    this.indexService.indexPortfolio(newPost);
     return newPost.id;
   }
 
@@ -56,6 +59,7 @@ export class PortfolioService {
       post.title = body.title;
       post.tags = await this.loadTagsFromRequest(body.tags);
       const newPost = await this.postRepository.save(post);
+      this.indexService.indexPortfolio(newPost);
       return newPost.id;
     } catch (err) {
       throw new NotFoundException('Post not found');
@@ -70,6 +74,7 @@ export class PortfolioService {
         .softDelete()
         .where({ id: id, user: { id: user.id } })
         .execute();
+      //TODO: Deindex deleted post
     } catch (err) {
       throw new NotFoundException('Post not found');
     }
