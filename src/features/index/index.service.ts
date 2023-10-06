@@ -193,4 +193,16 @@ export class IndexService {
   indexPortfolios(posts: PortfolioPost[]) {
     posts.map((post) => this.indexPortfolio(post));
   }
+
+  countIndexedData(type: 'all' | 'need' | 'portfolio' | 'user') {
+    let where = {};
+    switch (type) {
+      case 'need':
+      case 'portfolio':
+      case 'user':
+        where = { datatype: type };
+    }
+
+    return this.contentIndexRepository.count({ where });
+  }
 }
