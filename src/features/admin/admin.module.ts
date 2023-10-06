@@ -25,6 +25,7 @@ import { Redis } from 'ioredis';
 import { UserRole } from '../users/entities/userrole.entity';
 import { Tag } from '../tags/entities/tag.entity';
 import { TagsService } from '../tags/tags.service';
+import { ProjectMessage } from '../projects/entities/project-message.entity';
 import { PortfolioModule } from '../portfolio/portfolio.module';
 
 @Module({
@@ -38,6 +39,7 @@ import { PortfolioModule } from '../portfolio/portfolio.module';
       Proposal,
       UserReferrer,
       Project,
+      ProjectMessage,
       StatsLog,
       Tag,
     ]),

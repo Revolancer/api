@@ -22,6 +22,7 @@ import { Onboarding3Dto } from '../users/dto/onboarding3.dto';
 import { TagsService } from '../tags/tags.service';
 import { UpdateLocationDto } from './dto/update-location.dto';
 import { Project } from '../projects/entities/project.entity';
+import { ProjectMessage } from '../projects/entities/project-message.entity';
 import { EmailUpdateDto } from '../users/dto/emailupdate.dto ';
 import { ChangeExperienceDto } from '../users/dto/changeexperience.dto';
 import { ChangeRateDto } from '../users/dto/changerate.dto';
@@ -41,6 +42,8 @@ export class AdminService {
     private userRoleRepository: Repository<UserRole>,
     @InjectRepository(Project)
     private projectRepository: Repository<Project>,
+    @InjectRepository(ProjectMessage)
+    private projectMessageRepository: Repository<ProjectMessage>,
     private creditService: CreditsService,
     private uploadService: UploadService,
     private tagsService: TagsService,
@@ -321,6 +324,40 @@ export class AdminService {
       ],
       relations: ['client', 'contractor'],
       select: { client: { id: true }, contractor: { id: true } },
+    });
+  }
+
+  async getProjectForAdmin(uid: string, pid: string) {
+    if (!isValidUUID(pid)) throw new BadRequestException('Invalid ID Format');
+    if (!isValidUUID(uid)) throw new BadRequestException('Invalid ID Format');
+    return this.projectRepository.findOne({
+      where: [
+        { id: pid, client: { id: uid } },
+        { id: pid, contractor: { id: uid } },
+      ],
+      relations: ['client', 'contractor'],
+      select: { client: { id: true }, contractor: { id: true } },
+    });
+  }
+
+  async getProjectMessagesForAdmin(uid: string, pid: string) {
+    if (!isValidUUID(pid)) throw new BadRequestException('Invalid ID Format');
+    const project = await this.projectRepository.findOne({
+      where: [
+        { id: pid, client: { id: uid } },
+        { id: pid, contractor: { id: uid } },
+      ],
+      relations: ['client', 'contractor'],
+      select: { client: { id: true }, contractor: { id: true } },
+    });
+    if (!project) {
+      throw new NotFoundException();
+    }
+    return this.projectMessageRepository.find({
+      where: { project: { id: project.id } },
+      relations: ['user', 'attachment'],
+      select: { user: { id: true } },
+      order: { created_at: 'ASC' },
     });
   }
 
