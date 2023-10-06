@@ -85,7 +85,7 @@ export class UserProfile {
   @Column({ nullable: true })
   placeId?: string;
 
-  @ManyToMany(() => Tag)
+  @ManyToMany(() => Tag, { eager: true })
   @JoinTable()
   skills: Tag[];
 
