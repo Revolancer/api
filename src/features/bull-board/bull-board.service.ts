@@ -16,6 +16,6 @@ export class BullBoardService {
   ) {}
 
   getQueues(): Array<Queue> {
-    return [this.adminQueue, this.mailQueue, this.userQueue];
+    return [this.adminQueue, this.mailQueue, this.userQueue, this.indexQueue];
   }
 }

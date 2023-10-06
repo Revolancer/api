@@ -12,6 +12,7 @@ import { RedisConfigService } from 'src/config/redis/config.service';
 import { Redis } from 'ioredis';
 import { BullModule } from '@nestjs/bull';
 import { IndexController } from './index.controller';
+import { IndexConsumer } from './queue/index.consumer';
 
 @Module({
   imports: [
@@ -39,7 +40,7 @@ import { IndexController } from './index.controller';
     }),
     BullModule.registerQueue({ name: 'index' }),
   ],
-  providers: [IndexService],
+  providers: [IndexService, IndexConsumer],
   controllers: [IndexController],
 })
 export class IndexModule {}
