@@ -203,6 +203,18 @@ export class MessageService {
     this.messageRepository.save(message);
   }
 
+  async markAllMessagesAsRead(user: User) {
+    const messages = await this.messageRepository.find({
+      where: { reciever: { id: user.id } },
+    });
+    if (!messages) return;
+    for (const message of messages) {
+      message.read = true;
+      message.read_at = DateTime.now().toJSDate();
+    }
+    this.messageRepository.save(messages);
+  }
+
   async scheduleUnreadMessagesEmail(user: User) {
     const lastUnreadMessagesEmail = await this.lastMailRepository.findOne({
       where: {
