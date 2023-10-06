@@ -22,11 +22,13 @@ import { Onboarding3Dto } from '../users/dto/onboarding3.dto';
 import { TagsService } from '../tags/tags.service';
 import { UpdateLocationDto } from './dto/update-location.dto';
 import { Project } from '../projects/entities/project.entity';
+import { ProjectMessage } from '../projects/entities/project-message.entity';
 import { EmailUpdateDto } from '../users/dto/emailupdate.dto ';
 import { ChangeExperienceDto } from '../users/dto/changeexperience.dto';
 import { ChangeRateDto } from '../users/dto/changerate.dto';
 import { ChangeDateOfBirthDto } from '../users/dto/changedateofbirth.dto';
 import { NeedService } from '../need/need.service';
+import { PortfolioService } from '../portfolio/portfolio.service';
 
 @Injectable()
 export class AdminService {
@@ -41,11 +43,14 @@ export class AdminService {
     private userRoleRepository: Repository<UserRole>,
     @InjectRepository(Project)
     private projectRepository: Repository<Project>,
+    @InjectRepository(ProjectMessage)
+    private projectMessageRepository: Repository<ProjectMessage>,
     private creditService: CreditsService,
     private uploadService: UploadService,
     private tagsService: TagsService,
     private usersService: UsersService,
     private needService: NeedService,
+    private portfolioService: PortfolioService,
   ) {}
 
   /**
@@ -101,6 +106,10 @@ export class AdminService {
   }
 
   async deleteUsers(users: string[]) {
+    for (const userId of users) {
+      if (!isValidUUID(userId)) throw new BadRequestException('Invalid ID Format');
+    }
+
     const qb = this.userRepository.createQueryBuilder('user');
 
     const usersToDelete: { id: string; role: string }[] = await qb
@@ -130,6 +139,7 @@ export class AdminService {
   }
 
   async softDeleteUser(userId: string): Promise<void> {
+    if (!isValidUUID(userId)) throw new BadRequestException('Invalid ID Format');
     const user = await this.userRepository.findOne({
       where: { id: userId },
     });
@@ -145,6 +155,7 @@ export class AdminService {
 
   async changeRole(users: string[], role: string) {
     for (const userId of users) {
+      if (!isValidUUID(userId)) throw new BadRequestException('Invalid ID Format');
       const user = await this.userRepository.findOne({
         where: { id: userId },
         relations: { roles: true },
@@ -281,6 +292,7 @@ export class AdminService {
   }
 
   async countUserActiveProjectsForAdmin(id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     return this.projectRepository.count({
       where: [
         { client: { id: id }, status: 'active' },
@@ -312,6 +324,7 @@ export class AdminService {
   }
 
   async countUserCompletedProjectsForAdmin(id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     return this.projectRepository.count({
       where: [
         { client: { id: id }, outcome: 'success' },
@@ -321,6 +334,40 @@ export class AdminService {
       ],
       relations: ['client', 'contractor'],
       select: { client: { id: true }, contractor: { id: true } },
+    });
+  }
+
+  async getProjectForAdmin(uid: string, pid: string) {
+    if (!isValidUUID(pid)) throw new BadRequestException('Invalid ID Format');
+    if (!isValidUUID(uid)) throw new BadRequestException('Invalid ID Format');
+    return this.projectRepository.findOne({
+      where: [
+        { id: pid, client: { id: uid } },
+        { id: pid, contractor: { id: uid } },
+      ],
+      relations: ['client', 'contractor'],
+      select: { client: { id: true }, contractor: { id: true } },
+    });
+  }
+
+  async getProjectMessagesForAdmin(uid: string, pid: string) {
+    if (!isValidUUID(uid) || !isValidUUID(pid)) throw new BadRequestException('Invalid ID Format');
+    const project = await this.projectRepository.findOne({
+      where: [
+        { id: pid, client: { id: uid } },
+        { id: pid, contractor: { id: uid } },
+      ],
+      relations: ['client', 'contractor'],
+      select: { client: { id: true }, contractor: { id: true } },
+    });
+    if (!project) {
+      throw new NotFoundException();
+    }
+    return this.projectMessageRepository.find({
+      where: { project: { id: project.id } },
+      relations: ['user', 'attachment'],
+      select: { user: { id: true } },
+      order: { created_at: 'ASC' },
     });
   }
 
@@ -351,6 +398,8 @@ export class AdminService {
   }
 
   async deleteUser(id: string) {
+    if (!isValidUUID(id))
+      throw new BadRequestException('Invalid ID Format');
     const user = await this.usersService.findOne(id);
     if (!user) {
       throw new NotFoundException();
@@ -568,9 +617,8 @@ export class AdminService {
   }
 
   async deleteNeedForUserAsAdmin(userId: string, needId: string) {
-    if (!isValidUUID(userId) && !isValidUUID(needId))
+    if (!isValidUUID(userId) || !isValidUUID(needId))
       throw new BadRequestException('Invalid ID Format');
-
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!(user instanceof User)) {
       throw new NotFoundException();
@@ -579,8 +627,27 @@ export class AdminService {
     return { success: true };
   }
 
+  async getUserPortfoliosAsAdmin(userId: string) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
+
+    return await this.portfolioService.getPostsForUser(userId);
+  }
+
+  async deletePortfolioForUserAsAdmin(userId: string, portfolioId: string) {
+    if (!isValidUUID(userId) || !isValidUUID(portfolioId))
+      throw new BadRequestException('Invalid ID Format');
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+
+    await this.portfolioService.deletePost(user, portfolioId);
+    return { success: true };
+  }
+
   async getUserProposalsAsAdmin(userId: string, needId: string) {
-    if (!isValidUUID(userId) && !isValidUUID(needId))
+    if (!isValidUUID(userId) || !isValidUUID(needId))
       throw new BadRequestException('Invalid ID Format');
 
     const user = await this.userRepository.findOne({ where: { id: userId } });

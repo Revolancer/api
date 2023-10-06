@@ -74,4 +74,10 @@ export class MessageController {
   async acknowledgeMessage(@Req() req: IUserRequest, @Param('id') id: string) {
     return this.messageService.markMessageAsRead(req.user, id);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('acknowledge')
+  async acknowledgeAllMessages(@Req() req: IUserRequest) {
+    return this.messageService.markAllMessagesAsRead(req.user);
+  }
 }
