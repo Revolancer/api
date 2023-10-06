@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { User } from '../users/entities/user.entity';
-import { Repository } from 'typeorm';
+import { MoreThan, Repository } from 'typeorm';
 import { ContentIndex } from './entities/contentindex.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsersService } from '../users/users.service';
@@ -10,6 +10,7 @@ import { RedlockService } from '@anchan828/nest-redlock';
 import { InjectQueue } from '@nestjs/bull';
 import { IndexJob } from './queue/index.job';
 import { Queue } from 'bull';
+import { DateTime } from 'luxon';
 
 @Injectable()
 export class IndexService {
@@ -80,6 +81,7 @@ export class IndexService {
   }
 
   clearIndex() {
+    this.logger.log('Wiping index');
     this.contentIndexRepository.clear();
   }
 
@@ -122,11 +124,14 @@ export class IndexService {
       if (signal.aborted) {
         throw signal.error;
       }
-      const countNeeds = await this.needRepository.count();
+      const countNeeds = await this.needRepository.count({
+        where: { unpublish_at: MoreThan(DateTime.now().toJSDate()) },
+      });
       const pageSize = 50;
       let index = 0;
       while (index < countNeeds) {
         const needs = await this.needRepository.find({
+          where: { unpublish_at: MoreThan(DateTime.now().toJSDate()) },
           take: pageSize,
           skip: index,
           order: { created_at: 'ASC' },
