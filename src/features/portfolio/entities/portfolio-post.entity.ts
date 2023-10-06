@@ -24,7 +24,7 @@ export class PortfolioPost {
   @JoinColumn()
   user!: User;
 
-  @ManyToMany(() => Tag)
+  @ManyToMany(() => Tag, { eager: true })
   @JoinTable()
   tags: Tag[];
 
