@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { IndexService } from './index.service';
 import { ContentIndex } from './entities/contentindex.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -17,7 +17,7 @@ import { IndexConsumer } from './queue/index.consumer';
 @Module({
   imports: [
     TypeOrmModule.forFeature([ContentIndex, User, NeedPost, PortfolioPost]),
-    UsersModule,
+    forwardRef(() => UsersModule),
     RedlockModule.registerAsync({
       imports: [RedisConfigModule],
       inject: [RedisConfigService],
@@ -41,6 +41,7 @@ import { IndexConsumer } from './queue/index.consumer';
     BullModule.registerQueue({ name: 'index' }),
   ],
   providers: [IndexService, IndexConsumer],
+  exports: [IndexService],
   controllers: [IndexController],
 })
 export class IndexModule {}

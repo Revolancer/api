@@ -4,9 +4,10 @@ import { TagsModule } from '../tags/tags.module';
 import { PortfolioPost } from './entities/portfolio-post.entity';
 import { PortfolioController } from './portfolio.controller';
 import { PortfolioService } from './portfolio.service';
+import { IndexModule } from '../index/index.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([PortfolioPost]), TagsModule],
+  imports: [TypeOrmModule.forFeature([PortfolioPost]), TagsModule, IndexModule],
   providers: [PortfolioService],
   exports: [PortfolioService],
   controllers: [PortfolioController],

@@ -7,6 +7,7 @@ import { NeedService } from './need.service';
 import { Proposal } from './entities/proposal.entity';
 import { MailModule } from '../mail/mail.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { IndexModule } from '../index/index.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     TagsModule,
     MailModule,
     NotificationsModule,
+    IndexModule,
   ],
   providers: [NeedService],
   exports: [NeedService],

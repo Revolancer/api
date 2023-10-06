@@ -57,6 +57,7 @@ import { UserSocials } from './entities/usersocials.entity';
 import { NameUpdateDto } from './dto/nameupdate.dto';
 import { validate as isValidUUID } from 'uuid';
 import { ChangeDateOfBirthDto } from './dto/changedateofbirth.dto';
+import { IndexService } from '../index/index.service';
 
 @Injectable()
 export class UsersService {
@@ -83,6 +84,8 @@ export class UsersService {
     private jwtService: JwtService,
     @Inject(forwardRef(() => MailService))
     private mailService: MailService,
+    @Inject(forwardRef(() => IndexService))
+    private indexService: IndexService,
     private uploadService: UploadService,
     private tagsService: TagsService,
     private creditsService: CreditsService,
@@ -287,6 +290,7 @@ export class UsersService {
       loadedUserProfile.date_of_birth = body.dateOfBirth;
       loadedUserProfile.onboardingStage = 2;
       this.userProfileRepository.save(loadedUserProfile);
+      this.indexService.indexUser(user);
     }
   }
 
@@ -338,6 +342,7 @@ export class UsersService {
     loadedUserProfile.profile_image = body.profileImage;
     loadedUserProfile.onboardingStage = 4;
     this.userProfileRepository.save(loadedUserProfile);
+    this.indexService.indexUser(user);
     this.creditsService.addOrRemoveUserCredits(user, 500, 'Welcome bonus');
 
     const loadedUser = await this.usersRepository.findOneBy({ id: user.id });
@@ -470,6 +475,7 @@ export class UsersService {
     }
     profile.skills = loadedSkills;
     this.userProfileRepository.save(profile);
+    this.indexService.indexUser(user);
     return { success: true };
   }
 
@@ -500,6 +506,7 @@ export class UsersService {
     }
     loadedUserProfile.profile_image = body.profileImage;
     this.userProfileRepository.save(loadedUserProfile);
+    this.indexService.indexUser(user);
     return { success: true };
   }
 
@@ -513,6 +520,7 @@ export class UsersService {
     }
     loadedUserProfile.profile_image = body.profileImage;
     this.userProfileRepository.save(loadedUserProfile);
+    this.indexService.indexUser(user);
     return { success: true };
   }
 
@@ -540,6 +548,7 @@ export class UsersService {
     const loadedUserProfile = await this.getProfile(user);
     loadedUserProfile.timezone = body.timezone;
     this.userProfileRepository.save(loadedUserProfile);
+    this.indexService.indexUser(user);
     return { success: true };
   }
 
@@ -554,6 +563,7 @@ export class UsersService {
     loadedUserProfile.timezone = timezone;
     loadedUserProfile.placeId = body.location.value.place_id;
     this.userProfileRepository.save(loadedUserProfile);
+    this.indexService.indexUser(user);
     return { success: true };
   }
 
@@ -597,6 +607,7 @@ export class UsersService {
     const loadedUserProfile = await this.getProfile(user);
     loadedUserProfile.tagline = body.tagline;
     this.userProfileRepository.save(loadedUserProfile);
+    this.indexService.indexUser(user);
     return { success: true };
   }
 
@@ -608,6 +619,7 @@ export class UsersService {
     loadedUserProfile.first_name = body.first_name;
     loadedUserProfile.last_name = body.last_name;
     this.userProfileRepository.save(loadedUserProfile);
+    this.indexService.indexUser(user);
     return { success: true };
   }
 
@@ -633,6 +645,7 @@ export class UsersService {
     const loadedUserProfile = await this.getProfile(user);
     loadedUserProfile.about = body.about;
     this.userProfileRepository.save(loadedUserProfile);
+    this.indexService.indexUser(user);
     return { success: true };
   }
 
@@ -722,6 +735,7 @@ export class UsersService {
     loadedUserProfile.currency = body.currency;
     loadedUserProfile.hourly_rate = body.hourlyRate;
     this.userProfileRepository.save(loadedUserProfile);
+    this.indexService.indexUser(user);
   }
 
   async getUserDateOfBirth(user: User) {
@@ -737,6 +751,7 @@ export class UsersService {
     const loadedUserProfile = await this.getProfile(user);
     loadedUserProfile.date_of_birth = new Date(body.date_of_birth);
     this.userProfileRepository.save(loadedUserProfile);
+    this.indexService.indexUser(user);
   }
 
   async getUserExperience(
@@ -759,6 +774,7 @@ export class UsersService {
     const loadedUserProfile = await this.getProfile(user);
     loadedUserProfile.experience = body.experience;
     this.userProfileRepository.save(loadedUserProfile);
+    this.indexService.indexUser(user);
   }
 
   async getUserEmailPrefs(user: User) {
@@ -838,6 +854,8 @@ export class UsersService {
     profile.profile_image =
       'https://app.revolancer.com/img/user/avatar-placeholder.png';
     this.userProfileRepository.save(profile);
+    //TODO: Remove user from index
+    this.indexService.indexUser(user);
     const loadedUser = await this.usersRepository.findOneBy({
       id: user.id,
     });
@@ -901,6 +919,7 @@ export class UsersService {
     if (profile.checklist_complete) return;
     profile.checklist_complete = true;
     this.userProfileRepository.save(profile);
+    this.indexService.indexUser(user);
     this.creditsService.addOrRemoveUserCredits(user, 50, 'Profile Complete');
   }
 
