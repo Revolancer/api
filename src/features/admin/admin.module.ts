@@ -25,6 +25,7 @@ import { Redis } from 'ioredis';
 import { UserRole } from '../users/entities/userrole.entity';
 import { Tag } from '../tags/entities/tag.entity';
 import { TagsService } from '../tags/tags.service';
+import { NeedModule } from '../need/need.module';
 import { ProjectMessage } from '../projects/entities/project-message.entity';
 import { PortfolioModule } from '../portfolio/portfolio.module';
 
@@ -47,6 +48,7 @@ import { PortfolioModule } from '../portfolio/portfolio.module';
     UploadModule,
     UsersModule,
     MailModule,
+    NeedModule,
     PortfolioModule,
     BullModule.registerQueue({
       name: 'admin',

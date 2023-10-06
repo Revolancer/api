@@ -27,6 +27,7 @@ import { EmailUpdateDto } from '../users/dto/emailupdate.dto ';
 import { ChangeExperienceDto } from '../users/dto/changeexperience.dto';
 import { ChangeRateDto } from '../users/dto/changerate.dto';
 import { ChangeDateOfBirthDto } from '../users/dto/changedateofbirth.dto';
+import { NeedService } from '../need/need.service';
 import { PortfolioService } from '../portfolio/portfolio.service';
 
 @Injectable()
@@ -48,6 +49,7 @@ export class AdminService {
     private uploadService: UploadService,
     private tagsService: TagsService,
     private usersService: UsersService,
+    private needService: NeedService,
     private portfolioService: PortfolioService,
   ) {}
 
@@ -104,6 +106,10 @@ export class AdminService {
   }
 
   async deleteUsers(users: string[]) {
+    for (const userId of users) {
+      if (!isValidUUID(userId)) throw new BadRequestException('Invalid ID Format');
+    }
+
     const qb = this.userRepository.createQueryBuilder('user');
 
     const usersToDelete: { id: string; role: string }[] = await qb
@@ -133,6 +139,7 @@ export class AdminService {
   }
 
   async softDeleteUser(userId: string): Promise<void> {
+    if (!isValidUUID(userId)) throw new BadRequestException('Invalid ID Format');
     const user = await this.userRepository.findOne({
       where: { id: userId },
     });
@@ -148,6 +155,7 @@ export class AdminService {
 
   async changeRole(users: string[], role: string) {
     for (const userId of users) {
+      if (!isValidUUID(userId)) throw new BadRequestException('Invalid ID Format');
       const user = await this.userRepository.findOne({
         where: { id: userId },
         relations: { roles: true },
@@ -284,6 +292,7 @@ export class AdminService {
   }
 
   async countUserActiveProjectsForAdmin(id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     return this.projectRepository.count({
       where: [
         { client: { id: id }, status: 'active' },
@@ -315,6 +324,7 @@ export class AdminService {
   }
 
   async countUserCompletedProjectsForAdmin(id: string) {
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     return this.projectRepository.count({
       where: [
         { client: { id: id }, outcome: 'success' },
@@ -341,7 +351,7 @@ export class AdminService {
   }
 
   async getProjectMessagesForAdmin(uid: string, pid: string) {
-    if (!isValidUUID(pid)) throw new BadRequestException('Invalid ID Format');
+    if (!isValidUUID(uid) || !isValidUUID(pid)) throw new BadRequestException('Invalid ID Format');
     const project = await this.projectRepository.findOne({
       where: [
         { id: pid, client: { id: uid } },
@@ -388,6 +398,8 @@ export class AdminService {
   }
 
   async deleteUser(id: string) {
+    if (!isValidUUID(id))
+      throw new BadRequestException('Invalid ID Format');
     const user = await this.usersService.findOne(id);
     if (!user) {
       throw new NotFoundException();
@@ -597,6 +609,24 @@ export class AdminService {
     return { success: true };
   }
 
+  async getUserNeedsAsAdmin(userId: string) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
+
+    return await this.needService.getPostsForUser(userId);
+  }
+
+  async deleteNeedForUserAsAdmin(userId: string, needId: string) {
+    if (!isValidUUID(userId) || !isValidUUID(needId))
+      throw new BadRequestException('Invalid ID Format');
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+    await this.needService.delistNeed(user, needId);
+    return { success: true };
+  }
+
   async getUserPortfoliosAsAdmin(userId: string) {
     if (!isValidUUID(userId))
       throw new BadRequestException('Invalid ID Format');
@@ -605,7 +635,7 @@ export class AdminService {
   }
 
   async deletePortfolioForUserAsAdmin(userId: string, portfolioId: string) {
-    if (!isValidUUID(userId) && !isValidUUID(portfolioId))
+    if (!isValidUUID(userId) || !isValidUUID(portfolioId))
       throw new BadRequestException('Invalid ID Format');
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!(user instanceof User)) {
@@ -614,5 +644,16 @@ export class AdminService {
 
     await this.portfolioService.deletePost(user, portfolioId);
     return { success: true };
+  }
+
+  async getUserProposalsAsAdmin(userId: string, needId: string) {
+    if (!isValidUUID(userId) || !isValidUUID(needId))
+      throw new BadRequestException('Invalid ID Format');
+
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+    return await this.needService.getProposals(user, needId);
   }
 }
