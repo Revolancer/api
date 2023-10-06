@@ -854,7 +854,7 @@ export class UsersService {
     profile.profile_image =
       'https://app.revolancer.com/img/user/avatar-placeholder.png';
     this.userProfileRepository.save(profile);
-    //TODO: Remove user from index
+    this.indexService.deleteIndexEntry('user', user.id);
     this.indexService.indexUser(user);
     const loadedUser = await this.usersRepository.findOneBy({
       id: user.id,

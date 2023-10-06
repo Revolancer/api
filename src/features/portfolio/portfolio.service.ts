@@ -69,12 +69,12 @@ export class PortfolioService {
   async deletePost(user: User, id: string) {
     if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     try {
+      this.indexService.deleteIndexEntry('portfolio', id);
       return await this.postRepository
         .createQueryBuilder()
         .softDelete()
         .where({ id: id, user: { id: user.id } })
         .execute();
-      //TODO: Deindex deleted post
     } catch (err) {
       throw new NotFoundException('Post not found');
     }
