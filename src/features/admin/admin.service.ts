@@ -107,7 +107,8 @@ export class AdminService {
 
   async deleteUsers(users: string[]) {
     for (const userId of users) {
-      if (!isValidUUID(userId)) throw new BadRequestException('Invalid ID Format');
+      if (!isValidUUID(userId))
+        throw new BadRequestException('Invalid ID Format');
     }
 
     const qb = this.userRepository.createQueryBuilder('user');
@@ -129,17 +130,22 @@ export class AdminService {
 
     try {
       users.forEach(async (user) => {
-        await this.softDeleteUser(user);
+        const u = await this.usersService.findOne(user);
+        if (u) {
+          await this.usersService.deleteUser(u);
+        } else {
+          throw new BadRequestException('User Id does not exist.');
+        }
       });
     } catch (err) {
-      console.log(err);
       throw new BadRequestException('User Id does not exist.');
     }
     return usersToDelete;
   }
 
   async softDeleteUser(userId: string): Promise<void> {
-    if (!isValidUUID(userId)) throw new BadRequestException('Invalid ID Format');
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
     const user = await this.userRepository.findOne({
       where: { id: userId },
     });
@@ -155,7 +161,8 @@ export class AdminService {
 
   async changeRole(users: string[], role: string) {
     for (const userId of users) {
-      if (!isValidUUID(userId)) throw new BadRequestException('Invalid ID Format');
+      if (!isValidUUID(userId))
+        throw new BadRequestException('Invalid ID Format');
       const user = await this.userRepository.findOne({
         where: { id: userId },
         relations: { roles: true },
@@ -351,7 +358,8 @@ export class AdminService {
   }
 
   async getProjectMessagesForAdmin(uid: string, pid: string) {
-    if (!isValidUUID(uid) || !isValidUUID(pid)) throw new BadRequestException('Invalid ID Format');
+    if (!isValidUUID(uid) || !isValidUUID(pid))
+      throw new BadRequestException('Invalid ID Format');
     const project = await this.projectRepository.findOne({
       where: [
         { id: pid, client: { id: uid } },
@@ -398,8 +406,7 @@ export class AdminService {
   }
 
   async deleteUser(id: string) {
-    if (!isValidUUID(id))
-      throw new BadRequestException('Invalid ID Format');
+    if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     const user = await this.usersService.findOne(id);
     if (!user) {
       throw new NotFoundException();
