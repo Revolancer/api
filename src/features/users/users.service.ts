@@ -290,7 +290,6 @@ export class UsersService {
       loadedUserProfile.date_of_birth = body.dateOfBirth;
       loadedUserProfile.onboardingStage = 2;
       this.userProfileRepository.save(loadedUserProfile);
-      this.indexService.indexUser(user);
     }
   }
 
@@ -855,7 +854,6 @@ export class UsersService {
       'https://app.revolancer.com/img/user/avatar-placeholder.png';
     this.userProfileRepository.save(profile);
     this.indexService.deleteIndexEntry('user', user.id);
-    this.indexService.indexUser(user);
     const loadedUser = await this.usersRepository.findOneBy({
       id: user.id,
     });

@@ -39,6 +39,8 @@ export class IndexService {
 
   async indexUser(user: User) {
     const profile = await this.userService.getProfile(user);
+    if ((profile.onboardingStage ?? 0) < 4) return; //Only index users after onboarding
+    if (user.email == null) return; // Only index users not yet deleted
     this.contentIndexRepository.upsert(
       {
         otherId: user.id,
