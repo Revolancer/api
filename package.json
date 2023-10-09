@@ -28,7 +28,7 @@
     "@bull-board/api": "^5.8.4",
     "@bull-board/express": "^5.8.4",
     "@google-cloud/storage": "^7.1.0",
-    "@googlemaps/google-maps-services-js": "^3.3.38",
+    "@googlemaps/google-maps-services-js": "^3.3.39",
     "@nestjs/bull": "^10.0.1",
     "@nestjs/cache-manager": "^2.0.1",
     "@nestjs/common": "^10.2.6",
