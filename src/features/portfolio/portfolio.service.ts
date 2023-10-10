@@ -12,6 +12,7 @@ import { User } from '../users/entities/user.entity';
 import { CreatePostDto } from './dto/createpost.dto';
 import { PortfolioPost } from './entities/portfolio-post.entity';
 import { validate as isValidUUID } from 'uuid';
+import { IndexService } from '../index/index.service';
 
 @Injectable()
 export class PortfolioService {
@@ -19,6 +20,7 @@ export class PortfolioService {
     @InjectRepository(PortfolioPost)
     private postRepository: Repository<PortfolioPost>,
     private tagsService: TagsService,
+    private indexService: IndexService,
   ) {}
 
   async loadTagsFromRequest(tags: CreatePostDto['tags']) {
@@ -41,6 +43,7 @@ export class PortfolioService {
     post.title = body.title;
     post.tags = await this.loadTagsFromRequest(body.tags);
     const newPost = await this.postRepository.save(post);
+    this.indexService.indexPortfolio(newPost);
     return newPost.id;
   }
 
@@ -56,6 +59,7 @@ export class PortfolioService {
       post.title = body.title;
       post.tags = await this.loadTagsFromRequest(body.tags);
       const newPost = await this.postRepository.save(post);
+      this.indexService.indexPortfolio(newPost);
       return newPost.id;
     } catch (err) {
       throw new NotFoundException('Post not found');
@@ -65,6 +69,7 @@ export class PortfolioService {
   async deletePost(user: User, id: string) {
     if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
     try {
+      this.indexService.deleteIndexEntry('portfolio', id);
       return await this.postRepository
         .createQueryBuilder()
         .softDelete()
@@ -94,7 +99,8 @@ export class PortfolioService {
     try {
       const posts = this.postRepository.find({
         where: { user: { id: uid } },
-        relations: ['tags'],
+        relations: ['tags', 'user'],
+        select: { user: { id: true } },
         order: { published_at: 'DESC' },
       });
       return posts;

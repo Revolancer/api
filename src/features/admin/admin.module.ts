@@ -26,6 +26,9 @@ import { UserRole } from '../users/entities/userrole.entity';
 import { Tag } from '../tags/entities/tag.entity';
 import { TagsService } from '../tags/tags.service';
 import { ProjectsModule } from '../projects/projects.module';
+import { NeedModule } from '../need/need.module';
+import { ProjectMessage } from '../projects/entities/project-message.entity';
+import { PortfolioModule } from '../portfolio/portfolio.module';
 
 @Module({
   imports: [
@@ -38,6 +41,7 @@ import { ProjectsModule } from '../projects/projects.module';
       Proposal,
       UserReferrer,
       Project,
+      ProjectMessage,
       StatsLog,
       Tag,
     ]),
@@ -46,6 +50,8 @@ import { ProjectsModule } from '../projects/projects.module';
     UsersModule,
     MailModule,
     ProjectsModule,
+    NeedModule,
+    PortfolioModule,
     BullModule.registerQueue({
       name: 'admin',
     }),

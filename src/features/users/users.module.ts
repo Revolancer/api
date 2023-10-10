@@ -30,6 +30,7 @@ import { UserConsumer } from './queue/user.consumer';
 import { PortfolioPost } from '../portfolio/entities/portfolio-post.entity';
 import { MapsModule } from '../maps/maps.module';
 import { UserSocials } from './entities/usersocials.entity';
+import { IndexModule } from '../index/index.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { UserSocials } from './entities/usersocials.entity';
     NotificationsModule,
     MapsModule,
     forwardRef(() => MailModule),
+    forwardRef(() => IndexModule),
     RedlockModule.registerAsync({
       imports: [RedisConfigModule],
       inject: [RedisConfigService],

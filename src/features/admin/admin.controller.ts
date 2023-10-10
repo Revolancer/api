@@ -107,6 +107,26 @@ export class AdminController {
     return this.adminService.countUserCompletedProjectsForAdmin(id);
   }
 
+  @Get('users/:uid/projects/:pid')
+  @HasRoles('admin', 'moderator')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async getProjectForAdmin(
+    @Param('uid') uid: string,
+    @Param('pid') pid: string,
+  ) {
+    return this.adminService.getProjectForAdmin(uid, pid);
+  }
+
+  @Get('users/:uid/projects/:pid/messages')
+  @HasRoles('admin', 'moderator')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async getProjectMessagesForAdmin(
+    @Param('uid') uid: string,
+    @Param('pid') pid: string,
+  ) {
+    return this.adminService.getProjectMessagesForAdmin(uid, pid);
+  }
+
   @Get('user/prefs/:id')
   @HasRoles('admin', 'moderator')
   @UseGuards(JwtAuthGuard, RoleGuard)
@@ -284,5 +304,49 @@ export class AdminController {
   @UseGuards(JwtAuthGuard, RoleGuard)
   async getUserCompleteProjectsCountAsAdmin(@Param('id') id: string) {
     return this.adminService.getUserCompleteProjectsCountAsAdmin(id);
+  }
+
+  @Get('user/:id/needs')
+  @HasRoles('admin', 'moderator')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async getUserNeedAsAdmin(@Param('id') id: string) {
+    return this.adminService.getUserNeedsAsAdmin(id);
+  }
+
+  @Get('user/:id/needs/:nid/proposals')
+  @HasRoles('admin', 'moderator')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async getUserProposalsAsAdmin(
+    @Param('id') id: string,
+    @Param('nid') nid: string,
+  ) {
+    return this.adminService.getUserProposalsAsAdmin(id, nid);
+  }
+
+  @Delete('user/:id/needs/:nid')
+  @HasRoles('admin', 'moderator')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async deleteNeedForUserAsAdmin(
+    @Param('id') id: string,
+    @Param('nid') nid: string,
+  ) {
+    return this.adminService.deleteNeedForUserAsAdmin(id, nid);
+  }
+
+  @Get('user/:id/portfolios')
+  @HasRoles('admin', 'moderator')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async getUserPortfoliosAsAdmin(@Param('id') id: string) {
+    return this.adminService.getUserPortfoliosAsAdmin(id);
+  }
+
+  @Delete('user/:id/portfolio/:pid')
+  @HasRoles('admin', 'moderator')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async deleteProposalForUserAsAdmin(
+    @Param('id') id: string,
+    @Param('pid') pid: string,
+  ) {
+    return this.adminService.deletePortfolioForUserAsAdmin(id, pid);
   }
 }

@@ -194,13 +194,27 @@ export class MessageService {
 
   async markMessageAsRead(user: User, id: string) {
     if (!isValidUUID(id)) throw new BadRequestException('Invalid ID Format');
-    const message = await this.messageRepository.findOne({
-      where: { id: id, reciever: { id: user.id } },
+    const messages = await this.messageRepository.find({
+      where: { sender: { id: id }, reciever: { id: user.id } },
     });
-    if (!message) return;
-    message.read = true;
-    message.read_at = DateTime.now().toJSDate();
-    this.messageRepository.save(message);
+    if (!messages) return;
+    for (const message of messages) {
+      message.read = true;
+      message.read_at = DateTime.now().toJSDate();
+    }
+    this.messageRepository.save(messages);
+  }
+
+  async markAllMessagesAsRead(user: User) {
+    const messages = await this.messageRepository.find({
+      where: { reciever: { id: user.id } },
+    });
+    if (!messages) return;
+    for (const message of messages) {
+      message.read = true;
+      message.read_at = DateTime.now().toJSDate();
+    }
+    this.messageRepository.save(messages);
   }
 
   async scheduleUnreadMessagesEmail(user: User) {

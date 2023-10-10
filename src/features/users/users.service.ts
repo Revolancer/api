@@ -4,6 +4,7 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  Logger,
   NotAcceptableException,
   NotFoundException,
   UnauthorizedException,
@@ -56,9 +57,11 @@ import { UserSocials } from './entities/usersocials.entity';
 import { NameUpdateDto } from './dto/nameupdate.dto';
 import { validate as isValidUUID } from 'uuid';
 import { ChangeDateOfBirthDto } from './dto/changedateofbirth.dto';
+import { IndexService } from '../index/index.service';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
@@ -81,6 +84,8 @@ export class UsersService {
     private jwtService: JwtService,
     @Inject(forwardRef(() => MailService))
     private mailService: MailService,
+    @Inject(forwardRef(() => IndexService))
+    private indexService: IndexService,
     private uploadService: UploadService,
     private tagsService: TagsService,
     private creditsService: CreditsService,
@@ -336,6 +341,7 @@ export class UsersService {
     loadedUserProfile.profile_image = body.profileImage;
     loadedUserProfile.onboardingStage = 4;
     this.userProfileRepository.save(loadedUserProfile);
+    this.indexService.indexUser(user);
     this.creditsService.addOrRemoveUserCredits(user, 500, 'Welcome bonus');
 
     const loadedUser = await this.usersRepository.findOneBy({ id: user.id });
@@ -468,6 +474,7 @@ export class UsersService {
     }
     profile.skills = loadedSkills;
     this.userProfileRepository.save(profile);
+    this.indexService.indexUser(user);
     return { success: true };
   }
 
@@ -498,6 +505,7 @@ export class UsersService {
     }
     loadedUserProfile.profile_image = body.profileImage;
     this.userProfileRepository.save(loadedUserProfile);
+    this.indexService.indexUser(user);
     return { success: true };
   }
 
@@ -511,6 +519,7 @@ export class UsersService {
     }
     loadedUserProfile.profile_image = body.profileImage;
     this.userProfileRepository.save(loadedUserProfile);
+    this.indexService.indexUser(user);
     return { success: true };
   }
 
@@ -538,6 +547,7 @@ export class UsersService {
     const loadedUserProfile = await this.getProfile(user);
     loadedUserProfile.timezone = body.timezone;
     this.userProfileRepository.save(loadedUserProfile);
+    this.indexService.indexUser(user);
     return { success: true };
   }
 
@@ -552,6 +562,7 @@ export class UsersService {
     loadedUserProfile.timezone = timezone;
     loadedUserProfile.placeId = body.location.value.place_id;
     this.userProfileRepository.save(loadedUserProfile);
+    this.indexService.indexUser(user);
     return { success: true };
   }
 
@@ -595,6 +606,7 @@ export class UsersService {
     const loadedUserProfile = await this.getProfile(user);
     loadedUserProfile.tagline = body.tagline;
     this.userProfileRepository.save(loadedUserProfile);
+    this.indexService.indexUser(user);
     return { success: true };
   }
 
@@ -606,6 +618,7 @@ export class UsersService {
     loadedUserProfile.first_name = body.first_name;
     loadedUserProfile.last_name = body.last_name;
     this.userProfileRepository.save(loadedUserProfile);
+    this.indexService.indexUser(user);
     return { success: true };
   }
 
@@ -631,6 +644,7 @@ export class UsersService {
     const loadedUserProfile = await this.getProfile(user);
     loadedUserProfile.about = body.about;
     this.userProfileRepository.save(loadedUserProfile);
+    this.indexService.indexUser(user);
     return { success: true };
   }
 
@@ -720,6 +734,7 @@ export class UsersService {
     loadedUserProfile.currency = body.currency;
     loadedUserProfile.hourly_rate = body.hourlyRate;
     this.userProfileRepository.save(loadedUserProfile);
+    this.indexService.indexUser(user);
   }
 
   async getUserDateOfBirth(user: User) {
@@ -735,6 +750,7 @@ export class UsersService {
     const loadedUserProfile = await this.getProfile(user);
     loadedUserProfile.date_of_birth = new Date(body.date_of_birth);
     this.userProfileRepository.save(loadedUserProfile);
+    this.indexService.indexUser(user);
   }
 
   async getUserExperience(
@@ -757,6 +773,7 @@ export class UsersService {
     const loadedUserProfile = await this.getProfile(user);
     loadedUserProfile.experience = body.experience;
     this.userProfileRepository.save(loadedUserProfile);
+    this.indexService.indexUser(user);
   }
 
   async getUserEmailPrefs(user: User) {
@@ -836,6 +853,7 @@ export class UsersService {
     profile.profile_image =
       'https://app.revolancer.com/img/user/avatar-placeholder.png';
     this.userProfileRepository.save(profile);
+    this.indexService.deleteIndexEntry('user', user.id);
     const loadedUser = await this.usersRepository.findOneBy({
       id: user.id,
     });
@@ -899,6 +917,7 @@ export class UsersService {
     if (profile.checklist_complete) return;
     profile.checklist_complete = true;
     this.userProfileRepository.save(profile);
+    this.indexService.indexUser(user);
     this.creditsService.addOrRemoveUserCredits(user, 50, 'Profile Complete');
   }
 
@@ -931,7 +950,7 @@ export class UsersService {
     );
   }
 
-  @Cron('0 0 * * * *')
+  @Cron('0 */15 * * * *')
   async checkIfUserHasNeeds() {
     await this.redlock.using(['7-day-no-needs'], 30000, async (signal) => {
       if (signal.aborted) {
@@ -964,6 +983,7 @@ export class UsersService {
           order: { created_at: 'ASC' },
         });
         index += pageSize;
+        this.logger.log(`scheduling needs email to ${users.length} users`);
         await this.userQueue.add(
           {
             task: '7_days_no_needs',
@@ -997,25 +1017,23 @@ export class UsersService {
           continue;
         }
         const credits = await this.creditsService.getUserCredits(user);
-        if (credits > 0) {
-          const lastUserNeedsEmail = await this.lastMailRepository.findOne({
-            where: {
-              user: { id: user.id },
-              mailout: '7_days_no_needs',
-            },
-          });
-          if (lastUserNeedsEmail) {
-            continue;
-          }
-          this.mailService.scheduleMail(user, '7_days_no_needs', {
-            credits: credits,
-          });
-          const messageSent = new LastMail();
-          messageSent.last_mail = DateTime.now().toJSDate();
-          messageSent.mailout = '7_days_no_needs';
-          messageSent.user = user;
-          this.lastMailRepository.save(messageSent);
+        const lastUserNeedsEmail = await this.lastMailRepository.findOne({
+          where: {
+            user: { id: user.id },
+            mailout: '7_days_no_needs',
+          },
+        });
+        if (lastUserNeedsEmail) {
+          continue;
         }
+        this.mailService.scheduleMail(user, '7_days_no_needs', {
+          credits: credits,
+        });
+        const messageSent = new LastMail();
+        messageSent.last_mail = DateTime.now().toJSDate();
+        messageSent.mailout = '7_days_no_needs';
+        messageSent.user = user;
+        this.lastMailRepository.save(messageSent);
       }
     }
   }
@@ -1050,6 +1068,7 @@ export class UsersService {
           order: { created_at: 'ASC' },
         });
         index += pageSize;
+        this.logger.log(`scheduling portfolio email to ${users.length} users`);
         await this.userQueue.add(
           {
             task: '3_days_no_portfolio',
