@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ContentIndex } from '../index/entities/contentindex.entity';
-import { Any, Brackets, ILike, In, Repository } from 'typeorm';
+import { Brackets, ILike, In, Repository } from 'typeorm';
 import { validate as isValidUUID } from 'uuid';
 
 @Injectable()
