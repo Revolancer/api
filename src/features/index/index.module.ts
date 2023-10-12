@@ -13,10 +13,17 @@ import { Redis } from 'ioredis';
 import { BullModule } from '@nestjs/bull';
 import { IndexController } from './index.controller';
 import { IndexConsumer } from './queue/index.consumer';
+import { Tag } from '../tags/entities/tag.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ContentIndex, User, NeedPost, PortfolioPost]),
+    TypeOrmModule.forFeature([
+      ContentIndex,
+      User,
+      NeedPost,
+      PortfolioPost,
+      Tag,
+    ]),
     forwardRef(() => UsersModule),
     RedlockModule.registerAsync({
       imports: [RedisConfigModule],
