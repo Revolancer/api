@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Query } from '@nestjs/common';
 import { SearchService } from './search.service';
 
 @Controller('search')
@@ -14,6 +14,8 @@ export class SearchController {
     @Query('order') order: 'ASC' | 'DESC' | undefined,
     @Query('datatype') dataType: ('user' | 'need' | 'portfolio')[] | undefined,
   ) {
+    if (term == '')
+      throw new BadRequestException('Please provide a search term');
     return this.searchService.search(dataType, sortBy, order, term, tag, page);
   }
 }
