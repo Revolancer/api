@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ContentIndex } from '../index/entities/contentindex.entity';
-import { Brackets, ILike, In, Repository } from 'typeorm';
+import { Brackets, Repository } from 'typeorm';
 import { validate as isValidUUID } from 'uuid';
 
 @Injectable()
@@ -20,54 +20,57 @@ export class SearchService {
     tag: string[] = [],
     page = 1,
   ) {
-    this.logger.log(`Search for ${term}`);
     //TODO: Implement relevance once we have real indexing
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const orderBy = sort == 'created' ? 'created_at' : 'created_at';
+
+    //Sanitise datatypes to prevent injection attack
+    const dataTypesClean = [];
+    if (dataType.includes('need')) dataTypesClean.push('need');
+    if (dataType.includes('portfolio')) dataTypesClean.push('portfolio');
+    if (dataType.includes('user')) dataTypesClean.push('user');
+
+    if (order !== 'ASC' && order !== 'DESC')
+      throw new BadRequestException('Invalid Order');
+
+    if (sort !== 'created' && sort !== 'relevance')
+      throw new BadRequestException('Invalid Sort');
+
+    if (page < 1 || !Number.isSafeInteger(page))
+      throw new BadRequestException('Invalid Page');
+
+    let query = this.indexRepository
+      .createQueryBuilder()
+      .select('"otherId", "contentType", "created_at"')
+      .where(
+        `"contentType" in (${dataTypesClean.map((v) => `'${v}'`).join(',')})`,
+      )
+      .orderBy({ [orderBy]: order });
+
     if (tag.length) {
-      this.logger.log(`Search by tag`);
       tag.map((tag) => {
         if (!isValidUUID(tag))
           throw new BadRequestException('Invalid Tag ID format');
       });
 
-      let query = this.indexRepository
-        .createQueryBuilder()
-        .select('"otherId", "contentType"');
-
-      for (const id of tag) {
-        query = query.orWhere(
-          new Brackets((qb) => {
-            qb.where(':id = ANY("tagIds")', { id }); //.andWhere(
-            //  '"contentType" in (:type)',
-            //  { type: dataType },
-            //);
-            //TODO: Filtering content type breaks query? Why?
-          }),
-        );
-      }
-
-      return [
-        await query
-          .take(20)
-          .skip(20 * (page - 1))
-          .execute(),
-        Number((await query.select('count(*)').execute())[0]['count']),
-      ];
+      query = query.andWhere(
+        new Brackets((qb) => {
+          let i = 0;
+          for (const id of tag) {
+            qb.orWhere(`:id${i} = ANY("tagIds")`, { [`id${i}`]: id });
+            i++;
+          }
+        }),
+      );
+    } else {
+      query = query.andWhere('body ILIKE :term', { term: `%${term}%` });
     }
 
-    return this.indexRepository.findAndCount({
-      select: {
-        otherId: true,
-        contentType: true,
-      },
-      where: {
-        body: ILike(`%${term}%`),
-        contentType: In(dataType),
-      },
-      order: { created_at: order == 'ASC' ? 'ASC' : 'DESC' },
-      take: 20,
-      skip: 20 * (page - 1),
-    });
+    return [
+      await query
+        .take(20)
+        .skip(20 * (page - 1))
+        .execute(),
+      Number((await query.select('count(*)').orderBy().execute())[0]['count']),
+    ];
   }
 }
