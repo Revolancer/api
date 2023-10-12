@@ -27,6 +27,7 @@ import { EmailUpdateDto } from '../users/dto/emailupdate.dto ';
 import { ChangeExperienceDto } from '../users/dto/changeexperience.dto';
 import { ChangeRateDto } from '../users/dto/changerate.dto';
 import { ChangeDateOfBirthDto } from '../users/dto/changedateofbirth.dto';
+import { ProjectsService } from '../projects/projects.service';
 import { NeedService } from '../need/need.service';
 import { PortfolioService } from '../portfolio/portfolio.service';
 
@@ -49,6 +50,7 @@ export class AdminService {
     private uploadService: UploadService,
     private tagsService: TagsService,
     private usersService: UsersService,
+    private projectsService: ProjectsService,
     private needService: NeedService,
     private portfolioService: PortfolioService,
   ) {}
@@ -614,6 +616,50 @@ export class AdminService {
 
     await this.usersService.setUserDateOfBirth(user, body);
     return { success: true };
+  }
+
+  async getUserActiveProjectsAsAdmin(userId: string) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+
+    return await this.projectsService.getActiveProjects(user);
+  }
+
+  async getUserActiveProjectsCountAsAdmin(userId: string) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+
+    return (await this.projectsService.getActiveProjects(user)).length;
+  }
+
+  async getUserCompleteProjectsAsAdmin(userId: string) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+
+    return await this.projectsService.getCompleteProjects(user);
+  }
+
+  async getUserCompleteProjectsCountAsAdmin(userId: string) {
+    if (!isValidUUID(userId))
+      throw new BadRequestException('Invalid ID Format');
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!(user instanceof User)) {
+      throw new NotFoundException();
+    }
+
+    return (await this.projectsService.getCompleteProjects(user)).length;
   }
 
   async getUserNeedsAsAdmin(userId: string) {

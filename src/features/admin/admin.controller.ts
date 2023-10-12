@@ -278,6 +278,34 @@ export class AdminController {
     );
   }
 
+  @Get('users/:id/projects/active')
+  @HasRoles('admin')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async getUserActiveProjectsAsAdmin(@Param('id') id: string) {
+    return this.adminService.getUserActiveProjectsAsAdmin(id);
+  }
+
+  @Get('users/:id/projects/active/count')
+  @HasRoles('admin')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async getUserActiveProjectsCountAsAdmin(@Param('id') id: string) {
+    return this.adminService.getUserActiveProjectsCountAsAdmin(id);
+  }
+
+  @Get('users/:id/projects/completed')
+  @HasRoles('admin')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async getUserCompleteProjectsAsAdmin(@Param('id') id: string) {
+    return this.adminService.getUserCompleteProjectsAsAdmin(id);
+  }
+
+  @Get('users/:id/projects/completed/count')
+  @HasRoles('admin')
+  @UseGuards(JwtAuthGuard, RoleGuard)
+  async getUserCompleteProjectsCountAsAdmin(@Param('id') id: string) {
+    return this.adminService.getUserCompleteProjectsCountAsAdmin(id);
+  }
+
   @Get('user/:id/needs')
   @HasRoles('admin', 'moderator')
   @UseGuards(JwtAuthGuard, RoleGuard)
