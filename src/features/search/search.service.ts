@@ -30,7 +30,8 @@ export class SearchService {
   ) {
     let cachekey = `search-cache-${page}-${term.replace(/ /g, '+')}`;
     //TODO: Implement relevance once we have real indexing
-    const orderBy = sort == 'created' ? 'created_at' : 'created_at';
+    const orderBy =
+      sort == 'created' ? 'content_created_at' : 'content_created_at';
 
     //Sanitise datatypes to prevent injection attack
     const dataTypesClean = [];
@@ -44,9 +45,9 @@ export class SearchService {
     if (sort !== 'created' && sort !== 'relevance')
       throw new BadRequestException('Invalid Sort');
 
-    if (page < 1 || !Number.isSafeInteger(page))
+    if (page < 1 || !(Math.floor(page) == page)) {
       throw new BadRequestException('Invalid Page');
-
+    }
     const tagsDeDuped = [...new Set(tag)].sort();
 
     if (tagsDeDuped.length > 0) {
@@ -57,11 +58,13 @@ export class SearchService {
 
     let query = this.indexRepository
       .createQueryBuilder()
-      .select('"otherId", "contentType", "created_at"')
+      .select('"otherId", "contentType"')
       .where(
         `"contentType" in (${dataTypesClean.map((v) => `'${v}'`).join(',')})`,
       )
-      .orderBy({ [orderBy]: order });
+      .orderBy({ [orderBy]: order })
+      .take(20)
+      .skip(20 * (page - 1));
 
     if (tagsDeDuped.length > 0) {
       tagsDeDuped.map((tag) => {
@@ -82,13 +85,7 @@ export class SearchService {
       query = query.andWhere('body ILIKE :term', { term: `%${term}%` });
     }
 
-    const result = [
-      await query
-        .take(20)
-        .skip(20 * (page - 1))
-        .execute(),
-      Number((await query.select('count(*)').orderBy().execute())[0]['count']),
-    ];
+    const result = [await query.execute(), await query.getCount()];
 
     await this.cacheManager.set(cachekey, result, 2 * 60 * 1000);
 

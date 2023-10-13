@@ -29,6 +29,9 @@ export class ContentIndex {
   @Column('text', { array: true })
   tagIds!: string[];
 
+  @Column({ type: 'timestamptz', default: 'NOW()' })
+  content_created_at?: Date;
+
   @CreateDateColumn()
   created_at!: Date;
 
