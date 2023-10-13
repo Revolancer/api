@@ -53,6 +53,7 @@ export class IndexService {
           profile.tagline
         } ${profile.skills.map((tag) => tag.text).join(' ')}`,
         tagIds: await this.getTagIds(profile.skills),
+        content_created_at: profile.created_at,
       },
       { conflictPaths: ['otherId', 'contentType'] },
     );
@@ -73,6 +74,7 @@ export class IndexService {
           need.data,
         )} ${need.tags.map((tag) => tag.text).join(' ')}`,
         tagIds: await this.getTagIds(need.tags),
+        content_created_at: need.created_at,
       },
       { conflictPaths: ['otherId', 'contentType'] },
     );
@@ -88,6 +90,7 @@ export class IndexService {
           post.data,
         )} ${post.tags.map((tag) => tag.text).join(' ')}`,
         tagIds: await this.getTagIds(post.tags),
+        content_created_at: post.created_at,
       },
       { conflictPaths: ['otherId', 'contentType'] },
     );
