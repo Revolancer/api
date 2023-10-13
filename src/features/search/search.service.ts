@@ -1,8 +1,15 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ContentIndex } from '../index/entities/contentindex.entity';
 import { Brackets, Repository } from 'typeorm';
 import { validate as isValidUUID } from 'uuid';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class SearchService {
@@ -10,6 +17,7 @@ export class SearchService {
   constructor(
     @InjectRepository(ContentIndex)
     private indexRepository: Repository<ContentIndex>,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   async search(
@@ -20,6 +28,7 @@ export class SearchService {
     tag: string[] = [],
     page = 1,
   ) {
+    let cachekey = `search-cache-${page}-${term.replace(/ /g, '+')}`;
     //TODO: Implement relevance once we have real indexing
     const orderBy = sort == 'created' ? 'created_at' : 'created_at';
 
@@ -38,6 +47,14 @@ export class SearchService {
     if (page < 1 || !Number.isSafeInteger(page))
       throw new BadRequestException('Invalid Page');
 
+    const tagsDeDuped = [...new Set(tag)].sort();
+
+    if (tagsDeDuped.length > 0) {
+      cachekey = `cache-search-tags-${page}-${tagsDeDuped.join('-')}`;
+      const cached = await this.cacheManager.get(cachekey);
+      if (cached) return cached;
+    }
+
     let query = this.indexRepository
       .createQueryBuilder()
       .select('"otherId", "contentType", "created_at"')
@@ -46,8 +63,8 @@ export class SearchService {
       )
       .orderBy({ [orderBy]: order });
 
-    if (tag.length) {
-      tag.map((tag) => {
+    if (tagsDeDuped.length > 0) {
+      tagsDeDuped.map((tag) => {
         if (!isValidUUID(tag))
           throw new BadRequestException('Invalid Tag ID format');
       });
@@ -55,7 +72,7 @@ export class SearchService {
       query = query.andWhere(
         new Brackets((qb) => {
           let i = 0;
-          for (const id of tag) {
+          for (const id of tagsDeDuped) {
             qb.orWhere(`:id${i} = ANY("tagIds")`, { [`id${i}`]: id });
             i++;
           }
@@ -65,12 +82,16 @@ export class SearchService {
       query = query.andWhere('body ILIKE :term', { term: `%${term}%` });
     }
 
-    return [
+    const result = [
       await query
         .take(20)
         .skip(20 * (page - 1))
         .execute(),
       Number((await query.select('count(*)').orderBy().execute())[0]['count']),
     ];
+
+    await this.cacheManager.set(cachekey, result, 2 * 60 * 1000);
+
+    return result;
   }
 }
