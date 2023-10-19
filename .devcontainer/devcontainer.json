@@ -14,7 +14,7 @@
   "forwardPorts": [3030, 5432, 6379, 8001],
 
   // Use 'postCreateCommand' to run commands after the container is created.
-  "postCreateCommand": "npm install && npm i -g typeorm",
+  "postCreateCommand": "npm install",
   "postStartCommand": "npm run seed:refresh",
   "postAttachCommand": "npm run start:dev",
 
