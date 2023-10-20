@@ -18,6 +18,7 @@ import { IndexJob } from './queue/index.job';
 import { Queue } from 'bull';
 import { DateTime } from 'luxon';
 import { validate as isValidUUID } from 'uuid';
+import { Tag } from '../tags/entities/tag.entity';
 
 @Injectable()
 export class IndexService {
@@ -31,6 +32,8 @@ export class IndexService {
     private needRepository: Repository<NeedPost>,
     @InjectRepository(PortfolioPost)
     private portfolioRepository: Repository<PortfolioPost>,
+    @InjectRepository(Tag)
+    private tagRepository: Repository<Tag>,
     @Inject(forwardRef(() => UsersService))
     private userService: UsersService,
     private readonly redlock: RedlockService,
@@ -49,7 +52,8 @@ export class IndexService {
         body: `${profile.first_name} ${profile.last_name} ${profile.about} ${
           profile.tagline
         } ${profile.skills.map((tag) => tag.text).join(' ')}`,
-        tagIds: profile.skills.map((tag) => tag.id),
+        tagIds: await this.getTagIds(profile.skills),
+        content_created_at: profile.created_at,
       },
       { conflictPaths: ['otherId', 'contentType'] },
     );
@@ -60,7 +64,7 @@ export class IndexService {
     return data ?? '';
   }
 
-  indexNeed(need: NeedPost) {
+  async indexNeed(need: NeedPost) {
     this.contentIndexRepository.upsert(
       {
         otherId: need.id,
@@ -69,13 +73,14 @@ export class IndexService {
         body: `${need.title} ${this.editorjsDataToIndexable(
           need.data,
         )} ${need.tags.map((tag) => tag.text).join(' ')}`,
-        tagIds: need.tags.map((tag) => tag.id),
+        tagIds: await this.getTagIds(need.tags),
+        content_created_at: need.created_at,
       },
       { conflictPaths: ['otherId', 'contentType'] },
     );
   }
 
-  indexPortfolio(post: PortfolioPost) {
+  async indexPortfolio(post: PortfolioPost) {
     this.contentIndexRepository.upsert(
       {
         otherId: post.id,
@@ -84,7 +89,8 @@ export class IndexService {
         body: `${post.title} ${this.editorjsDataToIndexable(
           post.data,
         )} ${post.tags.map((tag) => tag.text).join(' ')}`,
-        tagIds: post.tags.map((tag) => tag.id),
+        tagIds: await this.getTagIds(post.tags),
+        content_created_at: post.created_at,
       },
       { conflictPaths: ['otherId', 'contentType'] },
     );
@@ -219,5 +225,26 @@ export class IndexService {
   deleteIndexEntry(type: 'need' | 'portfolio' | 'user', id: string) {
     if (!isValidUUID(id)) throw new BadRequestException('Invalid ID format');
     this.contentIndexRepository.delete({ otherId: id, contentType: type });
+  }
+
+  private async getTagIds(tags: Tag[]) {
+    const ids = new Set<string>();
+    for (const tag of tags) {
+      if (!ids.has(tag.id)) {
+        const loadedTag = await this.tagRepository.findOne({
+          where: { id: tag.id },
+          relations: { parent: true },
+        });
+        if (loadedTag) {
+          ids.add(tag.id);
+          if (tag.parent) {
+            if (!ids.has(tag.parent.id)) {
+              ids.add(tag.parent.id);
+            }
+          }
+        }
+      }
+    }
+    return [...ids];
   }
 }
