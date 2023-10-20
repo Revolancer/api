@@ -28,7 +28,14 @@ export class SearchService {
     tag: string[] = [],
     page = 1,
   ) {
-    let cachekey = `search-cache-${page}-${term.replace(/ /g, '+')}`;
+    let cachedatatype = '';
+    if (dataType.includes('need')) cachedatatype += 'n';
+    if (dataType.includes('portfolio')) cachedatatype += 'p';
+    if (dataType.includes('user')) cachedatatype += 'u';
+    let cachekey = `search-cache-${cachedatatype}-${page}-${term.replace(
+      / /g,
+      '-',
+    )}`;
     //TODO: Implement relevance once we have real indexing
     const orderBy =
       sort == 'created' ? 'content_created_at' : 'content_created_at';
@@ -51,10 +58,13 @@ export class SearchService {
     const tagsDeDuped = [...new Set(tag)].sort();
 
     if (tagsDeDuped.length > 0) {
-      cachekey = `cache-search-tags-${page}-${tagsDeDuped.join('-')}`;
-      const cached = await this.cacheManager.get(cachekey);
-      if (cached) return cached;
+      cachekey = `cache-search-tags-${cachedatatype}-${page}-${tagsDeDuped.join(
+        '-',
+      )}`;
     }
+    this.logger.log(cachekey);
+    const cached = await this.cacheManager.get(cachekey);
+    if (cached) return cached;
 
     let query = this.indexRepository
       .createQueryBuilder()
