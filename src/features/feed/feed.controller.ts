@@ -17,11 +17,10 @@ export class FeedController {
   @Get('/v2')
   async getNewFeed(
     @Req() req: IUserRequest,
-    @Query('tag') tag: string[] | undefined,
     @Query('page') page: number | undefined,
     @Query('sort') sortBy: 'created' | 'relevance' | undefined,
     @Query('datatype') dataType: ('need' | 'portfolio')[] | undefined,
   ) {
-    return this.feedService.getNewFeed(req.user, tag, page, sortBy, dataType);
+    return this.feedService.getNewFeed(req.user, page, sortBy, dataType);
   }
 }
