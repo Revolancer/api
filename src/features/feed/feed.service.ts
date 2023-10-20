@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { NeedPost } from '../need/entities/need-post.entity';
 import { NeedService } from '../need/need.service';
@@ -7,6 +7,9 @@ import { PortfolioService } from '../portfolio/portfolio.service';
 import { User } from '../users/entities/user.entity';
 import { Cache } from 'cache-manager';
 import { SearchService } from '../search/search.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { UserProfile } from '../users/entities/userprofile.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class FeedService {
@@ -14,6 +17,8 @@ export class FeedService {
     private portfolioService: PortfolioService,
     private needService: NeedService,
     private searchService: SearchService,
+    @InjectRepository(UserProfile)
+    private userProfileRepository: Repository<UserProfile>,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
@@ -68,19 +73,42 @@ export class FeedService {
 
   async getNewFeed(
     user: User,
-    tag: string[] | undefined,
     page: number | undefined,
     sortBy: 'relevance' | 'created' | undefined,
     dataType: ('need' | 'portfolio')[] | undefined,
   ) {
-    type SearchResult = { otherId: string; contentType: 'need' | 'portfolio' };
+    const profile = await this.userProfileRepository.findOne({
+      where: { user: { id: user.id } },
+    });
+
+    // get tags user has used in skills
+    if (!(profile instanceof UserProfile)) {
+      throw new NotFoundException();
+    }
+
+    let tags = [];
+    for (const skill of profile.skills) {
+      tags.push(skill.id);
+      tags.push(skill.parent.id);
+    }
+
+    // sort tags ids
+    tags = tags.sort();
+
+    // deduplicate the tags
+    const ts = new Set<string>(tags);
+
+    type SearchResult = {
+      otherId: string;
+      contentType: 'need' | 'portfolio';
+    };
 
     let [searchResults, count] = (await this.searchService.search(
       dataType,
       sortBy,
       'ASC',
       '',
-      tag,
+      [...ts],
       page,
     )) as [SearchResult[], number];
 
