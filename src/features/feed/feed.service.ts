@@ -71,32 +71,55 @@ export class FeedService {
     return feed;
   }
 
+  async getFeedTags(user: User): Promise<string[]> {
+    const cached = await this.cacheManager.get(`cache-tags-user-${user.id}`);
+    if (cached) {
+      return cached as string[];
+    }
+    const tags: string[] = [];
+    const profile = await this.userProfileRepository.findOne({
+      where: { user: { id: user.id } },
+      select: {
+        skills: {
+          id: true,
+          parent: {
+            id: true,
+          },
+        },
+      },
+      relations: {
+        skills: {
+          parent: true,
+        },
+      },
+    });
+    if (!profile?.skills) {
+      return [];
+    }
+    for (const skill of profile.skills) {
+      if (skill.parent) {
+        tags.push(skill.parent.id);
+      } else {
+        tags.push(skill.id);
+      }
+    }
+    const tagsFinal = [...new Set(tags)];
+    await this.cacheManager.set(
+      `cache-tags-user-${user.id}`,
+      tagsFinal,
+      30 * 60 * 1000,
+    );
+    return tagsFinal;
+  }
+
   async getNewFeed(
     user: User,
     page: number | undefined,
     sortBy: 'relevance' | 'created' | undefined,
+    order: 'ASC' | 'DESC' | undefined,
     dataType: ('need' | 'portfolio')[] | undefined,
   ) {
-    const profile = await this.userProfileRepository.findOne({
-      where: { user: { id: user.id } },
-    });
-
-    // get tags user has used in skills
-    if (!(profile instanceof UserProfile)) {
-      throw new NotFoundException();
-    }
-
-    let tags = [];
-    for (const skill of profile.skills) {
-      tags.push(skill.id);
-      tags.push(skill.parent.id);
-    }
-
-    // sort tags ids
-    tags = tags.sort();
-
-    // deduplicate the tags
-    const ts = new Set<string>(tags);
+    const tags = await this.getFeedTags(user);
 
     type SearchResult = {
       otherId: string;
@@ -106,9 +129,9 @@ export class FeedService {
     let [searchResults, count] = (await this.searchService.search(
       dataType,
       sortBy,
-      'ASC',
-      '',
-      [...ts],
+      order,
+      undefined,
+      tags,
       page,
     )) as [SearchResult[], number];
 
@@ -124,6 +147,6 @@ export class FeedService {
       )) as [SearchResult[], number];
     }
 
-    return searchResults;
+    return [searchResults, count];
   }
 }
