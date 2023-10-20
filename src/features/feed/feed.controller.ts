@@ -19,8 +19,9 @@ export class FeedController {
     @Req() req: IUserRequest,
     @Query('page') page: number | undefined,
     @Query('sort') sortBy: 'created' | 'relevance' | undefined,
+    @Query('order') order: 'ASC' | 'DESC' | undefined,
     @Query('datatype') dataType: ('need' | 'portfolio')[] | undefined,
   ) {
-    return this.feedService.getNewFeed(req.user, page, sortBy, dataType);
+    return this.feedService.getNewFeed(req.user, page, sortBy, order, dataType);
   }
 }
