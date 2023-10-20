@@ -9,7 +9,13 @@ export class FeedController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  async getFeed(
+  async getFeed(@Req() req: IUserRequest) {
+    return this.feedService.getFeed(req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('/v2')
+  async getNewFeed(
     @Req() req: IUserRequest,
     @Query('tag') tag: string[] | undefined,
     @Query('page') page: number | undefined,
@@ -17,6 +23,5 @@ export class FeedController {
     @Query('datatype') dataType: ('need' | 'portfolio')[] | undefined,
   ) {
     return this.feedService.getNewFeed(req.user, tag, page, sortBy, dataType);
-    // return this.feedService.getFeed(req.user);
   }
 }

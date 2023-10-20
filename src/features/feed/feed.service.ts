@@ -73,16 +73,9 @@ export class FeedService {
     sortBy: 'relevance' | 'created' | undefined,
     dataType: ('need' | 'portfolio')[] | undefined,
   ) {
-    const cachedFeed = await this.cacheManager.get('discovery-feed-search6');
-    if (cachedFeed && Array.isArray(cachedFeed)) {
-      console.log(cachedFeed);
-      return cachedFeed;
-    }
     type SearchResult = { otherId: string; contentType: 'need' | 'portfolio' };
-    const portfolios: PortfolioPost[] = [];
-    const needs: NeedPost[] = [];
 
-    const [searchResults, count] = (await this.searchService.search(
+    let [searchResults, count] = (await this.searchService.search(
       dataType,
       sortBy,
       'ASC',
@@ -90,18 +83,19 @@ export class FeedService {
       tag,
       page,
     )) as [SearchResult[], number];
-    console.log(count);
-    for (const item of searchResults) {
-      if (item.contentType == 'portfolio') {
-        const post = await this.portfolioService.getPost(item.otherId);
-        if (post) portfolios.push(post);
-      } else if (item.contentType == 'need') {
-        const post = await this.needService.getPost(item.otherId);
-        if (post) needs.push(post);
-      }
+
+    // if search result is empty return result of search without specifying tags or term.
+    if (count < 1000 && searchResults.length == 0) {
+      [searchResults, count] = (await this.searchService.search(
+        dataType,
+        sortBy,
+        'ASC',
+        '',
+        [],
+        page,
+      )) as [SearchResult[], number];
     }
-    const feed = await this.mergeFeedPosts(portfolios, needs);
-    await this.cacheManager.set('discovery-feed-search6', feed, 5 * 60 * 1000);
-    return feed;
+
+    return searchResults;
   }
 }
