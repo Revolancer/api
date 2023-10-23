@@ -59,9 +59,42 @@ export class IndexService {
     );
   }
 
-  editorjsDataToIndexable(data?: string) {
-    //TODO: Better indexing to parse out metadata
-    return data ?? '';
+  stripTags(text: string) {
+    return text.replace(/(<([^>]+)>)/gi, '').replace('\n', '');
+  }
+
+  editorjsDataToIndexable(data: any) {
+    try {
+      let parsed = '';
+      if (data.blocks) {
+        for (const block of data.blocks) {
+          switch (block.type) {
+            case 'header':
+              parsed += ` ${this.stripTags(block?.data?.text ?? '')} `;
+              break;
+            case 'paragraph':
+              parsed += ` ${this.stripTags(block?.data?.text ?? '')} `;
+              break;
+            case 'quote':
+              parsed += ` ${this.stripTags(
+                block?.data?.text ?? '',
+              )} ${this.stripTags(block?.data?.caption ?? '')} `;
+              break;
+            case 'list':
+              parsed += ` ${((block?.data?.items as string[]) ?? [])
+                .map((item) => this.stripTags(item))
+                .join(' ')} `;
+              break;
+            case 'image':
+              parsed += ` ${this.stripTags(block?.data?.caption ?? '')} `;
+              break;
+          }
+        }
+      }
+      return parsed;
+    } catch (e) {
+      return data;
+    }
   }
 
   async indexNeed(need: NeedPost) {
@@ -71,7 +104,7 @@ export class IndexService {
         contentType: 'need',
         title: need.title,
         body: `${need.title} ${this.editorjsDataToIndexable(
-          need.data,
+          need.data ?? '',
         )} ${need.tags.map((tag) => tag.text).join(' ')}`,
         tagIds: await this.getTagIds(need.tags),
         content_created_at: need.created_at,
@@ -81,13 +114,14 @@ export class IndexService {
   }
 
   async indexPortfolio(post: PortfolioPost) {
+    this.logger.debug(`indexing post ${post.id}`);
     this.contentIndexRepository.upsert(
       {
         otherId: post.id,
         contentType: 'portfolio',
         title: post.title,
         body: `${post.title} ${this.editorjsDataToIndexable(
-          post.data,
+          post.data ?? '',
         )} ${post.tags.map((tag) => tag.text).join(' ')}`,
         tagIds: await this.getTagIds(post.tags),
         content_created_at: post.created_at,
