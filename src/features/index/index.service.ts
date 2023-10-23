@@ -66,6 +66,9 @@ export class IndexService {
   editorjsDataToIndexable(data: any) {
     try {
       let parsed = '';
+      if (typeof data === 'string') {
+        data = JSON.parse(data);
+      }
       if (data.blocks) {
         for (const block of data.blocks) {
           switch (block.type) {
@@ -114,7 +117,6 @@ export class IndexService {
   }
 
   async indexPortfolio(post: PortfolioPost) {
-    this.logger.debug(`indexing post ${post.id}`);
     this.contentIndexRepository.upsert(
       {
         otherId: post.id,
