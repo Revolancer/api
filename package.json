@@ -75,7 +75,7 @@
     "@types/compression": "^1.7.4",
     "@types/cron": "^2.4.0",
     "@types/express": "^4.17.20",
-    "@types/google.maps": "^3.54.4",
+    "@types/google.maps": "^3.54.6",
     "@types/hapi__joi": "^17.1.12",
     "@types/jest": "29.5.6",
     "@types/luxon": "^3.3.3",
