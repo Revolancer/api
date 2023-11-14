@@ -24,6 +24,11 @@ export class TagsController {
     return await this.tagsService.findAll();
   }
 
+  @Get(':id')
+  async getTagById(@Param('id') id: string) {
+    return await this.tagsService.findOne(id);
+  }
+
   @Get('with_parents')
   async getTagsListWithParents() {
     return await this.tagsService.findAllWithParents();
