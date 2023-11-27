@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "@anchan828/nest-redlock": "^0.2.1",
-    "@bugsnag/js": "^7.21.0",
+    "@bugsnag/js": "^7.22.2",
     "@bull-board/api": "^5.9.1",
     "@bull-board/express": "^5.9.1",
     "@google-cloud/storage": "^7.3.1",
