@@ -43,7 +43,6 @@ import { PortfolioService } from '../portfolio/portfolio.service';
 import { NeedService } from '../need/need.service';
 import { ProjectsService } from '../projects/projects.service';
 import { DeleteAccountDto } from './dto/deleteaccount.dto';
-import { Cron } from '@nestjs/schedule';
 import { LastMail } from '../mail/entities/last-mail.entity';
 import { RedlockService } from '@anchan828/nest-redlock';
 import { NeedPost } from '../need/entities/need-post.entity';
@@ -950,7 +949,6 @@ export class UsersService {
     );
   }
 
-  @Cron('0 */15 * * * *')
   async checkIfUserHasNeeds() {
     await this.redlock.using(['7-day-no-needs'], 30000, async (signal) => {
       if (signal.aborted) {
@@ -1038,7 +1036,6 @@ export class UsersService {
     }
   }
 
-  @Cron('0 */15 * * * *')
   async checkIfUserHasPortfolio() {
     await this.redlock.using(['3-day-no-portfolio'], 30000, async (signal) => {
       if (signal.aborted) {

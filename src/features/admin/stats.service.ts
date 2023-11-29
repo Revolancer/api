@@ -9,7 +9,6 @@ import { NeedPost } from '../need/entities/need-post.entity';
 import { Proposal } from '../need/entities/proposal.entity';
 import { UserReferrer } from '../users/entities/userreferrer.entity';
 import { AdminService } from './admin.service';
-import { Cron } from '@nestjs/schedule';
 import { Project } from '../projects/entities/project.entity';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
@@ -171,7 +170,6 @@ export class StatsService {
   /**
    * Capture spot statistics
    */
-  @Cron('0 0 0 * * *')
   async captureSpotStats() {
     await this.redlock.using(['stats-log'], 30000, async (signal) => {
       if (signal.aborted) {

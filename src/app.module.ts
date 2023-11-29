@@ -19,12 +19,12 @@ import { APP_FILTER } from '@nestjs/core';
 import { ExceptionFilter } from './exception.filter';
 import { FeedModule } from './features/feed/feed.module';
 import { AdminModule } from './features/admin/admin.module';
-import { ScheduleModule } from '@nestjs/schedule';
 import { DevtoolsModule } from '@nestjs/devtools-integration';
 import { RedisClientOptions } from 'redis';
 import { redisStore } from 'cache-manager-redis-yet';
 import { IndexModule } from './features/index/index.module';
 import { SearchModule } from './features/search/search.module';
+import { CronModule } from './features/cron/cron.module';
 
 @Module({})
 class NullModule {}
@@ -83,10 +83,10 @@ class NullModule {}
         limit: 5,
       },
     ]),
-    ScheduleModule.forRoot(),
     DevtoolsModule.register({
       http: process.env.NODE_ENV == 'development',
     }),
+    CronModule,
   ],
   providers: [
     {
