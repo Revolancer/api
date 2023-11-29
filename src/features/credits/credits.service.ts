@@ -5,7 +5,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserBalance } from './entities/user-balance.entity';
 import { NotificationsService } from '../notifications/notifications.service';
-import { Cron } from '@nestjs/schedule';
 import { DateTime } from 'luxon';
 
 @Injectable()
@@ -104,7 +103,6 @@ export class CreditsService {
     }
   }
 
-  @Cron('0 0 2 * * *')
   async assignMonthlyBonusCredits() {
     const oneMonthAgo = DateTime.now().minus({ month: 1 });
     const wallets = await this.balanceRepository.find({

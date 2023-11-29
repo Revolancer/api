@@ -20,7 +20,6 @@ import { DateTime } from 'luxon';
 import { MailService } from '../mail/mail.service';
 import { UsersService } from '../users/users.service';
 import { LastMail } from '../mail/entities/last-mail.entity';
-import { Cron } from '@nestjs/schedule';
 import { RedlockService } from '@anchan828/nest-redlock';
 import { NotificationsService } from '../notifications/notifications.service';
 
@@ -565,7 +564,6 @@ export class ProjectsService {
    * Send an email to all users with unread messages greater than 12 hours old
    * If they have recieved this email since they were last active, do not resend it
    */
-  @Cron('27 */15 * * * *')
   async alertUsersWithUnreadMessages() {
     await this.redlock.using(
       ['unread-messages-email'],
