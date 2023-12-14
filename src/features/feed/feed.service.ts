@@ -59,7 +59,11 @@ export class FeedService {
     return result;
   }
 
-  async getFeed(user: User) {
+  async getFeed(
+    user: User,
+    start: number | undefined,
+    end: number | undefined,
+  ) {
     const cachedFeed = await this.cacheManager.get('discovery-feed');
     if (cachedFeed) {
       return cachedFeed;
@@ -67,8 +71,9 @@ export class FeedService {
     const portfolios = await this.portfolioService.getPostsForFeed(user);
     const needs = await this.needService.getPostsForFeed(user);
     const feed = await this.mergeFeedPosts(portfolios, needs);
-    await this.cacheManager.set('discovery-feed', feed, 5 * 60 * 1000);
-    return feed;
+    const slicedFeed = await Promise.all(feed.slice(start, end));
+    await this.cacheManager.set('discovery-feed', slicedFeed, 500);
+    return slicedFeed;
   }
 
   async getFeedTags(user: User): Promise<string[]> {
@@ -118,6 +123,8 @@ export class FeedService {
     sortBy: 'relevance' | 'created' | undefined,
     order: 'ASC' | 'DESC' | undefined,
     dataType: ('need' | 'portfolio')[] | undefined,
+    //start: number | undefined,
+    //end: number | undefined,
   ) {
     const tags = await this.getFeedTags(user);
 

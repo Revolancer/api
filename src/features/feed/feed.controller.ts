@@ -9,8 +9,12 @@ export class FeedController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  async getFeed(@Req() req: IUserRequest) {
-    return this.feedService.getFeed(req.user);
+  async getFeed(
+    @Req() req: IUserRequest,
+    @Query('start') start: number | undefined,
+    @Query('end') end: number | undefined,
+  ) {
+    return this.feedService.getFeed(req.user, start, end);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -21,7 +25,17 @@ export class FeedController {
     @Query('sort') sortBy: 'created' | 'relevance' | undefined,
     @Query('order') order: 'ASC' | 'DESC' | undefined,
     @Query('datatype') dataType: ('need' | 'portfolio')[] | undefined,
+    //@Query('start') start: number | undefined,
+    //@Query('end') end: number | undefined,
   ) {
-    return this.feedService.getNewFeed(req.user, page, sortBy, order, dataType);
+    return this.feedService.getNewFeed(
+      req.user,
+      page,
+      sortBy,
+      order,
+      dataType,
+      //start,
+      //end,
+    );
   }
 }
