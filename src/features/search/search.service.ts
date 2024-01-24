@@ -51,7 +51,10 @@ export class SearchService {
     const tagsDeDuped = [...new Set(tag)].sort();
 
     if (tagsDeDuped.length > 0) {
-      cachekey = `cache-search-tags-${page}-${tagsDeDuped.join('-')}`;
+      cachekey = `cache-search-tags-${page}-${tagsDeDuped.join('-')}-${term.replace(
+        / /g,
+        '+',
+      )}`;
       const cached = await this.cacheManager.get(cachekey);
       if (cached) return cached;
     }
@@ -81,7 +84,9 @@ export class SearchService {
           }
         }),
       );
-    } else {
+    }
+
+    if (term.length > 0) {
       query = query.andWhere('body ILIKE :term', { term: `%${term}%` });
     }
 
