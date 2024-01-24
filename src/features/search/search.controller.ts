@@ -14,7 +14,7 @@ export class SearchController {
     @Query('order') order: 'ASC' | 'DESC' | undefined,
     @Query('datatype') dataType: ('user' | 'need' | 'portfolio')[] | undefined,
   ) {
-    if (term == '')
+    if (term == '' && (tag?.length ?? 0) < 1)
       throw new BadRequestException('Please provide a search term');
     return this.searchService.search(dataType, sortBy, order, term, tag, page);
   }
