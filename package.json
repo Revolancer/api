@@ -25,8 +25,8 @@
   "dependencies": {
     "@anchan828/nest-redlock": "^0.2.7",
     "@bugsnag/js": "^7.22.3",
-    "@bull-board/api": "^5.13.0",
-    "@bull-board/express": "^5.13.0",
+    "@bull-board/api": "^5.14.2",
+    "@bull-board/express": "^5.14.2",
     "@google-cloud/storage": "^7.7.0",
     "@googlemaps/google-maps-services-js": "^3.3.42",
     "@nestjs/bull": "^10.0.1",
