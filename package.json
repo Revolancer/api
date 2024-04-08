@@ -23,7 +23,7 @@
     "seed:refresh": "node dist/seeder --refresh"
   },
   "dependencies": {
-    "@anchan828/nest-redlock": "^0.2.7",
+    "@anchan828/nest-redlock": "^0.2.18",
     "@bugsnag/js": "^7.22.3",
     "@bull-board/api": "^5.13.0",
     "@bull-board/express": "^5.13.0",
