@@ -27,7 +27,7 @@
     "@bugsnag/js": "^7.22.3",
     "@bull-board/api": "^5.13.0",
     "@bull-board/express": "^5.13.0",
-    "@google-cloud/storage": "^7.7.0",
+    "@google-cloud/storage": "^7.10.2",
     "@googlemaps/google-maps-services-js": "^3.3.42",
     "@nestjs/bull": "^10.0.1",
     "@nestjs/cache-manager": "^2.2.0",
